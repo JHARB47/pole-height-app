@@ -3,7 +3,9 @@
 @tailwind utilities;
 
 /* Print helpers */
-@media print {
-	.no-print { display: none !important; }
-	.page-break { page-break-before: always; break-before: page; }
+@layer utilities {
+	@media print {
+		.no-print { display: none !important; }
+		.page-break { page-break-before: always; break-before: page; }
+	}
 }
