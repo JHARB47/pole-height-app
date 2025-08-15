@@ -550,6 +550,9 @@ function FieldCollection() {
   const store = useAppStore();
   const [poleId, setPoleId] = React.useState('');
   const [saving, setSaving] = React.useState(false);
+  const [currentPhotoDataUrl, setCurrentPhotoDataUrl] = React.useState('');
+  const fileInputRefLibrary = React.useRef(null);
+  const fileInputRefCamera = React.useRef(null);
 
   const handleRowGPS = async (rowIndex) => {
     if (!('geolocation' in navigator)) { alert('Geolocation not supported'); return; }
@@ -578,6 +581,8 @@ function FieldCollection() {
         spanDistance: store.spanDistance || '',
         adjacentPoleHeight: store.adjacentPoleHeight || '',
         attachmentType: store.attachmentType || '',
+        status: 'done',
+        photoDataUrl: currentPhotoDataUrl || '',
         timestamp: new Date().toISOString(),
       };
       store.addCollectedPole(item);
@@ -585,15 +590,57 @@ function FieldCollection() {
       // Optionally clear coordinates to encourage fresh GPS per pole
       store.setPoleLatitude('');
       store.setPoleLongitude('');
+      setCurrentPhotoDataUrl('');
     } finally {
       setSaving(false);
     }
   };
 
+  const onSaveDraft = async () => {
+    setSaving(true);
+    try {
+      const id = poleId || `${(store.collectedPoles?.length || 0) + 1}`;
+      const item = {
+        id,
+        latitude: store.poleLatitude || '',
+        longitude: store.poleLongitude || '',
+        height: store.poleHeight || '',
+        poleClass: store.poleClass || '',
+        powerHeight: store.existingPowerHeight || '',
+        voltage: store.existingPowerVoltage || 'distribution',
+        hasTransformer: !!store.hasTransformer,
+        spanDistance: store.spanDistance || '',
+        adjacentPoleHeight: store.adjacentPoleHeight || '',
+        attachmentType: store.attachmentType || '',
+        status: 'draft',
+        photoDataUrl: currentPhotoDataUrl || '',
+        timestamp: new Date().toISOString(),
+      };
+      store.addCollectedPole(item);
+      setPoleId('');
+      // keep GPS for quick successive drafts
+      setCurrentPhotoDataUrl('');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const onSelectPhoto = async (file) => {
+    if (!file) return;
+    try {
+      const reader = new FileReader();
+      reader.onload = () => setCurrentPhotoDataUrl(String(reader.result || ''));
+      reader.readAsDataURL(file);
+    } catch (e) {
+      // log only in dev to avoid noisy console in prod
+      if (import.meta?.env?.DEV) console.warn('Photo selection failed', e);
+    }
+  };
+
   const exportCollected = () => {
-    const header = ['id','latitude','longitude','height','class','powerHeight','voltage','hasTransformer','spanDistance','adjacentPoleHeight','attachmentType','timestamp'];
+    const header = ['id','latitude','longitude','height','class','powerHeight','voltage','hasTransformer','spanDistance','adjacentPoleHeight','attachmentType','status','hasPhoto','timestamp'];
     const rows = (store.collectedPoles || []).map(p => [
-      p.id || '', p.latitude || '', p.longitude || '', p.height || '', p.poleClass || '', p.powerHeight || '', p.voltage || '', p.hasTransformer ? 'Y' : 'N', p.spanDistance || '', p.adjacentPoleHeight || '', p.attachmentType || '', p.timestamp || ''
+      p.id || '', p.latitude || '', p.longitude || '', p.height || '', p.poleClass || '', p.powerHeight || '', p.voltage || '', p.hasTransformer ? 'Y' : 'N', p.spanDistance || '', p.adjacentPoleHeight || '', p.attachmentType || '', (p.status || 'draft'), (p.photoDataUrl ? 'Y' : 'N'), p.timestamp || ''
     ]);
     const csv = [header.join(','), ...rows.map(r=>r.map(v=>`${String(v).replaceAll('"','""')}`).join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -602,11 +649,11 @@ function FieldCollection() {
 
   const exportFirst25 = () => {
     const subset = (store.collectedPoles || []).slice(0, 25);
-    const header = ['id','latitude','longitude','height','class','powerHeight','voltage','hasTransformer','spanDistance','adjacentPoleHeight','attachmentType','timestamp'];
+    const header = ['id','latitude','longitude','height','class','powerHeight','voltage','hasTransformer','spanDistance','adjacentPoleHeight','attachmentType','status','hasPhoto','timestamp'];
     const rows = subset.map(p => [
-      p.id || '', p.latitude || '', p.longitude || '', p.height || '', p.poleClass || '', p.powerHeight || '', p.voltage || '', p.hasTransformer ? 'Y' : 'N', p.spanDistance || '', p.adjacentPoleHeight || '', p.attachmentType || '', p.timestamp || ''
+      p.id || '', p.latitude || '', p.longitude || '', p.height || '', p.poleClass || '', p.powerHeight || '', p.voltage || '', p.hasTransformer ? 'Y' : 'N', p.spanDistance || '', p.adjacentPoleHeight || '', p.attachmentType || '', (p.status || 'draft'), (p.photoDataUrl ? 'Y' : 'N'), p.timestamp || ''
     ]);
-    const csv = [header.join(','), ...rows.map(r=>r.join(','))].join('\n');
+    const csv = [header.join(','), ...rows.map(r=>r.map(v=>`${String(v).replaceAll('"','""')}`).join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'collected-poles-first-25.csv'; a.click(); URL.revokeObjectURL(url);
   };
@@ -631,8 +678,22 @@ function FieldCollection() {
             } catch (e) { alert(`Failed to get location: ${e?.message || e}`); }
           }}>GPS</button>
         </div>
-        <div className="flex items-end">
-          <button className="h-9 px-3 border rounded text-sm" onClick={onDone} disabled={saving}>DONE</button>
+        <div className="grid grid-cols-2 gap-2 items-end">
+          <div className="grid gap-1">
+            <span className="text-sm font-medium text-gray-700">Photo</span>
+            <div className="flex items-center gap-2">
+              <button className="h-9 px-2 border rounded text-sm" onClick={()=>fileInputRefCamera.current?.click()} title="Take photo">Camera</button>
+              <button className="h-9 px-2 border rounded text-sm" onClick={()=>fileInputRefLibrary.current?.click()} title="Choose from library">Library</button>
+              {currentPhotoDataUrl ? <img src={currentPhotoDataUrl} alt="preview" className="h-9 w-9 object-cover rounded border" /> : null}
+              {currentPhotoDataUrl ? <button className="h-9 px-2 border rounded text-sm" onClick={()=>setCurrentPhotoDataUrl('')}>Remove</button> : null}
+              <input ref={fileInputRefCamera} type="file" accept="image/*" capture="environment" className="hidden" onChange={e=>onSelectPhoto(e.target.files?.[0])} />
+              <input ref={fileInputRefLibrary} type="file" accept="image/*" className="hidden" onChange={e=>onSelectPhoto(e.target.files?.[0])} />
+            </div>
+          </div>
+          <div className="flex items-end justify-end gap-2">
+            <button className="h-9 px-3 border rounded text-sm" onClick={onSaveDraft} disabled={saving}>Save Draft</button>
+            <button className="h-9 px-3 border rounded text-sm" onClick={onDone} disabled={saving}>DONE</button>
+          </div>
         </div>
       </div>
 
@@ -642,7 +703,7 @@ function FieldCollection() {
         <button className="px-2 py-1 border rounded text-sm" onClick={()=>store.setCollectedPoles?.([])} disabled={!store.collectedPoles?.length}>Clear</button>
       </div>
 
-      <div className="mt-3 overflow-auto">
+  <div className="mt-3 overflow-auto">
         <table className="w-full text-sm min-w-[720px]">
           <thead>
             <tr className="text-left text-gray-600">
@@ -655,6 +716,8 @@ function FieldCollection() {
               <th className="p-2">Voltage</th>
               <th className="p-2">XFMR</th>
               <th className="p-2">Span</th>
+      <th className="p-2">Photo</th>
+      <th className="p-2">Status</th>
               <th className="p-2">Actions</th>
             </tr>
           </thead>
@@ -683,6 +746,43 @@ function FieldCollection() {
                   <input type="checkbox" className="h-4 w-4" checked={!!p.hasTransformer} onChange={e=>store.updateCollectedPole(i,{ hasTransformer: e.target.checked })} />
                 </td>
                 <td className="p-2"><input className="border rounded px-2 py-1 w-20" value={p.spanDistance || ''} onChange={e=>store.updateCollectedPole(i,{ spanDistance: e.target.value })} /></td>
+                <td className="p-2">
+                  <div className="flex items-center gap-2">
+                    {p.photoDataUrl ? <img src={p.photoDataUrl} alt="photo" className="h-10 w-10 object-cover rounded border" /> : <span className="text-xs text-gray-500">None</span>}
+                    <label className="hidden">
+                      <input type="file" accept="image/*" capture="environment" onChange={e=>{
+                        const f = e.target.files?.[0]; if (!f) return;
+                        const reader = new FileReader(); reader.onload = () => store.updateCollectedPole(i, { photoDataUrl: String(reader.result || '') }); reader.readAsDataURL(f);
+                        e.target.value='';
+                      }} />
+                    </label>
+                    <button className="px-2 py-1 border rounded text-xs" onClick={()=>{
+                      const input = document.createElement('input');
+                      input.type = 'file'; input.accept = 'image/*'; input.setAttribute('capture','environment');
+                      input.onchange = (e)=>{
+                        const f = e.target?.files?.[0]; if (!f) return;
+                        const reader = new FileReader(); reader.onload = () => store.updateCollectedPole(i, { photoDataUrl: String(reader.result || '') }); reader.readAsDataURL(f);
+                      };
+                      input.click();
+                    }}>Camera</button>
+                    <button className="px-2 py-1 border rounded text-xs" onClick={()=>{
+                      const input = document.createElement('input');
+                      input.type = 'file'; input.accept = 'image/*';
+                      input.onchange = (e)=>{
+                        const f = e.target?.files?.[0]; if (!f) return;
+                        const reader = new FileReader(); reader.onload = () => store.updateCollectedPole(i, { photoDataUrl: String(reader.result || '') }); reader.readAsDataURL(f);
+                      };
+                      input.click();
+                    }}>Library</button>
+                    {p.photoDataUrl ? <button className="px-2 py-1 border rounded text-xs" onClick={()=>store.updateCollectedPole(i, { photoDataUrl: '' })}>Remove</button> : null}
+                  </div>
+                </td>
+                <td className="p-2">
+                  <select className="border rounded px-2 py-1" value={p.status || 'draft'} onChange={e=>store.updateCollectedPole(i,{ status: e.target.value })}>
+                    <option value="draft">draft</option>
+                    <option value="done">done</option>
+                  </select>
+                </td>
                 <td className="p-2 text-right">
                   <button className="text-xs text-red-600" onClick={()=>store.removeCollectedPole(i)}>Delete</button>
                 </td>
