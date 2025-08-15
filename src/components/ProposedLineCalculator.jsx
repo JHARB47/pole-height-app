@@ -1251,10 +1251,49 @@ Sample Project 3,45ft,Class 2,35' 6",175,95`;
                 <li><strong>Enter Basic Data:</strong> Project name, pole height, and existing conditions</li>
                 <li><strong>Select Construction Type:</strong> New construction or existing pole attachment</li>
                 <li><strong>Add Span Information:</strong> Distance, adjacent pole height, wind conditions</li>
+                <li><strong>Use GPS (optional):</strong> Tap “GPS” beside Latitude/Longitude to autofill device coordinates</li>
                 <li><strong>Configure Existing Lines:</strong> Add communication and power lines on the pole</li>
+                <li><strong>Field Collection (mobile):</strong> For each pole, set ID, tap GPS, attach a photo (Camera/Library), then <em>Save Draft</em> or <em>DONE</em></li>
                 <li><strong>Review Results:</strong> Check clearances, make-ready requirements, and cost estimates</li>
-                <li><strong>Export Reports:</strong> Generate CSV data or printable reports</li>
+                <li><strong>Export:</strong> Use Export CSV, or for utility batches use “Export First 25”</li>
               </ol>
+            </div>
+          </section>
+
+          {/* Field Collection how-to */}
+          <section>
+            <h3 className="text-lg font-semibold text-emerald-700 mb-3">📍 Field Collection (Mobile + GPS + Photos)</h3>
+            <div className="bg-emerald-50 p-4 rounded-lg text-sm space-y-3">
+              <div>
+                <h4 className="font-medium text-gray-800 mb-1">Collect a pole</h4>
+                <ol className="list-decimal list-inside space-y-1">
+                  <li>Enter <strong>Pole ID</strong> (tag or temporary ID)</li>
+                  <li>Tap <strong>GPS</strong> to capture <em>Latitude/Longitude</em> from your device</li>
+                  <li>Attach a <strong>Photo</strong> using <em>Camera</em> (prompts for permission) or <em>Library</em></li>
+                  <li>Tap <strong>Save Draft</strong> to keep editing later, or <strong>DONE</strong> to finalize the entry</li>
+                </ol>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-800 mb-1">Manage collected poles</h4>
+                <ul className="list-disc list-inside space-y-1">
+                  <li><strong>Edit inline:</strong> ID, GPS, heights, voltage, transformer, span</li>
+                  <li><strong>Per-row GPS:</strong> Use the row <em>GPS</em> button to refresh coordinates on that row</li>
+                  <li><strong>Status:</strong> Switch between <em>draft</em> and <em>done</em> per row</li>
+                  <li><strong>Photos:</strong> Add/replace via <em>Camera</em> or <em>Library</em>; preview and <em>Remove</em> supported</li>
+                  <li><strong>Persistence:</strong> Entries are cached in your browser and survive refreshes</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-800 mb-1">Export & utility batches</h4>
+                <ul className="list-disc list-inside space-y-1">
+                  <li><strong>Export CSV:</strong> Full table including <em>status</em> and <em>hasPhoto</em> columns</li>
+                  <li><strong>Export First 25:</strong> Creates a CSV of the first 25 rows for utilities like FirstEnergy</li>
+                  <li><strong>Note:</strong> Photos aren’t embedded in the CSV; only a <em>hasPhoto</em> flag is included</li>
+                </ul>
+              </div>
+              <div className="text-xs text-gray-600">
+                <p><strong>Privacy & Permissions:</strong> GPS and camera access are requested by your browser. Data stays on your device unless you export or share it.</p>
+              </div>
             </div>
           </section>
 
