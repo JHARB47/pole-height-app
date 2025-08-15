@@ -55,7 +55,12 @@ export default function ExistingLinesEditor() {
 
   const addRow = () => setExistingLines([ ...existingLines, { type: 'communication', height: '', makeReady: false, makeReadyHeight: '', companyName: '' } ]);
   const removeRow = (idx) => setExistingLines(existingLines.filter((_, i) => i !== idx));
-  const duplicateRow = (idx) => setExistingLines(existingLines.toSpliced(idx+1, 0, { ...existingLines[idx] }));
+  const duplicateRow = (idx) => {
+    const arr = existingLines.slice();
+    const copy = { ...arr[idx] };
+    arr.splice(idx + 1, 0, copy);
+    setExistingLines(arr);
+  };
   const moveRow = (idx, dir) => {
     const to = idx + dir;
     if (to < 0 || to >= existingLines.length) return;
