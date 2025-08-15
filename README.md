@@ -28,11 +28,13 @@ A comprehensive web application for calculating NESC-compliant pole attachment h
 The application is optimized for Netlify deployment with the following configuration:
 
 #### Build Settings
+
 - **Build Command**: `npm run build`
 - **Publish Directory**: `dist`
 - **Node Version**: 22
 
 #### Key Files
+
 - `netlify.toml` - Netlify deployment configuration
 - `vite.config.js` - Optimized Vite build with code splitting
 - `package.json` - Dependencies and build scripts
@@ -40,6 +42,7 @@ The application is optimized for Netlify deployment with the following configura
 ### Code Splitting
 
 The build automatically splits code into optimized chunks:
+
 - **geospatial**: Geospatial libraries (shpjs, togeojson, jszip) - ~300KB
 - **vendor**: React core libraries (react, react-dom, zustand) - ~144KB  
 - **icons**: Lucide React icons - minimal
@@ -94,6 +97,7 @@ cp .env.example .env
 ```
 
 Available environment variables:
+
 - `VITE_APP_NAME` - Application name
 - `VITE_APP_VERSION` - Version number
 - `VITE_DEBUG_MODE` - Enable debug features
@@ -118,6 +122,7 @@ Available environment variables:
 ## 🧪 Testing
 
 Comprehensive test suite covering:
+
 - Calculation engine accuracy
 - Format parsing and conversion
 - Integration testing
@@ -134,18 +139,21 @@ npm run test:watch
 ## 📚 Usage
 
 ### Quick Start
+
 1. Enter basic pole and span information
 2. Configure existing utilities and proposed attachments
 3. Review calculated clearances and NESC compliance
 4. Export results or generate reports
 
 ### Advanced Features
+
 - **Batch Processing**: Import multiple spans from CSV/Shapefile
 - **Custom Clearances**: Override default NESC requirements
 - **Make-Ready Analysis**: Calculate costs for existing utility modifications
 - **Professional Reports**: Export with company branding and detailed calculations
 
 ### File Import Support
+
 - **KML/KMZ**: Google Earth files with configurable attribute mapping
 - **Shapefiles**: Industry-standard GIS format (.shp, .dbf, .shx)
 - **CSV**: Structured data with customizable column mapping
@@ -155,14 +163,17 @@ npm run test:watch
 ### Common Build Issues
 
 **Buffer/Node.js Module Errors**:
+
 - The vite.config.js includes polyfills for browser compatibility
 - Geospatial libraries require Node.js modules that are automatically handled
 
 **Large Bundle Warnings**:
+
 - Code splitting is configured to keep chunks under 600KB
 - Geospatial features are in a separate chunk for optional loading
 
 **Netlify Deployment Issues**:
+
 - Ensure Node.js version is 18+ in build settings
 - Check that `netlify.toml` is in the repository root
 - Verify build command is set to `npm run build`
@@ -170,10 +181,12 @@ npm run test:watch
 ### Development Issues
 
 **Dev Server Won't Start**:
+
 - Check if ports 5173-5176 are available
 - Use `npm run dev -- --host` to bind to all interfaces
 
 **Tests Failing**:
+
 - Run `npm install` to ensure all dependencies are current
 - Check that test files haven't been modified
 
