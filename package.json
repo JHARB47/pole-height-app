@@ -9,7 +9,12 @@
     "lint": "eslint .",
     "preview": "vite preview",
   "test": "vitest run",
-  "sync:deploy": "git add -A && git commit -m 'chore: auto-sync before deploy' || true && git push"
+  "verify": "npm run lint && npm test && npm run build",
+  "sync:deploy": "git add -A && git commit -m 'chore: auto-sync before deploy' || true && git push",
+  "deploy:git": "npm run verify && npm run sync:deploy",
+  "release:patch": "npm version patch -m 'chore(release): %s' && git push --follow-tags",
+  "release:minor": "npm version minor -m 'chore(release): %s' && git push --follow-tags",
+  "release:major": "npm version major -m 'chore(release): %s' && git push --follow-tags"
   },
   "dependencies": {
     "@tmcw/togeojson": "^5.8.0",
@@ -26,6 +31,8 @@
     "@vitejs/plugin-react": "^4.0.4",
     "autoprefixer": "^10.4.15",
     "buffer": "^6.0.3",
+  "@stackbit/cms-git": "^1.0.35",
+  "@stackbit/types": "^2.1.14",
     "esbuild": "^0.19.2",
     "eslint": "^8.47.0",
     "eslint-plugin-react": "^7.33.2",

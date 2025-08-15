@@ -1,0 +1,58 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+          scope: ''
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+      - name: Publish to npm (optional)
+        run: |
+          IS_PRIVATE=$(node -p "require('./package.json').private ? 'true' : 'false'")
+          if [ -n "$NPM_TOKEN" ] && [ "$IS_PRIVATE" != "true" ]; then 
+            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
+            npm publish --access public || true
+          else
+            if [ "$IS_PRIVATE" = "true" ]; then echo "package.json is private; skipping npm publish"; else echo "NPM_TOKEN not set; skipping npm publish"; fi
+          fi
+
+      - name: Setup Node.js for GitHub Packages
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@${{ github.repository_owner }}'
+
+      - name: Publish to GitHub Packages (optional)
+        run: |
+          IS_PRIVATE=$(node -p "require('./package.json').private ? 'true' : 'false'")
+          if [ -n "$GITHUB_TOKEN" ] && [ "$IS_PRIVATE" != "true" ]; then 
+            echo "//npm.pkg.github.com/:_authToken=$GITHUB_TOKEN" > ~/.npmrc
+            npm publish || true
+          else
+            if [ "$IS_PRIVATE" = "true" ]; then echo "package.json is private; skipping GH Packages publish"; else echo "GITHUB_TOKEN not available; skipping GH Packages publish"; fi
+          fi
