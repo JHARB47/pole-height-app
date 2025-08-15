@@ -12,6 +12,7 @@ dist
 dist-ssr
 *.local
 .netlify/
+package-lock 2.json
 
 # Editor directories and files
 .vscode/*

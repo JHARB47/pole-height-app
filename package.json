@@ -8,7 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest run"
+  "test": "vitest run",
+  "sync:deploy": "git add -A && git commit -m 'chore: auto-sync before deploy' || true && git push"
   },
   "dependencies": {
     "@tmcw/togeojson": "^5.8.0",
