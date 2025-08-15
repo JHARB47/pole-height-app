@@ -74,6 +74,7 @@ export default function ProposedLineCalculator() {
   const [showReport, setShowReport] = React.useState(false);
   const [showBatchReport, setShowBatchReport] = React.useState(false);
   const [showHelp, setShowHelp] = React.useState(false);
+  const [helpSection, setHelpSection] = React.useState(null);
 
   // Make-ready notes & estimate
   useEffect(() => {
@@ -190,7 +191,7 @@ export default function ProposedLineCalculator() {
         <>
           <ImportPanel />
           <ExistingLinesEditor />
-          <FieldCollection />
+          <FieldCollection openHelp={(section)=>{ setHelpSection(section); setShowHelp(true); }} />
         </>
       )}
 
@@ -203,7 +204,7 @@ export default function ProposedLineCalculator() {
 
       {showReport ? <PrintableReport /> : showBatchReport ? <BatchReport /> : <ResultsPanel />}
       
-      <HelpModal open={showHelp} onClose={() => setShowHelp(false)} />
+  <HelpModal open={showHelp} onClose={() => setShowHelp(false)} initialSection={helpSection} />
     </div>
   );
 }
@@ -546,7 +547,7 @@ function ExportButtons() {
   );
 }
 
-function FieldCollection() {
+function FieldCollection({ openHelp }) {
   const store = useAppStore();
   const [poleId, setPoleId] = React.useState('');
   const [saving, setSaving] = React.useState(false);
@@ -661,7 +662,14 @@ function FieldCollection() {
   return (
     <div className="rounded border p-3 no-print">
       <div className="flex items-center justify-between mb-2">
-        <div className="font-medium">Field Collection</div>
+    <div className="font-medium flex items-center gap-2">
+          Field Collection
+          <button
+            className="text-xs px-2 py-0.5 border rounded text-blue-700 border-blue-300 hover:bg-blue-50"
+      onClick={()=> openHelp && openHelp('help-field-collection') }
+            title="Open Help to Field Collection"
+          >Help</button>
+        </div>
         <div className="text-xs text-gray-600">Collected: {(store.collectedPoles || []).length} | Max per FE batch: 25</div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -1192,7 +1200,16 @@ function LogoUpload() {
   );
 }
 
-function HelpModal({ open, onClose }) {
+function HelpModal({ open, onClose, initialSection }) {
+  React.useEffect(() => {
+    if (!open || !initialSection) return;
+    // defer to allow modal render
+    const t = setTimeout(() => {
+      const el = document.getElementById(initialSection);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+    return () => clearTimeout(t);
+  }, [open, initialSection]);
   if (!open) return null;
   
   const downloadSampleCSV = () => {
@@ -1261,7 +1278,7 @@ Sample Project 3,45ft,Class 2,35' 6",175,95`;
           </section>
 
           {/* Field Collection how-to */}
-          <section>
+          <section id="help-field-collection">
             <h3 className="text-lg font-semibold text-emerald-700 mb-3">📍 Field Collection (Mobile + GPS + Photos)</h3>
             <div className="bg-emerald-50 p-4 rounded-lg text-sm space-y-3">
               <div>
