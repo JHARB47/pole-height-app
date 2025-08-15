@@ -34,7 +34,7 @@
 2. **Verify Build Settings**
    - Build command: `npm run build`
    - Publish directory: `dist`
-   - Node.js version: 18+
+   - Node.js version: 22
 
 3. **Deploy**
    - Netlify will automatically build and deploy

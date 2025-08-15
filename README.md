@@ -1,4 +1,4 @@
-# Pole Height Calculator
+# Pole Plan Wizard
 
 A comprehensive web application for calculating NESC-compliant pole attachment heights for utility engineering workflows.
 
@@ -30,7 +30,7 @@ The application is optimized for Netlify deployment with the following configura
 #### Build Settings
 - **Build Command**: `npm run build`
 - **Publish Directory**: `dist`
-- **Node Version**: 18+
+- **Node Version**: 22
 
 #### Key Files
 - `netlify.toml` - Netlify deployment configuration
