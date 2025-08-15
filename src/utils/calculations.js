@@ -146,6 +146,10 @@ export function resultsToCSV(results, warnings = [], makeReadyNotes = '', { useT
   lines.push(`Pole,Height,${fmt(results.pole.inputHeight)}`);
   lines.push(`Pole,Buried,${fmt(results.pole.buriedFt)}`);
   lines.push(`Pole,Above Ground,${fmt(results.pole.aboveGroundFt)}`);
+  if (results.pole.latitude != null && results.pole.longitude != null) {
+    lines.push(`Pole,Latitude,${results.pole.latitude}`);
+    lines.push(`Pole,Longitude,${results.pole.longitude}`);
+  }
   lines.push(`Attach,Proposed,${useTickMarks ? formatFeetInchesTickMarks(results.attach.proposedAttachFt) : results.attach.proposedAttachFmt}`);
   lines.push(`Span,Length,${results.span.spanFt} ft`);
   lines.push(`Span,Wind,${results.span.wind} mph`);
@@ -289,6 +293,8 @@ export function computeAnalysis(inputs) {
   const {
     poleHeight,
     poleClass,
+  poleLatitude,
+  poleLongitude,
     existingPowerHeight,
     existingPowerVoltage = 'distribution',
     spanDistance,
@@ -427,6 +433,8 @@ export function computeAnalysis(inputs) {
       buriedFt: poleData.buried,
       aboveGroundFt: poleData.aboveGround,
       classInfo: poleData.classInfo,
+  latitude: poleLatitude ?? null,
+  longitude: poleLongitude ?? null,
     },
     attach: {
       proposedAttachFt,

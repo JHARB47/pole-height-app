@@ -39,6 +39,11 @@ const useAppStore = create(persist((set) => ({
   setApplicantName: (v) => set({ applicantName: v }),
   jobNumber: '',
   setJobNumber: (v) => set({ jobNumber: v }),
+  // GPS coordinates for the current pole/location
+  poleLatitude: '',
+  setPoleLatitude: (v) => set({ poleLatitude: v }),
+  poleLongitude: '',
+  setPoleLongitude: (v) => set({ poleLongitude: v }),
   // Branding/logo for report
   logoDataUrl: '',
   setLogoDataUrl: (v) => set({ logoDataUrl: v }),
@@ -135,6 +140,8 @@ const useAppStore = create(persist((set) => ({
   applicantName: '',
   jobNumber: '',
   logoDataUrl: '',
+  poleLatitude: '',
+  poleLongitude: '',
     existingPowerHeight: '',
     existingPowerVoltage: 'distribution',
     spanDistance: '',

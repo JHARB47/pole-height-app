@@ -66,6 +66,10 @@ export default function ProposedLineCalculator() {
     setApplicantName,
     jobNumber,
     setJobNumber,
+  poleLatitude,
+  setPoleLatitude,
+  poleLongitude,
+  setPoleLongitude,
   } = useAppStore();
   const [showReport, setShowReport] = React.useState(false);
   const [showBatchReport, setShowBatchReport] = React.useState(false);
@@ -113,11 +117,30 @@ export default function ProposedLineCalculator() {
   ]);
 
   // Simple results panel + inputs
+  const useDeviceGPS = async () => {
+    if (!('geolocation' in navigator)) {
+      alert('Geolocation is not supported by this browser.');
+      return;
+    }
+    try {
+      const pos = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 });
+      });
+      const { latitude, longitude } = pos.coords || {};
+      if (latitude != null && longitude != null) {
+        setPoleLatitude(latitude.toFixed(6));
+        setPoleLongitude(longitude.toFixed(6));
+      }
+    } catch (e) {
+      alert(`Failed to get location: ${e?.message || e}`);
+    }
+  };
+
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-3 md:p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Pole Plan Wizard</h1>
-        <div className="text-xs text-gray-600">
+        <h1 className="text-lg md:text-xl font-semibold">Pole Plan Wizard</h1>
+        <div className="text-xs text-gray-600 hidden sm:block">
           Click <button 
             className="text-blue-600 hover:text-blue-800 underline" 
             onClick={() => setShowHelp(true)}
@@ -125,11 +148,20 @@ export default function ProposedLineCalculator() {
         </div>
       </div>
   {!showReport && (
-  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 no-print">
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 no-print">
          <Input label="Project Name" value={projectName} onChange={e=>setProjectName(e.target.value)} />
          <Input label="Applicant" value={applicantName} onChange={e=>setApplicantName(e.target.value)} />
          <Input label="Job #" value={jobNumber} onChange={e=>setJobNumber(e.target.value)} />
         <LogoUpload />
+        <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Input label="Pole Latitude" value={poleLatitude} onChange={e=>setPoleLatitude(e.target.value)} placeholder="e.g., 40.123456" />
+          <div className="grid grid-cols-[1fr_auto] gap-2 items-end">
+            <Input label="Pole Longitude" value={poleLongitude} onChange={e=>setPoleLongitude(e.target.value)} placeholder="e.g., -82.987654" />
+            <button type="button" className="h-9 px-3 border rounded text-sm" onClick={useDeviceGPS} title="Use device GPS">
+              Use GPS
+            </button>
+          </div>
+        </div>
          <Select label="Preset Profile" value={presetProfile} onChange={e=>setPresetProfile(e.target.value)} options={[{label:'None',value:''}, ...Object.values(DEFAULTS.presets).map(p=>({label:p.label,value:p.value}))]} />
          <Input label="Pole Height (ft)" value={poleHeight} onChange={e=>setPoleHeight(e.target.value)} />
          <Input label="Pole Class" value={poleClass} onChange={e=>setPoleClass(e.target.value)} placeholder="e.g., Class 4" />
@@ -161,7 +193,7 @@ export default function ProposedLineCalculator() {
         </>
       )}
 
-      <div className="flex items-center gap-2 no-print">
+  <div className="flex flex-col sm:flex-row sm:items-center gap-2 no-print">
         <ScenarioButtons />
         <ExportButtons />
         <button className="px-2 py-1 border rounded text-sm" onClick={()=>{ setShowBatchReport(false); setShowReport(r=>!r); }}>{showReport ? 'Back to Editor' : 'View Report'}</button>
@@ -253,6 +285,9 @@ function ResultsPanel() {
           <div>Buried: {fmt(results.pole.buriedFt)}</div>
           <div>Above ground: {fmt(results.pole.aboveGroundFt)}</div>
           <div>Class: {results.pole.classInfo}</div>
+          {(results.pole.latitude != null && results.pole.longitude != null) ? (
+            <div>GPS: {results.pole.latitude}, {results.pole.longitude}</div>
+          ) : null}
         </div>
       </div>
       <div className="rounded border p-3">
@@ -363,6 +398,9 @@ function PrintableReport() {
        <div>
          <div className="font-medium">Pole</div>
          <div>Height: {formatFeetInches(results.pole.inputHeight)} | Above-ground: {formatFeetInches(results.pole.aboveGroundFt)} | Buried: {formatFeetInches(results.pole.buriedFt)}</div>
+         {(results.pole.latitude != null && results.pole.longitude != null) ? (
+           <div>GPS: {results.pole.latitude}, {results.pole.longitude}</div>
+         ) : null}
        </div>
        <div>
          <div className="font-medium">Attachment & Span</div>

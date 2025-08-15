@@ -14,6 +14,8 @@ A comprehensive web application for calculating NESC-compliant pole attachment h
 - **Comprehensive Help**: Built-in help system with detailed documentation and examples
 - **Professional Reports**: Export calculations to CSV with print-optimized layouts
 - **State Persistence**: User preferences and data saved locally between sessions
+- Mobile-friendly layout tweaks (responsive inputs/buttons)
+- GPS autofill: Use device location to populate pole latitude/longitude
 
 ## 🛠 Technology Stack
 
