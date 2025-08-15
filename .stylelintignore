@@ -1,0 +1,11 @@
+node_modules
+dist
+**/*.js
+**/*.jsx
+**/*.ts
+**/*.tsx
+**/*.json
+**/*.md
+**/*.svg
+**/*.html
+**/*.map

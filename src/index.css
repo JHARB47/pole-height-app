@@ -6,6 +6,10 @@
 @layer utilities {
 	@media print {
 		.no-print { display: none !important; }
-		.page-break { page-break-before: always; break-before: page; }
+
+		.page-break {
+			page-break-before: always;
+			break-before: page;
+		}
 	}
 }

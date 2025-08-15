@@ -9,6 +9,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
   "test": "vitest run",
+  "lint:css": "stylelint \"src/**/*.css\"",
+  "lint:css:fix": "stylelint \"src/**/*.css\" --fix",
   "verify": "npm run lint && npm test && npm run build",
   "sync:deploy": "git add -A && git commit -m 'chore: auto-sync before deploy' || true && git push",
   "deploy:git": "npm run verify && npm run sync:deploy",
@@ -40,8 +42,11 @@
     "eslint-plugin-react-refresh": "^0.4.3",
     "postcss": "^8.4.28",
     "tailwindcss": "^3.3.3",
-    "vite": "^4.4.9",
-    "vitest": "^1.6.0"
+  "vite": "^4.4.9",
+  "vitest": "^1.6.0",
+  "stylelint": "^16.7.0",
+  "stylelint-config-standard": "^36.0.0",
+  "stylelint-config-tailwindcss": "^0.0.7"
   },
   "engines": {
     "node": ">=22 <23",

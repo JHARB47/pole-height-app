@@ -1,5 +1,7 @@
 {
     "recommendations": [
-        "openai.chatgpt"
+        "openai.chatgpt",
+        "bradlc.vscode-tailwindcss",
+        "stylelint.vscode-stylelint"
     ]
 }
