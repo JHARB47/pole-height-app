@@ -1,5 +1,7 @@
 # Pole Plan Wizard
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/1722a209-219d-4f21-9380-718a78f4372a/deploy-status)](https://app.netlify.com/sites/1722a209-219d-4f21-9380-718a78f4372a/deploys)
+
 A comprehensive web application for calculating NESC-compliant pole attachment heights for utility engineering workflows.
 
 ## 🚀 Features
