@@ -8,15 +8,16 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-  "test": "vitest run",
-  "lint:css": "stylelint \"src/**/*.css\"",
-  "lint:css:fix": "stylelint \"src/**/*.css\" --fix",
-  "verify": "npm run lint && npm test && npm run build",
-  "sync:deploy": "git add -A && git commit -m 'chore: auto-sync before deploy' || true && git push",
-  "deploy:git": "npm run verify && npm run sync:deploy",
-  "release:patch": "npm version patch -m 'chore(release): %s' && git push --follow-tags",
-  "release:minor": "npm version minor -m 'chore(release): %s' && git push --follow-tags",
-  "release:major": "npm version major -m 'chore(release): %s' && git push --follow-tags"
+    "test": "vitest run",
+    "lint:css": "stylelint \"src/**/*.css\"",
+    "lint:css:fix": "stylelint \"src/**/*.css\" --fix",
+    "verify": "npm run lint && npm run lint:css && npm test && npm run build",
+    "prepare": "husky",
+    "sync:deploy": "git add -A && git commit -m 'chore: auto-sync before deploy' || true && git push",
+    "deploy:git": "npm run verify && npm run sync:deploy",
+    "release:patch": "npm version patch -m 'chore(release): %s' && git push --follow-tags",
+    "release:minor": "npm version minor -m 'chore(release): %s' && git push --follow-tags",
+    "release:major": "npm version major -m 'chore(release): %s' && git push --follow-tags"
   },
   "dependencies": {
     "@tmcw/togeojson": "^5.8.0",
@@ -33,8 +34,8 @@
     "@vitejs/plugin-react": "^4.0.4",
     "autoprefixer": "^10.4.15",
     "buffer": "^6.0.3",
-  "@stackbit/cms-git": "^1.0.35",
-  "@stackbit/types": "^2.1.14",
+    "@stackbit/cms-git": "^1.0.35",
+    "@stackbit/types": "^2.1.14",
     "esbuild": "^0.19.2",
     "eslint": "^8.47.0",
     "eslint-plugin-react": "^7.33.2",
@@ -42,11 +43,23 @@
     "eslint-plugin-react-refresh": "^0.4.3",
     "postcss": "^8.4.28",
     "tailwindcss": "^3.3.3",
-  "vite": "^4.4.9",
-  "vitest": "^1.6.0",
-  "stylelint": "^16.7.0",
-  "stylelint-config-standard": "^36.0.0",
-  "stylelint-config-tailwindcss": "^0.0.7"
+    "vite": "^4.4.9",
+    "vitest": "^1.6.0",
+    "stylelint": "^16.7.0",
+    "stylelint-config-standard": "^36.0.0",
+    "stylelint-config-tailwindcss": "^0.0.7",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.10"
+  },
+  "lint-staged": {
+    "src/**/*.{js,jsx}": [
+      "eslint --fix",
+      "git add"
+    ],
+    "src/**/*.css": [
+      "stylelint --fix",
+      "git add"
+    ]
   },
   "engines": {
     "node": ">=22 <23",
