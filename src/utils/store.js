@@ -119,10 +119,43 @@ const useAppStore = create(persist((set) => ({
   }),
   importedPoles: [],
   setImportedPoles: (arr) => set({ importedPoles: arr || [] }),
+  // Jobs (projects) management
+  jobs: [], // { id, name, applicantName, jobNumber, presetProfile, notes, createdAt }
+  currentJobId: '',
+  addJob: (job) => set((s) => {
+    const id = job?.id || String(Date.now());
+    const newJob = { id, name: job?.name || 'Untitled Job', applicantName: job?.applicantName || '', jobNumber: job?.jobNumber || '', presetProfile: job?.presetProfile || '', notes: job?.notes || '', createdAt: job?.createdAt || new Date().toISOString() };
+    const merged = [...(s.jobs || []), newJob];
+    return { jobs: merged, currentJobId: id, projectName: newJob.name, applicantName: newJob.applicantName, jobNumber: newJob.jobNumber, presetProfile: newJob.presetProfile };
+  }),
+  updateJob: (id, patch) => set((s) => {
+    const arr = (s.jobs || []).map(j => j.id === id ? { ...j, ...patch } : j);
+    const current = arr.find(j => j.id === s.currentJobId);
+    const updates = current ? { projectName: current.name, applicantName: current.applicantName, jobNumber: current.jobNumber, presetProfile: current.presetProfile } : {};
+    return { jobs: arr, ...updates };
+  }),
+  removeJob: (id) => set((s) => {
+    const arr = (s.jobs || []).filter(j => j.id !== id);
+    let currentJobId = s.currentJobId;
+    if (currentJobId === id) {
+      currentJobId = arr[0]?.id || '';
+    }
+    const current = arr.find(j => j.id === currentJobId);
+    const updates = current ? { projectName: current.name, applicantName: current.applicantName, jobNumber: current.jobNumber, presetProfile: current.presetProfile } : {};
+    return { jobs: arr, currentJobId, ...updates };
+  }),
+  setCurrentJobId: (id) => set((s) => {
+    const found = (s.jobs || []).find(j => j.id === id);
+    if (!found) return { currentJobId: id };
+    return { currentJobId: id, projectName: found.name, applicantName: found.applicantName, jobNumber: found.jobNumber, presetProfile: found.presetProfile };
+  }),
   // Field-collected poles (manual collection in the field)
   collectedPoles: [],
   setCollectedPoles: (arr) => set({ collectedPoles: arr || [] }),
-  addCollectedPole: (pole) => set((s) => ({ collectedPoles: [...(s.collectedPoles || []), pole] })),
+  addCollectedPole: (pole) => set((s) => {
+    const jobId = pole?.jobId || s.currentJobId || '';
+    return { collectedPoles: [...(s.collectedPoles || []), { ...pole, jobId }] };
+  }),
   updateCollectedPole: (index, patch) => set((s) => {
     const arr = (s.collectedPoles || []).slice();
     if (index >= 0 && index < arr.length) arr[index] = { ...arr[index], ...patch };

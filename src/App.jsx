@@ -1,5 +1,6 @@
 import React from 'react';
 import ProposedLineCalculator from './components/ProposedLineCalculator';
+import JobSetup from './components/JobSetup';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -52,7 +53,11 @@ class ErrorBoundary extends React.Component {
 export default function App() {
   return (
     <ErrorBoundary>
-      <ProposedLineCalculator />
+      <div style={{ padding: 12 }}>
+        <JobSetup />
+        <div style={{ height: 12 }} />
+        <ProposedLineCalculator />
+      </div>
     </ErrorBoundary>
   );
 }

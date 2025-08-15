@@ -11,6 +11,9 @@ export default function ProposedLineCalculator() {
     poleClass,
     setPoleHeight,
     setPoleClass,
+  jobs,
+  currentJobId,
+  setCurrentJobId,
     existingPowerHeight,
     existingPowerVoltage,
     setExistingPowerHeight,
@@ -140,7 +143,14 @@ export default function ProposedLineCalculator() {
   return (
     <div className="p-3 md:p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-lg md:text-xl font-semibold">Pole Plan Wizard</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-lg md:text-xl font-semibold">Pole Plan Wizard</h1>
+          <span className="hidden sm:inline text-xs text-gray-600">Job:</span>
+          <select className="hidden sm:inline text-xs border rounded px-1 py-0.5" value={currentJobId || ''} onChange={e=>setCurrentJobId(e.target.value)}>
+            <option value="">-- None --</option>
+            {(jobs||[]).map(j => <option key={j.id} value={j.id}>{j.name}</option>)}
+          </select>
+        </div>
         <div className="text-xs text-gray-600 hidden sm:block">
           Click <button 
             className="text-blue-600 hover:text-blue-800 underline" 
@@ -584,7 +594,8 @@ function FieldCollection({ openHelp }) {
         attachmentType: store.attachmentType || '',
         status: 'done',
         photoDataUrl: currentPhotoDataUrl || '',
-        timestamp: new Date().toISOString(),
+  timestamp: new Date().toISOString(),
+  jobId: store.currentJobId || '',
       };
       store.addCollectedPole(item);
       setPoleId('');
@@ -615,7 +626,8 @@ function FieldCollection({ openHelp }) {
         attachmentType: store.attachmentType || '',
         status: 'draft',
         photoDataUrl: currentPhotoDataUrl || '',
-        timestamp: new Date().toISOString(),
+  timestamp: new Date().toISOString(),
+  jobId: store.currentJobId || '',
       };
       store.addCollectedPole(item);
       setPoleId('');
@@ -640,7 +652,7 @@ function FieldCollection({ openHelp }) {
 
   const exportCollected = () => {
     const header = ['id','latitude','longitude','height','class','powerHeight','voltage','hasTransformer','spanDistance','adjacentPoleHeight','attachmentType','status','hasPhoto','timestamp'];
-    const rows = (store.collectedPoles || []).map(p => [
+    const rows = (store.collectedPoles || []).filter(p=>!store.currentJobId || p.jobId===store.currentJobId).map(p => [
       p.id || '', p.latitude || '', p.longitude || '', p.height || '', p.poleClass || '', p.powerHeight || '', p.voltage || '', p.hasTransformer ? 'Y' : 'N', p.spanDistance || '', p.adjacentPoleHeight || '', p.attachmentType || '', (p.status || 'draft'), (p.photoDataUrl ? 'Y' : 'N'), p.timestamp || ''
     ]);
     const csv = [header.join(','), ...rows.map(r=>r.map(v=>`${String(v).replaceAll('"','""')}`).join(','))].join('\n');
@@ -649,7 +661,7 @@ function FieldCollection({ openHelp }) {
   };
 
   const exportFirst25 = () => {
-    const subset = (store.collectedPoles || []).slice(0, 25);
+    const subset = (store.collectedPoles || []).filter(p=>!store.currentJobId || p.jobId===store.currentJobId).slice(0, 25);
     const header = ['id','latitude','longitude','height','class','powerHeight','voltage','hasTransformer','spanDistance','adjacentPoleHeight','attachmentType','status','hasPhoto','timestamp'];
     const rows = subset.map(p => [
       p.id || '', p.latitude || '', p.longitude || '', p.height || '', p.poleClass || '', p.powerHeight || '', p.voltage || '', p.hasTransformer ? 'Y' : 'N', p.spanDistance || '', p.adjacentPoleHeight || '', p.attachmentType || '', (p.status || 'draft'), (p.photoDataUrl ? 'Y' : 'N'), p.timestamp || ''
@@ -1265,6 +1277,7 @@ Sample Project 3,45ft,Class 2,35' 6",175,95`;
             <h3 className="text-lg font-semibold text-blue-700 mb-3">🚀 Quick Start Guide</h3>
             <div className="bg-blue-50 p-4 rounded-lg">
               <ol className="list-decimal list-inside space-y-2 text-sm">
+                <li><strong>Create/Select a Job:</strong> Use the Job Setup panel to create a job (name, applicant, job #, preset). Select it to make it active.</li>
                 <li><strong>Enter Basic Data:</strong> Project name, pole height, and existing conditions</li>
                 <li><strong>Select Construction Type:</strong> New construction or existing pole attachment</li>
                 <li><strong>Add Span Information:</strong> Distance, adjacent pole height, wind conditions</li>
@@ -1274,6 +1287,19 @@ Sample Project 3,45ft,Class 2,35' 6",175,95`;
                 <li><strong>Review Results:</strong> Check clearances, make-ready requirements, and cost estimates</li>
                 <li><strong>Export:</strong> Use Export CSV, or for utility batches use “Export First 25”</li>
               </ol>
+            </div>
+          </section>
+          {/* Jobs/Setup */}
+          <section>
+            <h3 className="text-lg font-semibold text-sky-700 mb-3">🗂️ Jobs & Setup</h3>
+            <div className="bg-sky-50 p-4 rounded-lg text-sm space-y-3">
+              <p><strong>Jobs</strong> let you group multiple poles under the same project metadata (name, applicant, job #, preset, notes).</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li><strong>Create:</strong> Use Job Setup to add a job and it becomes the active job.</li>
+                <li><strong>Select:</strong> Use the header dropdown to switch active jobs anytime.</li>
+                <li><strong>Auto-link:</strong> Collected poles are tagged to the active job.</li>
+                <li><strong>Exports:</strong> Collected CSV exports are filtered to the active job when one is selected.</li>
+              </ul>
             </div>
           </section>
 
