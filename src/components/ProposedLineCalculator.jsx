@@ -91,7 +91,7 @@ export default function ProposedLineCalculator() {
   // Main calculation effect (now driven by pure computeAnalysis)
   useEffect(() => {
     const { results, warnings, notes, cost, errors } = computeAnalysis({
-      poleHeight, poleClass, existingPowerHeight, existingPowerVoltage,
+      poleHeight, poleClass, poleLatitude, poleLongitude, existingPowerHeight, existingPowerVoltage,
       spanDistance, isNewConstruction, adjacentPoleHeight,
       attachmentType, cableDiameter, windSpeed, spanEnvironment,
       streetLightHeight, dripLoopHeight, proposedLineHeight,
@@ -107,7 +107,7 @@ export default function ProposedLineCalculator() {
     setEngineeringNotes(notes);
     setCostAnalysis(cost);
   }, [
-    poleHeight, poleClass, existingPowerHeight, existingPowerVoltage,
+  poleHeight, poleClass, poleLatitude, poleLongitude, existingPowerHeight, existingPowerVoltage,
     spanDistance, isNewConstruction, adjacentPoleHeight,
     attachmentType, cableDiameter, windSpeed, spanEnvironment,
     streetLightHeight, dripLoopHeight, proposedLineHeight,
@@ -190,6 +190,7 @@ export default function ProposedLineCalculator() {
         <>
           <ImportPanel />
           <ExistingLinesEditor />
+          <FieldCollection />
         </>
       )}
 
@@ -541,6 +542,155 @@ function ExportButtons() {
     <div className="flex items-center gap-2 my-2">
       <button className="px-2 py-1 border rounded text-sm" onClick={onCSV} disabled={!results}>Export CSV</button>
       <button className="px-2 py-1 border rounded text-sm" onClick={onPDF} disabled={!results}>Export PDF</button>
+    </div>
+  );
+}
+
+function FieldCollection() {
+  const store = useAppStore();
+  const [poleId, setPoleId] = React.useState('');
+  const [saving, setSaving] = React.useState(false);
+
+  const handleRowGPS = async (rowIndex) => {
+    if (!('geolocation' in navigator)) { alert('Geolocation not supported'); return; }
+    try {
+      const pos = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 }));
+      const { latitude, longitude } = pos.coords || {};
+      if (latitude != null && longitude != null) {
+        store.updateCollectedPole(rowIndex, { latitude: latitude.toFixed(6), longitude: longitude.toFixed(6) });
+      }
+    } catch (e) { alert(`Failed to get location: ${e?.message || e}`); }
+  };
+
+  const onDone = async () => {
+    setSaving(true);
+    try {
+      const id = poleId || `${(store.collectedPoles?.length || 0) + 1}`;
+      const item = {
+        id,
+        latitude: store.poleLatitude || '',
+        longitude: store.poleLongitude || '',
+        height: store.poleHeight || '',
+        poleClass: store.poleClass || '',
+        powerHeight: store.existingPowerHeight || '',
+        voltage: store.existingPowerVoltage || 'distribution',
+        hasTransformer: !!store.hasTransformer,
+        spanDistance: store.spanDistance || '',
+        adjacentPoleHeight: store.adjacentPoleHeight || '',
+        attachmentType: store.attachmentType || '',
+        timestamp: new Date().toISOString(),
+      };
+      store.addCollectedPole(item);
+      setPoleId('');
+      // Optionally clear coordinates to encourage fresh GPS per pole
+      store.setPoleLatitude('');
+      store.setPoleLongitude('');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const exportCollected = () => {
+    const header = ['id','latitude','longitude','height','class','powerHeight','voltage','hasTransformer','spanDistance','adjacentPoleHeight','attachmentType','timestamp'];
+    const rows = (store.collectedPoles || []).map(p => [
+      p.id || '', p.latitude || '', p.longitude || '', p.height || '', p.poleClass || '', p.powerHeight || '', p.voltage || '', p.hasTransformer ? 'Y' : 'N', p.spanDistance || '', p.adjacentPoleHeight || '', p.attachmentType || '', p.timestamp || ''
+    ]);
+    const csv = [header.join(','), ...rows.map(r=>r.map(v=>`${String(v).replaceAll('"','""')}`).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'collected-poles.csv'; a.click(); URL.revokeObjectURL(url);
+  };
+
+  const exportFirst25 = () => {
+    const subset = (store.collectedPoles || []).slice(0, 25);
+    const header = ['id','latitude','longitude','height','class','powerHeight','voltage','hasTransformer','spanDistance','adjacentPoleHeight','attachmentType','timestamp'];
+    const rows = subset.map(p => [
+      p.id || '', p.latitude || '', p.longitude || '', p.height || '', p.poleClass || '', p.powerHeight || '', p.voltage || '', p.hasTransformer ? 'Y' : 'N', p.spanDistance || '', p.adjacentPoleHeight || '', p.attachmentType || '', p.timestamp || ''
+    ]);
+    const csv = [header.join(','), ...rows.map(r=>r.join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'collected-poles-first-25.csv'; a.click(); URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div className="rounded border p-3 no-print">
+      <div className="flex items-center justify-between mb-2">
+        <div className="font-medium">Field Collection</div>
+        <div className="text-xs text-gray-600">Collected: {(store.collectedPoles || []).length} | Max per FE batch: 25</div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <Input label="Pole ID" value={poleId} onChange={e=>setPoleId(e.target.value)} placeholder="e.g., Tag # or temp" />
+        <Input label="Latitude" value={store.poleLatitude} onChange={e=>store.setPoleLatitude(e.target.value)} placeholder="40.123456" />
+        <div className="grid grid-cols-[1fr_auto] gap-2 items-end">
+          <Input label="Longitude" value={store.poleLongitude} onChange={e=>store.setPoleLongitude(e.target.value)} placeholder="-82.987654" />
+          <button className="h-9 px-3 border rounded text-sm" onClick={async()=>{
+            if (!('geolocation' in navigator)) { alert('Geolocation not supported'); return; }
+            try {
+              const pos = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 }));
+              const { latitude, longitude } = pos.coords || {};
+              if (latitude != null && longitude != null) { store.setPoleLatitude(latitude.toFixed(6)); store.setPoleLongitude(longitude.toFixed(6)); }
+            } catch (e) { alert(`Failed to get location: ${e?.message || e}`); }
+          }}>GPS</button>
+        </div>
+        <div className="flex items-end">
+          <button className="h-9 px-3 border rounded text-sm" onClick={onDone} disabled={saving}>DONE</button>
+        </div>
+      </div>
+
+      <div className="mt-3 flex items-center gap-2">
+        <button className="px-2 py-1 border rounded text-sm" onClick={exportCollected} disabled={!store.collectedPoles?.length}>Export CSV</button>
+        <button className="px-2 py-1 border rounded text-sm" onClick={exportFirst25} disabled={(store.collectedPoles?.length||0) < 1}>Export First 25</button>
+        <button className="px-2 py-1 border rounded text-sm" onClick={()=>store.setCollectedPoles?.([])} disabled={!store.collectedPoles?.length}>Clear</button>
+      </div>
+
+      <div className="mt-3 overflow-auto">
+        <table className="w-full text-sm min-w-[720px]">
+          <thead>
+            <tr className="text-left text-gray-600">
+              <th className="p-2">ID</th>
+              <th className="p-2">Latitude</th>
+              <th className="p-2">Longitude</th>
+              <th className="p-2">Height</th>
+              <th className="p-2">Class</th>
+              <th className="p-2">Power Ht</th>
+              <th className="p-2">Voltage</th>
+              <th className="p-2">XFMR</th>
+              <th className="p-2">Span</th>
+              <th className="p-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(store.collectedPoles || []).map((p, i) => (
+              <tr key={`${p.id}-${i}`} className="border-t">
+                <td className="p-2"><input className="border rounded px-2 py-1 w-28" value={p.id || ''} onChange={e=>store.updateCollectedPole(i,{ id: e.target.value })} /></td>
+                <td className="p-2">
+                  <div className="grid grid-cols-[1fr_auto] gap-2 items-center">
+                    <input className="border rounded px-2 py-1 w-32" value={p.latitude || ''} onChange={e=>store.updateCollectedPole(i,{ latitude: e.target.value })} />
+                    <button className="px-2 py-1 border rounded text-xs" onClick={()=>handleRowGPS(i)}>GPS</button>
+                  </div>
+                </td>
+                <td className="p-2"><input className="border rounded px-2 py-1 w-32" value={p.longitude || ''} onChange={e=>store.updateCollectedPole(i,{ longitude: e.target.value })} /></td>
+                <td className="p-2"><input className="border rounded px-2 py-1 w-24" value={p.height || ''} onChange={e=>store.updateCollectedPole(i,{ height: e.target.value })} placeholder="ft/in" /></td>
+                <td className="p-2"><input className="border rounded px-2 py-1 w-24" value={p.poleClass || ''} onChange={e=>store.updateCollectedPole(i,{ poleClass: e.target.value })} /></td>
+                <td className="p-2"><input className="border rounded px-2 py-1 w-24" value={p.powerHeight || ''} onChange={e=>store.updateCollectedPole(i,{ powerHeight: e.target.value })} placeholder="ft/in" /></td>
+                <td className="p-2">
+                  <select className="border rounded px-2 py-1" value={p.voltage || 'distribution'} onChange={e=>store.updateCollectedPole(i,{ voltage: e.target.value })}>
+                    <option value="distribution">distribution</option>
+                    <option value="transmission">transmission</option>
+                    <option value="communication">communication</option>
+                  </select>
+                </td>
+                <td className="p-2 text-center">
+                  <input type="checkbox" className="h-4 w-4" checked={!!p.hasTransformer} onChange={e=>store.updateCollectedPole(i,{ hasTransformer: e.target.checked })} />
+                </td>
+                <td className="p-2"><input className="border rounded px-2 py-1 w-20" value={p.spanDistance || ''} onChange={e=>store.updateCollectedPole(i,{ spanDistance: e.target.value })} /></td>
+                <td className="p-2 text-right">
+                  <button className="text-xs text-red-600" onClick={()=>store.removeCollectedPole(i)}>Delete</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

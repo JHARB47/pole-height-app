@@ -119,6 +119,20 @@ const useAppStore = create(persist((set) => ({
   }),
   importedPoles: [],
   setImportedPoles: (arr) => set({ importedPoles: arr || [] }),
+  // Field-collected poles (manual collection in the field)
+  collectedPoles: [],
+  setCollectedPoles: (arr) => set({ collectedPoles: arr || [] }),
+  addCollectedPole: (pole) => set((s) => ({ collectedPoles: [...(s.collectedPoles || []), pole] })),
+  updateCollectedPole: (index, patch) => set((s) => {
+    const arr = (s.collectedPoles || []).slice();
+    if (index >= 0 && index < arr.length) arr[index] = { ...arr[index], ...patch };
+    return { collectedPoles: arr };
+  }),
+  removeCollectedPole: (index) => set((s) => {
+    const arr = (s.collectedPoles || []).slice();
+    if (index >= 0 && index < arr.length) arr.splice(index, 1);
+    return { collectedPoles: arr };
+  }),
   importedSpans: [],
   setImportedSpans: (arr) => set({ importedSpans: arr || [] }),
   importedExistingLines: [],
@@ -170,6 +184,7 @@ const useAppStore = create(persist((set) => ({
   mappingPreset: 'generic',
   mappingProfiles: [],
   importedPoles: [],
+  collectedPoles: [],
   importedSpans: [],
   importedExistingLines: [],
   existingLinesCSV: '',
