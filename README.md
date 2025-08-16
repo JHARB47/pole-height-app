@@ -16,6 +16,13 @@ A comprehensive web application for calculating NESC-compliant pole attachment h
 - **State Persistence**: User preferences and data saved locally between sessions
 - Mobile-friendly layout tweaks (responsive inputs/buttons)
 - GPS autofill: Use device location to populate pole latitude/longitude
+- Permit Pack export: WV Highway (MM109) and Railroad (CSX)
+	- Includes summary.json, plan-profile.svg (with scale bar), and draft PDFs (mm109-draft.pdf / railroad-draft.pdf)
+	- Draft PDFs generated with pdf-lib for convenient transcription to official forms
+- Spans Editor
+	- Per-span environment overrides and segment-aware targets across a span
+	- Cached results: export Cached Midspans to CSV and clear cache
+	- Permit Pack summary uses controlling (max) target from cached midspans when present
 
 ## 🛠 Technology Stack
 

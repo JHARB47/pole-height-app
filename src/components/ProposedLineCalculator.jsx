@@ -2,8 +2,13 @@ import React, { useEffect } from 'react';
 import useAppStore from '../utils/store';
 import { DEFAULTS, parseFeet, formatFeetInches, formatFeetInchesTickMarks, formatFeetInchesVerbose, resultsToCSV, computeAnalysis } from '../utils/calculations';
 import ExistingLinesEditor from './ExistingLinesEditor';
+import { WV_COMPANIES } from '../utils/constants';
 import SpanDiagram from './SpanDiagram';
 import { importGeospatialFile, mapGeoJSONToAppData, MAPPING_PRESETS, parseExistingLinesCSV, getAttributeKeys, splitFeaturesByGeometry } from '../utils/importers';
+import { buildManifest, csvFrom } from '../utils/manifests';
+import { makePermitSummary } from '../utils/permitSummary';
+import { buildGeoJSON, exportGeoJSON, exportKML, exportKMZ } from '../utils/geodata';
+import SpansEditor from './SpansEditor';
 
 export default function ProposedLineCalculator() {
   const {
@@ -33,6 +38,8 @@ export default function ProposedLineCalculator() {
     iceThicknessIn,
     hasTransformer,
     setHasTransformer,
+  powerReference,
+  setPowerReference,
   // setHasStreetlight,
     setDripLoopHeight,
     setStreetLightHeight,
@@ -69,6 +76,11 @@ export default function ProposedLineCalculator() {
     setApplicantName,
     jobNumber,
     setJobNumber,
+    jobOwner,
+    setJobOwner,
+  submissionProfiles,
+  currentSubmissionProfile,
+  setCurrentSubmissionProfile,
   poleLatitude,
   setPoleLatitude,
   poleLongitude,
@@ -88,19 +100,29 @@ export default function ProposedLineCalculator() {
         const heightDiffInches = (parseFeet(line.makeReadyHeight) - parseFeet(line.height)) * 12;
         const cost = Math.abs(Math.round(heightDiffInches)) * 12.5;
         return `LWR (${line.companyName || line.type}) FROM ${fmt(line.height)} TO ${fmt(line.makeReadyHeight)} - Est. Cost: $${cost}`;
-      });
+      })
     setMakeReadyNotes(notes.join('\n'));
   }, [existingLines, setMakeReadyNotes]);
 
   // Main calculation effect (now driven by pure computeAnalysis)
   useEffect(() => {
+    // Prefer job-level submission profile/overrides if available
+    const activeJob = (useAppStore.getState().jobs||[]).find(j=>j.id===useAppStore.getState().currentJobId);
+    const profileName = activeJob?.submissionProfileName || currentSubmissionProfile;
+    const baseProfile = (submissionProfiles||[]).find(p=>p.name===profileName);
+    const mergedProfile = baseProfile ? { 
+      ...baseProfile, 
+      ...(activeJob?.submissionProfileOverrides || {}) 
+    } : undefined;
     const { results, warnings, notes, cost, errors } = computeAnalysis({
       poleHeight, poleClass, poleLatitude, poleLongitude, existingPowerHeight, existingPowerVoltage,
       spanDistance, isNewConstruction, adjacentPoleHeight,
       attachmentType, cableDiameter, windSpeed, spanEnvironment,
-      streetLightHeight, dripLoopHeight, proposedLineHeight,
-      existingLines, iceThicknessIn, hasTransformer, presetProfile,
-      customMinTopSpace, customRoadClearance, customCommToPower,
+  streetLightHeight, dripLoopHeight, proposedLineHeight,
+  existingLines, iceThicknessIn, hasTransformer, presetProfile,
+  customMinTopSpace, customRoadClearance, customCommToPower,
+  powerReference, jobOwner,
+      submissionProfile: mergedProfile,
     });
     if (errors) {
       setResults(null); setWarnings([]); setEngineeringNotes([]); setCostAnalysis(null);
@@ -115,8 +137,8 @@ export default function ProposedLineCalculator() {
     spanDistance, isNewConstruction, adjacentPoleHeight,
     attachmentType, cableDiameter, windSpeed, spanEnvironment,
     streetLightHeight, dripLoopHeight, proposedLineHeight,
-    existingLines, iceThicknessIn, hasTransformer, presetProfile,
-    customMinTopSpace, customRoadClearance, customCommToPower,
+  existingLines, iceThicknessIn, hasTransformer, presetProfile,
+  customMinTopSpace, customRoadClearance, customCommToPower, powerReference, jobOwner, submissionProfiles, currentSubmissionProfile,
     setResults, setWarnings, setEngineeringNotes, setMakeReadyNotes, setCostAnalysis
   ]);
 
@@ -174,6 +196,23 @@ export default function ProposedLineCalculator() {
           </div>
         </div>
          <Select label="Preset Profile" value={presetProfile} onChange={e=>setPresetProfile(e.target.value)} options={[{label:'None',value:''}, ...Object.values(DEFAULTS.presets).map(p=>({label:p.label,value:p.value}))]} />
+         <Select label="Submission Profile" value={(useAppStore.getState().jobs||[]).find(j=>j.id===useAppStore.getState().currentJobId)?.submissionProfileName || currentSubmissionProfile} onChange={e=>{
+           const job = (useAppStore.getState().jobs||[]).find(j=>j.id===useAppStore.getState().currentJobId);
+           if (job) {
+             useAppStore.getState().updateJob(job.id, { submissionProfileName: e.target.value });
+           } else {
+             setCurrentSubmissionProfile(e.target.value);
+           }
+         }} options={(submissionProfiles||[]).map(p=>({label:p.label, value:p.name}))} />
+         {/* Quick profile tuning */}
+         <ProfileTuner />
+         <label className="text-sm text-gray-700 grid gap-1">
+           <span className="font-medium">Owner (utility)</span>
+           <input list="wv-power-companies-inline" className="border rounded px-2 py-1" value={jobOwner} onChange={e=>setJobOwner(e.target.value)} placeholder="e.g., Mon Power, Penelec" />
+           <datalist id="wv-power-companies-inline">
+             {WV_COMPANIES.power.map(c => <option key={`p-${c.name}`} value={c.short || c.name}>{c.name}</option>)}
+           </datalist>
+         </label>
          <Input label="Pole Height (ft)" value={poleHeight} onChange={e=>setPoleHeight(e.target.value)} />
          <Input label="Pole Class" value={poleClass} onChange={e=>setPoleClass(e.target.value)} placeholder="e.g., Class 4" />
          <Select label="Construction" value={isNewConstruction ? 'new' : 'existing'} onChange={e=>setIsNewConstruction(e.target.value === 'new')} options={[{label:'New',value:'new'},{label:'Existing',value:'existing'}]} />
@@ -182,13 +221,27 @@ export default function ProposedLineCalculator() {
          <Checkbox label="Transformer present" checked={!!hasTransformer} onChange={e=>setHasTransformer(e.target.checked)} />
          <Input label="Street Light Height (ft/in)" value={streetLightHeight} onChange={e=>setStreetLightHeight(e.target.value)} />
          <Input label="Drip Loop Height (ft/in)" value={dripLoopHeight} onChange={e=>setDripLoopHeight(e.target.value)} />
+         <Select label="Power Reference" value={powerReference} onChange={e=>setPowerReference(e.target.value)} options={[{label:'Auto',value:'auto'},{label:'Neutral',value:'neutral'},{label:'Secondary',value:'secondary'},{label:'Drip Loop',value:'dripLoop'},{label:'Power Conductor',value:'power'}]} />
          <Input label="Span (ft)" value={spanDistance} onChange={e=>setSpanDistance(e.target.value)} />
          <Input label="Adjacent Pole (ft)" value={adjacentPoleHeight} onChange={e=>setAdjacentPoleHeight(e.target.value)} />
          <Select label="Cable" value={attachmentType} onChange={e=>setAttachmentType(e.target.value)} options={DEFAULTS.cableTypes.map(c=>({label:c.label,value:c.value}))} />
          <Input label="Cable Diameter (in)" value={cableDiameter} onChange={e=>setCableDiameter(e.target.value)} placeholder="auto from cable" />
          <Input label="Wind (mph)" value={windSpeed} onChange={e=>setWindSpeed(e.target.value)} />
          <Input label="Ice (in)" value={iceThicknessIn} onChange={e=>setIceThicknessIn(e.target.value)} />
-         <Select label="Environment" value={spanEnvironment} onChange={e=>setSpanEnvironment(e.target.value)} options={[{label:'Road',value:'road'},{label:'Residential',value:'residential'},{label:'Pedestrian',value:'pedestrian'}]} />
+        <Select label="Environment" value={spanEnvironment} onChange={e=>setSpanEnvironment(e.target.value)} options={[
+          {label:'Road',value:'road'},
+          {label:'Interstate',value:'interstate'},
+          {label:'Interstate (New Crossing)',value:'interstateNewCrossing'},
+          {label:'Residential',value:'residential'},
+          {label:'Pedestrian',value:'pedestrian'},
+          {label:'Field',value:'field'},
+          {label:'Residential Yard',value:'residentialYard'},
+          {label:'Residential Driveway',value:'residentialDriveway'},
+          {label:'Non-Residential Driveway / Alley / Parking',value:'nonResidentialDriveway'},
+          {label:'Waterway',value:'waterway'},
+          {label:'WV Highway',value:'wvHighway'},
+          {label:'Railroad Crossing (CSX)',value:'railroad'},
+        ]} />
          <Input label="Proposed Line (ft/in)" value={proposedLineHeight} onChange={e=>setProposedLineHeight(e.target.value)} />
          <Input label="Override Min Top Space (ft)" value={customMinTopSpace} onChange={e=>setCustomMinTopSpace(e.target.value)} placeholder="optional" />
          <Input label="Override Road Clearance (ft)" value={customRoadClearance} onChange={e=>setCustomRoadClearance(e.target.value)} placeholder="optional" />
@@ -200,6 +253,7 @@ export default function ProposedLineCalculator() {
       {!showReport && (
         <>
           <ImportPanel />
+          <SpansEditor />
           <ExistingLinesEditor />
           <FieldCollection openHelp={(section)=>{ setHelpSection(section); setShowHelp(true); }} />
         </>
@@ -217,6 +271,27 @@ export default function ProposedLineCalculator() {
   <HelpModal open={showHelp} onClose={() => setShowHelp(false)} initialSection={helpSection} />
     </div>
   );
+}
+
+// --- As-built variance helpers (FirstEnergy/Mon Power defaults) ---
+function getAttachToleranceIn(presetProfile) {
+  const p = DEFAULTS.presets[presetProfile];
+  return p?.asBuiltTolerances?.attachHeightIn ?? 2; // default 2 inches
+}
+function computeVarianceIn(asBuiltAttach, plannedAttach) {
+  const a = parseFeet(asBuiltAttach);
+  const p = parseFeet(plannedAttach);
+  if (a == null || p == null) return '';
+  const deltaIn = Math.round((a - p) * 12);
+  return String(deltaIn);
+}
+function evaluateVariancePass(asBuiltAttach, plannedAttach, presetProfile) {
+  const a = parseFeet(asBuiltAttach);
+  const p = parseFeet(plannedAttach);
+  if (a == null || p == null) return '';
+  const tol = getAttachToleranceIn(presetProfile);
+  const deltaAbs = Math.abs((a - p) * 12);
+  return deltaAbs <= tol ? 'PASS' : 'FAIL';
 }
 
 function AutoMapPreviewModal({ open, onClose, current, proposal, onApply }) {
@@ -283,6 +358,72 @@ function Checkbox({ label, ...props }) {
   );
 }
 
+function ProfileTuner() {
+  const store = useAppStore();
+  const { submissionProfiles, currentSubmissionProfile, updateSubmissionProfile } = store;
+  const activeJob = (store.jobs||[]).find(j=>j.id===store.currentJobId);
+  const baseProfileName = activeJob?.submissionProfileName || currentSubmissionProfile;
+  const base = (submissionProfiles||[]).find(x => x.name === baseProfileName);
+  if (!base) return null;
+  const effective = { ...base, ...(activeJob?.submissionProfileOverrides || {}) };
+
+  const onChangeGlobal = (key, val) => {
+    const num = Number(val);
+    if (!Number.isFinite(num)) return;
+    updateSubmissionProfile(base.name, { [key]: num });
+  };
+  const onChangeJob = (key, val) => {
+    const num = Number(val);
+    if (!Number.isFinite(num)) return;
+    store.updateJob(activeJob.id, { submissionProfileOverrides: { ...(activeJob.submissionProfileOverrides||{}), [key]: num } });
+  };
+  const onResetJobOverrides = () => {
+    if (!activeJob) return;
+    store.updateJob(activeJob.id, { submissionProfileOverrides: {} });
+  };
+
+  const Editor = ({ label, field, unit }) => (
+    <label className="text-sm text-gray-700 grid gap-1">
+      <span className="font-medium">{label}</span>
+      <input
+        className="border rounded px-2 py-1"
+        value={effective[field] ?? ''}
+        onChange={e=> activeJob ? onChangeJob(field, e.target.value) : onChangeGlobal(field, e.target.value)}
+        placeholder={activeJob ? 'override (blank uses profile)' : ''}
+      />
+      <span className="text-xs text-gray-500">{unit}</span>
+    </label>
+  );
+
+  return (
+    <div className="grid grid-cols-3 gap-3">
+      <Editor label="Comm→Power" field="commToPowerIn" unit={'in'} />
+      <Editor label="Min Top Space" field="minTopSpaceFt" unit={'ft'} />
+      <Editor label="Road Clearance" field="roadClearanceFt" unit={'ft'} />
+  <Editor label="Road Midspan Target" field="envRoadFt" unit={'ft'} />
+  <Editor label="Residential Midspan Target" field="envResidentialFt" unit={'ft'} />
+  <Editor label="Pedestrian Midspan Target" field="envPedestrianFt" unit={'ft'} />
+  <Editor label="Field Midspan Target" field="envFieldFt" unit={'ft'} />
+  <Editor label="Residential Yard Target" field="envResidentialYardFt" unit={'ft'} />
+  <Editor label="Residential Driveway Target" field="envResidentialDrivewayFt" unit={'ft'} />
+  <Editor label="Waterway Midspan Target" field="envWaterwayFt" unit={'ft'} />
+  <Editor label="WV Highway Target" field="envWVHighwayFt" unit={'ft'} />
+  <Editor label="Non-Residential Driveway Target" field="envNonResidentialDrivewayFt" unit={'ft'} />
+  <Editor label="Interstate Target" field="envInterstateFt" unit={'ft'} />
+  <Editor label="Interstate (New Crossing) Target" field="envInterstateNewCrossingFt" unit={'ft'} />
+  <Editor label="Railroad Crossing Target" field="envRailroadFt" unit={'ft'} />
+  <Editor label="Min Comm Attach Height" field="minCommAttachFt" unit={'ft'} />
+      {activeJob ? (
+        <div className="col-span-3 text-xs text-gray-600">
+          Using job-specific overrides. <button className="underline" onClick={onResetJobOverrides}>Reset overrides</button>
+        </div>
+      ) : (
+        <div className="col-span-3 text-xs text-gray-600">Editing global submission profile defaults.</div>
+      )}
+    </div>
+  );
+}
+
 function ResultsPanel() {
   const { results, warnings, engineeringNotes, costAnalysis, makeReadyNotes, useTickMarkFormat } = useAppStore();
   if (!results) return <div className="text-gray-600">Enter inputs to see results.</div>;
@@ -306,6 +447,9 @@ function ResultsPanel() {
         <div className="font-medium mb-2">Attachment & Span</div>
         <div className="text-sm text-gray-700">
           <div>Proposed attach: {fmt(results.attach.proposedAttachFt)}</div>
+          {results.attach.recommendation ? (
+            <div className="text-xs text-gray-600">Basis: {results.attach.recommendation.basis} — {results.attach.recommendation.detail}</div>
+          ) : null}
           <div>Span: {results.span.spanFt} ft</div>
           <div>Wind: {results.span.wind} mph</div>
           <div>Sag: {fmt(results.span.sagFt)}</div>
@@ -340,6 +484,7 @@ function ResultsPanel() {
           )}
         </div>
       </div>
+  <CompliancePanel />
       {makeReadyNotes ? (
         <div className="rounded border p-3">
           <div className="font-medium mb-2">Make-ready</div>
@@ -364,6 +509,50 @@ function ResultsPanel() {
         </div>
       ) : null}
       <div className="text-sm text-gray-600">Estimated cost: ${costAnalysis ?? 0}</div>
+    </div>
+  );
+}
+
+function CompliancePanel() {
+  const store = useAppStore();
+  const { results } = store;
+  if (!results) return null;
+  const fmt = store.useTickMarkFormat ? formatFeetInchesTickMarks : formatFeetInchesVerbose;
+  const mid = results.span.midspanFt;
+  const groundTarget = results.clearances.groundClearance;
+  const groundOK = mid == null ? true : mid >= groundTarget;
+  const commToPowerTarget = results.clearances.powerClearanceDistribution || 40/12;
+  const powerHt = parseFeet(store.existingPowerHeight);
+  const proposed = results.attach.proposedAttachFt;
+  const sep = (powerHt != null && proposed != null) ? (powerHt - proposed) : null;
+  const sepOK = sep == null ? true : sep >= commToPowerTarget;
+  const inchesUsed = Math.round((commToPowerTarget || 0) * 12);
+  // Effective submission profile for trace
+  const activeJob = (store.jobs||[]).find(j=>j.id===store.currentJobId);
+  const profileName = activeJob?.submissionProfileName || store.currentSubmissionProfile;
+  const baseProfile = (store.submissionProfiles||[]).find(p=>p.name===profileName) || {};
+  const effectiveProfile = { ...baseProfile, ...(activeJob?.submissionProfileOverrides||{}), name: baseProfile?.name };
+  const rec = results.attach?.recommendation || {};
+  return (
+    <div className="rounded border p-3">
+      <div className="font-medium mb-2">Standards Compliance</div>
+      <div className="text-sm grid md:grid-cols-2 gap-2">
+        <div className={groundOK ? 'text-emerald-700' : 'text-red-700'}>
+          Ground/Midspan: {mid != null ? fmt(mid) : '—'} vs target {fmt(groundTarget)} — {groundOK ? 'PASS' : 'FAIL'}
+        </div>
+        <div className={sepOK ? 'text-emerald-700' : 'text-red-700'}>
+          Comm-to-Power at pole: {sep != null ? fmt(sep) : '—'} vs target {fmt(commToPowerTarget)} ({inchesUsed}") — {sepOK ? 'PASS' : 'FAIL'}
+        </div>
+      </div>
+      <div className="text-xs text-gray-600 mt-1">FE/Mon Power presets enforce 18 ft over roads and 44" comm-to-power. NESC or utility default is typically 40" when FE doesn’t apply.</div>
+      <div className="mt-2 text-xs text-gray-700 grid md:grid-cols-3 gap-2">
+        <div>Owner: {store.jobOwner || '—'}</div>
+        <div>Profile: {effectiveProfile.name || '—'}</div>
+        <div>Min Comm Attach: {effectiveProfile.minCommAttachFt != null ? fmt(effectiveProfile.minCommAttachFt) : '—'}</div>
+        <div className="md:col-span-3">Basis: {rec.basis || '—'}{rec.detail ? ` — ${rec.detail}` : ''}</div>
+        <div>Separation Used: {rec.clearanceIn != null ? `${rec.clearanceIn}"` : '—'}</div>
+        <div>Controlling: {rec.controlling?.name || '—'}{rec.controlling?.ft != null ? ` @ ${fmt(rec.controlling.ft)}` : ''}</div>
+      </div>
     </div>
   );
 }
@@ -553,7 +742,126 @@ function ExportButtons() {
     <div className="flex items-center gap-2 my-2">
       <button className="px-2 py-1 border rounded text-sm" onClick={onCSV} disabled={!results}>Export CSV</button>
       <button className="px-2 py-1 border rounded text-sm" onClick={onPDF} disabled={!results}>Export PDF</button>
+      <PermitPackButton />
     </div>
+  );
+}
+
+function PermitPackButton() {
+  const store = useAppStore();
+  const onPermit = async () => {
+    try {
+  const JSZip = (await import('jszip')).default;
+  const zip = new JSZip();
+  const { buildMM109PDF, buildCSXPDF } = await import('../utils/permits');
+  const { buildMM109Fields, buildCSXFields } = await import('../utils/formFields');
+      const job = (store.jobs||[]).find(j=>j.id===store.currentJobId);
+      const profileName = job?.submissionProfileName || store.currentSubmissionProfile;
+      const baseProfile = (store.submissionProfiles||[]).find(p=>p.name===profileName) || {};
+      const effectiveProfile = { ...baseProfile, ...(job?.submissionProfileOverrides||{}), name: baseProfile?.name };
+      const env = store.spanEnvironment;
+      const results = store.results;
+  if (!results) { alert('Run analysis first.'); return; }
+  // Build standardized summary
+  const summary = makePermitSummary({ env, results, job, effectiveProfile, cachedMidspans: store.cachedMidspans, store });
+  zip.file('permit/summary.json', JSON.stringify(summary, null, 2));
+  // Include normalized fields for easier transcription to official forms
+  const fields = env === 'railroad' ? buildCSXFields(summary) : buildMM109Fields(summary);
+  zip.file('permit/fields.json', JSON.stringify(fields, null, 2));
+      // Attach cached midspans CSV
+      if ((store.cachedMidspans||[]).length) {
+        const rows = [['spanId','environment','spanFt','midspanFt','targetFt','attachFt','segments']];
+        for (const m of (store.cachedMidspans||[])) {
+          rows.push([
+            m.spanId ?? '',
+            m.environment ?? '',
+            m.spanFt ?? '',
+            m.midspanFt ?? '',
+            m.targetFt ?? '',
+            m.attachFt ?? '',
+            Array.isArray(m.segments) ? m.segments.map(x=>`${x.env}:${x.portion || ''}`).join('|') : '',
+          ]);
+        }
+        const csv = rows.map(r => r.map(v => String(v).replaceAll('"','""')).map(v => v.includes(',') ? `"${v}"` : v).join(',')).join('\n');
+        zip.file('permit/cached-midspans.csv', csv);
+      }
+      // Generate a minimal SVG plan/profile diagram
+  const w = 800, h = 300, margin = 40;
+      const groundY = h - margin;
+      const scaleY = (ft) => {
+        const maxFt = Math.max( (results.attach.proposedAttachFt||0) + 5, (results.span.midspanFt||0) + 5, (results.clearances.groundClearance||0) + 5 );
+        const y = groundY - ((ft||0) / Math.max(1,maxFt)) * (h - 2*margin);
+        return Math.max(margin, Math.min(groundY, y));
+      };
+      const x1 = margin + 60, x2 = w - margin - 60;
+      const y1 = scaleY(results.attach.proposedAttachFt||0);
+      const y2 = scaleY(results.attach.proposedAttachFt||0); // assume similar at neighbor for sketch
+      const midY = scaleY(results.span.midspanFt||0);
+  const targetY = scaleY((summary?.span?.targetFt ?? results.clearances.groundClearance) || 0);
+  const path = `M ${x1} ${y1} Q ${(x1+x2)/2} ${midY} ${x2} ${y2}`;
+    // simple scale bar (assume drawing width represents span length)
+    const scaleFt = results.span.spanFt || 0;
+  const scalePx = (x2 - x1);
+  const barX = margin, barY = h - 10;
+  const svg = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">\n  <rect width="100%" height="100%" fill="#fff"/>\n  <g stroke="#333" stroke-width="2" fill="none">\n    <line x1="${x1}" y1="${groundY}" x2="${x1}" y2="${margin}"/>\n    <line x1="${x2}" y1="${groundY}" x2="${x2}" y2="${margin}"/>\n    <path d="${path}" stroke="#1f77b4"/>\n    <line x1="${margin}" y1="${groundY}" x2="${w-margin}" y2="${groundY}" stroke="#666" stroke-dasharray="4 4"/>\n    <line x1="${margin}" y1="${targetY}" x2="${w-margin}" y2="${targetY}" stroke="#e53935" stroke-dasharray="6 6"/>\n  </g>\n  <g stroke="#000" stroke-width="1" fill="none">\n    <line x1="${barX}" y1="${barY}" x2="${barX+scalePx}" y2="${barY}"/>\n    <line x1="${barX}" y1="${barY-5}" x2="${barX}" y2="${barY+5}"/>\n    <line x1="${barX+scalePx}" y1="${barY-5}" x2="${barX+scalePx}" y2="${barY+5}"/>\n  </g>\n  <g fill="#1f77b4" stroke="none">\n    <circle cx="${x1}" cy="${y1}" r="3"/>\n    <circle cx="${x2}" cy="${y2}" r="3"/>\n    <circle cx="${(x1+x2)/2}" cy="${midY}" r="3"/>\n  </g>\n  <g font-family="sans-serif" font-size="12" fill="#333">\n    <text x="${x1-20}" y="${margin+12}" transform="rotate(-90 ${x1-20} ${margin+12})">Pole</text>\n    <text x="${x2+20}" y="${margin+12}" transform="rotate(90 ${x2+20} ${margin+12})">Pole</text>\n    <text x="${x1+6}" y="${y1-6}" fill="#1f77b4">Attach A</text>\n    <text x="${x2-6}" y="${y2-6}" fill="#1f77b4" text-anchor="end">Attach B</text>\n    <text x="${(x1+x2)/2+6}" y="${midY-8}" fill="#1f77b4">Midspan ${results.span.midspanFt?.toFixed?.(1)||results.span.midspanFt} ft</text>\n    <text x="${(w/2)}" y="${targetY-6}" text-anchor="middle" fill="#e53935">Ground target ${summary?.span?.targetFt?.toFixed?.(1)||summary?.span?.targetFt} ft</text>\n    <text x="${barX+scalePx/2}" y="${barY-6}" text-anchor="middle">~${Math.round(scaleFt)} ft</text>\n    <text x="${margin}" y="20" fill="#555">${summary?.type || ''} — target ${summary?.span?.targetFt || ''} ft (${summary?.span?.targetSource || 'computed'})</text>\n  </g>\n</svg>`;
+      zip.file('permit/plan-profile.svg', svg);
+
+      // Add draft PDFs when applicable
+      if (env === 'wvHighway') {
+        const pdf = await buildMM109PDF(summary);
+        zip.file('permit/mm109-draft.pdf', pdf);
+      } else if (env === 'railroad') {
+        const pdf = await buildCSXPDF(summary);
+        zip.file('permit/railroad-draft.pdf', pdf);
+      }
+      // README
+  const readme = [
+        '# Permit Package',
+        '',
+        `Type: ${summary.type}`,
+        `Job: ${summary.job.name} (${summary.job.jobNumber})`,
+        `Environment: ${env}`,
+    `Submission Profile: ${summary.job.submissionProfileName || (effectiveProfile?.name || '')}`,
+    `Manifest Type: ${effectiveProfile?.manifestType || ''}`,
+    `Target Source: ${summary?.span?.targetSource || 'computed'}`,
+        '',
+  'Files:',
+        '- summary.json: Data used to prepare the application',
+  '- fields.json: Normalized key-value fields for form population (MM109/CSX)',
+  '- plan-profile.svg: Simple plan/profile diagram',
+  '- cached-midspans.csv: Cached spans with midspan/target used (when available)',
+  '- checklist.txt: Pre-submission checklist to validate required fields',
+  env === 'wvHighway' ? '- mm109-draft.pdf: Draft application with populated fields' : '',
+  env === 'railroad' ? '- railroad-draft.pdf: Draft CSX application with populated fields' : '',
+      ].join('\n');
+      zip.file('permit/README.txt', readme);
+      // Simple checklist to help validate required fields before submission
+      const checklist = [
+        '# Pre-submission Checklist',
+        '',
+        `- [${summary.job.name ? 'x' : ' '}] Job name`,
+        `- [${summary.job.jobNumber ? 'x' : ' '}] Job number`,
+        `- [${summary.job.applicant ? 'x' : ' '}] Applicant`,
+        `- [${summary.pole.heightFt ? 'x' : ' '}] Pole height`,
+        `- [${summary.power.heightFt ? 'x' : ' '}] Power height`,
+        `- [${summary.span.lengthFt ? 'x' : ' '}] Span length`,
+        `- [${summary.span.midspanFt ? 'x' : ' '}] Midspan`,
+        `- [${summary.span.targetFt ? 'x' : ' '}] Ground clearance target`,
+        '',
+        'Attach supporting photos, maps, and any utility-specific forms as needed.'
+      ].join('\n');
+      zip.file('permit/checklist.txt', checklist);
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${summary.type.replace(/[^A-Za-z0-9_-]/g,'_')}_permit_pack.zip`; a.click(); URL.revokeObjectURL(url);
+    } catch (e) {
+      alert(`Permit pack failed: ${e?.message||e}`);
+    }
+  };
+  const isTargetEnv = store.spanEnvironment === 'wvHighway' || store.spanEnvironment === 'railroad';
+  return (
+    <button className="px-2 py-1 border rounded text-sm" onClick={onPermit} disabled={!store.results || !isTargetEnv} title={isTargetEnv ? 'Generate permit package' : 'Select WV Highway or Railroad environment'}>
+      Export Permit Pack
+    </button>
   );
 }
 
@@ -564,6 +872,10 @@ function FieldCollection({ openHelp }) {
   const [currentPhotoDataUrl, setCurrentPhotoDataUrl] = React.useState('');
   const fileInputRefLibrary = React.useRef(null);
   const fileInputRefCamera = React.useRef(null);
+  const [filterStatus, setFilterStatus] = React.useState('all'); // all|draft|done
+  const [filterPhoto, setFilterPhoto] = React.useState('all'); // all|with|without
+  const [filterPass, setFilterPass] = React.useState('all'); // all|pass|fail
+  const [includePhotos, setIncludePhotos] = React.useState(true);
 
   const handleRowGPS = async (rowIndex) => {
     if (!('geolocation' in navigator)) { alert('Geolocation not supported'); return; }
@@ -642,7 +954,32 @@ function FieldCollection({ openHelp }) {
     if (!file) return;
     try {
       const reader = new FileReader();
-      reader.onload = () => setCurrentPhotoDataUrl(String(reader.result || ''));
+      reader.onload = async () => {
+        const dataUrl = String(reader.result || '');
+        setCurrentPhotoDataUrl(dataUrl);
+        // Try EXIF extraction (GPS + DateTime)
+        try {
+          const { default: exifr } = await import('exifr');
+          const exif = await exifr.parse(file, { gps: true });
+          if (exif) {
+            const lat = exif.latitude;
+            const lon = exif.longitude;
+            const dt = exif.DateTimeOriginal || exif.CreateDate || exif.ModifyDate;
+            if (typeof lat === 'number' && typeof lon === 'number') {
+              // Do not override if already set; otherwise fill from EXIF
+              if (!store.poleLatitude) store.setPoleLatitude(lat.toFixed(6));
+              if (!store.poleLongitude) store.setPoleLongitude(lon.toFixed(6));
+            }
+            if (dt && !isNaN(new Date(dt))) {
+              // Update current row timestamp only when saving; we keep it for export from EXIF
+              // Store a temporary hint
+              // No state for temp; value will be embedded in file metadata; leave UI as-is
+            }
+          }
+        } catch (e) {
+          if (import.meta?.env?.DEV) console.warn('EXIF parse failed', e);
+        }
+      };
       reader.readAsDataURL(file);
     } catch (e) {
       // log only in dev to avoid noisy console in prod
@@ -651,9 +988,13 @@ function FieldCollection({ openHelp }) {
   };
 
   const exportCollected = () => {
-    const header = ['id','latitude','longitude','height','class','powerHeight','voltage','hasTransformer','spanDistance','adjacentPoleHeight','attachmentType','status','hasPhoto','timestamp'];
+    const activeJob = (store.jobs||[]).find(j=>j.id===store.currentJobId);
+    const header = ['id','latitude','longitude','height','class','powerHeight','voltage','hasTransformer','spanDistance','adjacentPoleHeight','attachmentType','status','hasPhoto','timestamp','asBuiltAttachHeight','asBuiltPowerHeight','varianceIn','variancePass','commCompany'];
     const rows = (store.collectedPoles || []).filter(p=>!store.currentJobId || p.jobId===store.currentJobId).map(p => [
-      p.id || '', p.latitude || '', p.longitude || '', p.height || '', p.poleClass || '', p.powerHeight || '', p.voltage || '', p.hasTransformer ? 'Y' : 'N', p.spanDistance || '', p.adjacentPoleHeight || '', p.attachmentType || '', (p.status || 'draft'), (p.photoDataUrl ? 'Y' : 'N'), p.timestamp || ''
+      p.id || '', p.latitude || '', p.longitude || '', p.height || '', p.poleClass || '', p.powerHeight || '', p.voltage || '', p.hasTransformer ? 'Y' : 'N', p.spanDistance || '', p.adjacentPoleHeight || '', p.attachmentType || '', (p.status || 'draft'), (p.photoDataUrl ? 'Y' : 'N'), p.timestamp || '',
+      p.asBuilt?.attachHeight || '', p.asBuilt?.powerHeight || '',
+      computeVarianceIn(p.asBuilt?.attachHeight, p.height), evaluateVariancePass(p.asBuilt?.attachHeight, p.height, store.presetProfile),
+      activeJob?.commCompany || ''
     ]);
     const csv = [header.join(','), ...rows.map(r=>r.map(v=>`${String(v).replaceAll('"','""')}`).join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -662,14 +1003,304 @@ function FieldCollection({ openHelp }) {
 
   const exportFirst25 = () => {
     const subset = (store.collectedPoles || []).filter(p=>!store.currentJobId || p.jobId===store.currentJobId).slice(0, 25);
-    const header = ['id','latitude','longitude','height','class','powerHeight','voltage','hasTransformer','spanDistance','adjacentPoleHeight','attachmentType','status','hasPhoto','timestamp'];
+    const header = ['id','latitude','longitude','height','class','powerHeight','voltage','hasTransformer','spanDistance','adjacentPoleHeight','attachmentType','status','hasPhoto','timestamp','asBuiltAttachHeight','asBuiltPowerHeight','varianceIn','variancePass'];
     const rows = subset.map(p => [
-      p.id || '', p.latitude || '', p.longitude || '', p.height || '', p.poleClass || '', p.powerHeight || '', p.voltage || '', p.hasTransformer ? 'Y' : 'N', p.spanDistance || '', p.adjacentPoleHeight || '', p.attachmentType || '', (p.status || 'draft'), (p.photoDataUrl ? 'Y' : 'N'), p.timestamp || ''
+      p.id || '', p.latitude || '', p.longitude || '', p.height || '', p.poleClass || '', p.powerHeight || '', p.voltage || '', p.hasTransformer ? 'Y' : 'N', p.spanDistance || '', p.adjacentPoleHeight || '', p.attachmentType || '', (p.status || 'draft'), (p.photoDataUrl ? 'Y' : 'N'), p.timestamp || '',
+      p.asBuilt?.attachHeight || '', p.asBuilt?.powerHeight || '',
+      computeVarianceIn(p.asBuilt?.attachHeight, p.height), evaluateVariancePass(p.asBuilt?.attachHeight, p.height, store.presetProfile)
     ]);
     const csv = [header.join(','), ...rows.map(r=>r.map(v=>`${String(v).replaceAll('"','""')}`).join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'collected-poles-first-25.csv'; a.click(); URL.revokeObjectURL(url);
   };
+
+  const exportSpansZip = async () => {
+    try {
+      const JSZip = (await import('jszip')).default;
+      const zip = new JSZip();
+      const polesAll = (store.collectedPoles || []).filter(p=>!store.currentJobId || p.jobId===store.currentJobId);
+      const activeJob = (store.jobs||[]).find(j=>j.id===store.currentJobId);
+      const effectiveProfile = (()=>{
+        const baseName = activeJob?.submissionProfileName || store.currentSubmissionProfile;
+        const base = (store.submissionProfiles||[]).find(p=>p.name===baseName) || {};
+        return { ...base, ...(activeJob?.submissionProfileOverrides||{}), name: base?.name };
+      })();
+      // annotate variance for FE manifest convenience
+      const poles = polesAll.map(p => ({
+        ...p,
+        _varianceIn: computeVarianceIn(p.asBuilt?.attachHeight, p.height),
+        _variancePass: evaluateVariancePass(p.asBuilt?.attachHeight, p.height, store.presetProfile)
+      }));
+      const { header, rows, fileLabel } = buildManifest('firstEnergy', poles, activeJob);
+      zip.file('manifest.csv', csvFrom(header, rows));
+      // Include job profile summary
+      zip.file('job-profile.json', JSON.stringify({ jobId: activeJob?.id || '', jobName: activeJob?.name || '', owner: activeJob?.jobOwner || store.jobOwner || '', commCompany: activeJob?.commCompany || '', submissionProfile: effectiveProfile, includePhotos }, null, 2));
+      // Photos folder (optional) + index
+      if (includePhotos) {
+        const photos = zip.folder('photos');
+        const index = [];
+        for (const p of poles) {
+          if (!p.photoDataUrl) continue;
+          const safeId = p.id ? String(p.id).replaceAll(/[^A-Za-z0-9_-]/g,'_') : `row-${index.length+1}`;
+          const dataUrl = String(p.photoDataUrl);
+          const m = dataUrl.match(/^data:(.+);base64,(.*)$/);
+          const mime = m?.[1] || 'image/jpeg';
+          const base64 = m?.[2] || dataUrl.split(',')[1];
+          const ext = mime.includes('png') ? 'png' : (mime.includes('webp') ? 'webp' : 'jpg');
+          const file = `${safeId}.${ext}`;
+          if (base64) { photos.file(file, base64, { base64: true }); index.push(`${safeId},${file},${mime}`); }
+        }
+        if (index.length) photos.file('index.csv', ['id,file,mime', ...index].join('\n'));
+      }
+  const blob = await zip.generateAsync({ type: 'blob' });
+  const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${fileLabel}.zip`; a.click(); URL.revokeObjectURL(url);
+    } catch (e) {
+      alert(`ZIP export failed: ${e?.message || e}`);
+    }
+  };
+
+  const exportAepZip = async () => {
+    try {
+      const JSZip = (await import('jszip')).default;
+      const zip = new JSZip();
+      const poles = (store.collectedPoles || []).filter(p=>!store.currentJobId || p.jobId===store.currentJobId);
+      const activeJob = (store.jobs||[]).find(j=>j.id===store.currentJobId);
+      const effectiveProfile = (()=>{
+        const baseName = activeJob?.submissionProfileName || store.currentSubmissionProfile;
+        const base = (store.submissionProfiles||[]).find(p=>p.name===baseName) || {};
+        return { ...base, ...(activeJob?.submissionProfileOverrides||{}), name: base?.name };
+      })();
+      const { header, rows, fileLabel } = buildManifest('aep', poles, activeJob);
+      zip.file('manifest.csv', csvFrom(header, rows));
+      zip.file('job-profile.json', JSON.stringify({ jobId: activeJob?.id || '', jobName: activeJob?.name || '', owner: activeJob?.jobOwner || store.jobOwner || '', commCompany: activeJob?.commCompany || '', submissionProfile: effectiveProfile, includePhotos }, null, 2));
+      if (includePhotos) {
+        const photos = zip.folder('photos');
+        const index = [];
+        for (const p of poles) {
+          if (!p.photoDataUrl) continue;
+          const safeId = p.id ? String(p.id).replaceAll(/[^A-Za-z0-9_-]/g,'_') : `row-${index.length+1}`;
+          const dataUrl = String(p.photoDataUrl);
+          const m = dataUrl.match(/^data:(.+);base64,(.*)$/);
+          const mime = m?.[1] || 'image/jpeg';
+          const base64 = m?.[2] || dataUrl.split(',')[1];
+          const ext = mime.includes('png') ? 'png' : (mime.includes('webp') ? 'webp' : 'jpg');
+          const file = `${safeId}.${ext}`;
+          if (base64) { photos.file(file, base64, { base64: true }); index.push(`${safeId},${file},${mime}`); }
+        }
+        if (index.length) photos.file('index.csv', ['id,file,mime', ...index].join('\n'));
+      }
+  const blob = await zip.generateAsync({ type: 'blob' });
+  const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${fileLabel}.zip`; a.click(); URL.revokeObjectURL(url);
+    } catch (e) {
+      alert(`ZIP export failed: ${e?.message || e}`);
+    }
+  };
+
+  const exportByProfile = async () => {
+    const job = (store.jobs||[]).find(j=>j.id===store.currentJobId);
+    const name = job?.submissionProfileName || store.currentSubmissionProfile;
+    if (name === 'firstEnergy') return exportSpansZip();
+    if (name === 'aep') return exportAepZip();
+    if (name === 'duke') {
+      // Use generic rows-by-profile path to build a Duke manifest package
+      const scoped = (store.collectedPoles || []).filter(p => !store.currentJobId || p.jobId === store.currentJobId);
+      return exportRowsByProfile(scoped, '');
+    }
+    // default fallback to CSV zip-like minimal package (reuse AEP format)
+    return exportAepZip();
+  };
+
+  // Derived filtered rows for QA
+  const rows = React.useMemo(() => {
+    const list = (store.collectedPoles || []).filter(p => !store.currentJobId || p.jobId === store.currentJobId);
+    return list.filter(p => {
+      if (filterStatus !== 'all' && (p.status || 'draft') !== filterStatus) return false;
+      if (filterPhoto === 'with' && !p.photoDataUrl) return false;
+      if (filterPhoto === 'without' && !!p.photoDataUrl) return false;
+      if (filterPass !== 'all') {
+        const verdict = evaluateVariancePass(p.asBuilt?.attachHeight, p.height, store.presetProfile);
+        if (filterPass === 'pass' && verdict !== 'PASS') return false;
+        if (filterPass === 'fail' && verdict !== 'FAIL') return false;
+      }
+      return true;
+    });
+  }, [store.collectedPoles, store.currentJobId, filterStatus, filterPhoto, filterPass, store.presetProfile]);
+
+  const summary = React.useMemo(() => {
+    const scoped = (store.collectedPoles || []).filter(p => !store.currentJobId || p.jobId === store.currentJobId);
+    const total = scoped.length;
+    const done = scoped.filter(p => (p.status || 'draft') === 'done').length;
+    const withPhoto = scoped.filter(p => !!p.photoDataUrl).length;
+    const pass = scoped.filter(p => evaluateVariancePass(p.asBuilt?.attachHeight, p.height, store.presetProfile) === 'PASS').length;
+    const fail = scoped.filter(p => evaluateVariancePass(p.asBuilt?.attachHeight, p.height, store.presetProfile) === 'FAIL').length;
+    return { total, done, withPhoto, pass, fail };
+  }, [store.collectedPoles, store.currentJobId, store.presetProfile]);
+
+  const exportFilteredByProfile = async () => {
+    const JSZip = (await import('jszip')).default;
+    const zip = new JSZip();
+    const activeJob = (store.jobs||[]).find(j=>j.id===store.currentJobId);
+    const name = activeJob?.submissionProfileName || store.currentSubmissionProfile;
+    const effectiveProfile = (()=>{
+      const base = (store.submissionProfiles||[]).find(p=>p.name===name) || {};
+      return { ...base, ...(activeJob?.submissionProfileOverrides||{}), name: base?.name };
+    })();
+    // scope to filtered rows
+    const filtered = rows;
+    const withVariance = filtered.map(p => ({
+      ...p,
+      _varianceIn: computeVarianceIn(p.asBuilt?.attachHeight, p.height),
+      _variancePass: evaluateVariancePass(p.asBuilt?.attachHeight, p.height, store.presetProfile)
+    }));
+    const { header, rows: manifestRows, fileLabel } = buildManifest(name, withVariance, activeJob);
+    zip.file('manifest.csv', csvFrom(header, manifestRows));
+    zip.file('job-profile.json', JSON.stringify({ jobId: activeJob?.id || '', jobName: activeJob?.name || '', owner: activeJob?.jobOwner || store.jobOwner || '', commCompany: activeJob?.commCompany || '', submissionProfile: effectiveProfile, includePhotos, filter: { status: filterStatus, photo: filterPhoto, variance: filterPass } }, null, 2));
+    if (includePhotos) {
+      const photos = zip.folder('photos');
+      const index = [];
+      for (const p of filtered) {
+        if (!p.photoDataUrl) continue;
+        const safeId = p.id ? String(p.id).replaceAll(/[^A-Za-z0-9_-]/g,'_') : `row-${index.length+1}`;
+        const dataUrl = String(p.photoDataUrl);
+        const m = dataUrl.match(/^data:(.+);base64,(.*)$/);
+        const mime = m?.[1] || 'image/jpeg';
+        const base64 = m?.[2] || dataUrl.split(',')[1];
+        const ext = mime.includes('png') ? 'png' : (mime.includes('webp') ? 'webp' : 'jpg');
+        const file = `${safeId}.${ext}`;
+        if (base64) { photos.file(file, base64, { base64: true }); index.push(`${safeId},${file},${mime}`); }
+      }
+      if (index.length) photos.file('index.csv', ['id,file,mime', ...index].join('\n'));
+    }
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${fileLabel}-filtered.zip`; a.click(); URL.revokeObjectURL(url);
+  };
+
+  const exportDoneOnly = async () => {
+    const keep = rows.filter(p => (p.status || 'draft') === 'done');
+    await exportRowsByProfile(keep, '-done');
+  };
+  const exportFailOnly = async () => {
+    const keep = rows.filter(p => evaluateVariancePass(p.asBuilt?.attachHeight, p.height, store.presetProfile) === 'FAIL');
+    await exportRowsByProfile(keep, '-fail');
+  };
+
+  // Geospatial exports: GeoJSON, KML, KMZ
+  const exportGeo = async (type) => {
+    const job = (store.jobs||[]).find(j=>j.id===store.currentJobId) || {};
+    // Prefer collected poles scoped to current job; augment with imported poles for span endpoints
+    const jobPoles = (store.collectedPoles || []).filter(p=>!store.currentJobId || p.jobId===store.currentJobId);
+    const importedPoles = store.importedPoles || [];
+    // Merge by id (job poles take precedence)
+    const byId = new Map();
+    for (const p of importedPoles) if (p?.id) byId.set(String(p.id), p);
+    for (const p of jobPoles) if (p?.id) byId.set(String(p.id), p);
+    const poles = jobPoles.length ? Array.from(new Set([...
+      jobPoles,
+      // include imported poles only if they have coordinates and aren't already present by exact ref equality
+      ...importedPoles.filter(ip => ip && ip.id && !jobPoles.find(jp => String(jp.id) === String(ip.id)))
+    ])) : importedPoles;
+
+    // Spans: if imported spans exist, use them; otherwise fall back to neighbor inference on job poles
+    let spans = [];
+    if ((store.importedSpans || []).length) {
+      spans = (store.importedSpans || []).map((s, idx) => ({
+        id: s.id || `S${idx+1}`,
+        fromId: s.fromId,
+        toId: s.toId,
+        length: s.length,
+        proposedAttach: s.proposedAttach,
+        environment: s.environment,
+      }));
+    } else {
+      // Derive simple neighbor spans from ordered job poles with coordinates
+      for (let i = 1; i < jobPoles.length; i++) {
+        const prev = jobPoles[i - 1]; const cur = jobPoles[i];
+        if (prev?.latitude && prev?.longitude && cur?.latitude && cur?.longitude) {
+          spans.push({ id: `${prev.id||i-1}-${cur.id||i}`, fromId: prev.id, toId: cur.id, length: prev.spanDistance||'', proposedAttach: cur.height||'' });
+        }
+      }
+    }
+
+    const fc = buildGeoJSON({ poles, spans, job });
+    if (!fc.features.length) return alert('No geolocated poles/spans to export');
+    if (type === 'geojson') return exportGeoJSON(fc, `${job.name||'job'}-geodata.geojson`);
+    if (type === 'kml') return exportKML(fc, `${job.name||'job'}-geodata.kml`);
+    if (type === 'kmz') return exportKMZ(fc, `${job.name||'job'}-geodata.kmz`);
+  };
+  const exportRowsByProfile = async (subset, suffix) => {
+    const JSZip = (await import('jszip')).default;
+    const zip = new JSZip();
+    const activeJob = (store.jobs||[]).find(j=>j.id===store.currentJobId);
+    const name = activeJob?.submissionProfileName || store.currentSubmissionProfile;
+    const effectiveProfile = (()=>{
+      const base = (store.submissionProfiles||[]).find(p=>p.name===name) || {};
+      return { ...base, ...(activeJob?.submissionProfileOverrides||{}), name: base?.name };
+    })();
+    const withVariance = subset.map(p => ({
+      ...p,
+      _varianceIn: computeVarianceIn(p.asBuilt?.attachHeight, p.height),
+      _variancePass: evaluateVariancePass(p.asBuilt?.attachHeight, p.height, store.presetProfile)
+    }));
+    const { header, rows: manifestRows, fileLabel } = buildManifest(name, withVariance, activeJob);
+    zip.file('manifest.csv', csvFrom(header, manifestRows));
+    zip.file('job-profile.json', JSON.stringify({ jobId: activeJob?.id || '', jobName: activeJob?.name || '', owner: activeJob?.jobOwner || store.jobOwner || '', commCompany: activeJob?.commCompany || '', submissionProfile: effectiveProfile, includePhotos, subset: suffix }, null, 2));
+    if (includePhotos) {
+      const photos = zip.folder('photos');
+      const index = [];
+      for (const p of subset) {
+        if (!p.photoDataUrl) continue;
+        const safeId = p.id ? String(p.id).replaceAll(/[^A-Za-z0-9_-]/g,'_') : `row-${index.length+1}`;
+        const dataUrl = String(p.photoDataUrl);
+        const m = dataUrl.match(/^data:(.+);base64,(.*)$/);
+        const mime = m?.[1] || 'image/jpeg';
+        const base64 = m?.[2] || dataUrl.split(',')[1];
+        const ext = mime.includes('png') ? 'png' : (mime.includes('webp') ? 'webp' : 'jpg');
+        const file = `${safeId}.${ext}`;
+        if (base64) { photos.file(file, base64, { base64: true }); index.push(`${safeId},${file},${mime}`); }
+      }
+      if (index.length) photos.file('index.csv', ['id,file,mime', ...index].join('\n'));
+    }
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${fileLabel}${suffix}.zip`; a.click(); URL.revokeObjectURL(url);
+  };
+
+  // Midspan Verification: show spans for which we have both endpoints and can compute midspan
+  const midspanChecks = React.useMemo(() => {
+    const scoped = (store.collectedPoles || []).filter(p=>!store.currentJobId || p.jobId===store.currentJobId);
+    const byId = new Map(); scoped.forEach(p => { if (p?.id) byId.set(String(p.id), p); });
+    // if imported spans exist, use them to determine adjacency; else infer neighbor pairs
+    const spans = (store.importedSpans || []).length ? store.importedSpans : scoped.slice(1).map((cur,i)=>({ fromId: scoped[i]?.id, toId: cur.id, id: `${scoped[i]?.id||i}-${cur.id||i+1}`, length: scoped[i]?.spanDistance }));
+    const rows = [];
+    for (const s of spans) {
+      const a = s.fromId ? byId.get(String(s.fromId)) : null;
+      const b = s.toId ? byId.get(String(s.toId)) : null;
+      if (!a || !b) continue; // need both endpoints collected
+      // Use FE-style profile merging used elsewhere
+      const activeJob = (store.jobs||[]).find(j=>j.id===store.currentJobId);
+      const profileName = activeJob?.submissionProfileName || store.currentSubmissionProfile;
+      const baseProfile = (store.submissionProfiles||[]).find(p=>p.name===profileName);
+      const mergedProfile = baseProfile ? { ...baseProfile, ...(activeJob?.submissionProfileOverrides||{}) } : undefined;
+      const out = computeAnalysis({
+        poleHeight: a.height, poleClass: a.poleClass, poleLatitude: a.latitude, poleLongitude: a.longitude,
+        adjacentPoleHeight: b.height, adjacentPoleLatitude: b.latitude, adjacentPoleLongitude: b.longitude,
+        existingPowerHeight: a.powerHeight, existingPowerVoltage: store.existingPowerVoltage,
+        spanDistance: s.length, isNewConstruction: store.isNewConstruction,
+        attachmentType: store.attachmentType, cableDiameter: store.cableDiameter, windSpeed: store.windSpeed,
+        spanEnvironment: store.spanEnvironment, dripLoopHeight: store.dripLoopHeight,
+        proposedLineHeight: a.height, // proposed comm at A row, if present
+        existingLines: store.existingLines, iceThicknessIn: store.iceThicknessIn, hasTransformer: a.hasTransformer,
+        presetProfile: store.presetProfile, customMinTopSpace: store.customMinTopSpace,
+        customRoadClearance: store.customRoadClearance, customCommToPower: store.customCommToPower,
+        powerReference: store.powerReference, jobOwner: store.jobOwner,
+        submissionProfile: mergedProfile,
+        adjacentPowerHeight: b.powerHeight,
+      });
+      if (out?.results) {
+        rows.push({ id: s.id || `${a.id}-${b.id}`, from: a.id, to: b.id, midspanFt: out.results.span.midspanFt, groundTargetFt: out.results.clearances.groundClearance });
+      }
+    }
+    return rows;
+  }, [store]);
 
   return (
     <div className="rounded border p-3 no-print">
@@ -682,7 +1313,35 @@ function FieldCollection({ openHelp }) {
             title="Open Help to Field Collection"
           >Help</button>
         </div>
-        <div className="text-xs text-gray-600">Collected: {(store.collectedPoles || []).length} | Max per FE batch: 25</div>
+  <div className="text-xs text-gray-600">Collected: {summary.total} (Done: {summary.done}, Pass: {summary.pass}, Fail: {summary.fail}, Photos: {summary.withPhoto}) | Max per FE batch: 25 — Hint: set Owner to "Mon Power" (FirstEnergy) when applicable</div>
+      </div>
+      {/* QA Filters */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+        <label className="text-sm text-gray-700 grid gap-1">
+          <span className="font-medium">Filter Status</span>
+          <select className="border rounded px-2 py-1" value={filterStatus} onChange={e=>setFilterStatus(e.target.value)}>
+            <option value="all">All</option>
+            <option value="draft">Draft</option>
+            <option value="done">Done</option>
+          </select>
+        </label>
+        <label className="text-sm text-gray-700 grid gap-1">
+          <span className="font-medium">Filter Photos</span>
+          <select className="border rounded px-2 py-1" value={filterPhoto} onChange={e=>setFilterPhoto(e.target.value)}>
+            <option value="all">All</option>
+            <option value="with">With Photo</option>
+            <option value="without">Without Photo</option>
+          </select>
+        </label>
+        <label className="text-sm text-gray-700 grid gap-1">
+          <span className="font-medium">Filter FE Variance</span>
+          <select className="border rounded px-2 py-1" value={filterPass} onChange={e=>setFilterPass(e.target.value)}>
+            <option value="all">All</option>
+            <option value="pass">PASS</option>
+            <option value="fail">FAIL</option>
+          </select>
+        </label>
+        <div className="text-xs text-gray-600 flex items-end">Job: {store.currentJobId ? ((store.jobs||[]).find(j=>j.id===store.currentJobId)?.name || '—') : '—'}</div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <Input label="Pole ID" value={poleId} onChange={e=>setPoleId(e.target.value)} placeholder="e.g., Tag # or temp" />
@@ -718,13 +1377,69 @@ function FieldCollection({ openHelp }) {
       </div>
 
       <div className="mt-3 flex items-center gap-2">
+        <label className="text-xs inline-flex items-center gap-2 mr-1">
+          <input type="checkbox" className="h-4 w-4" checked={includePhotos} onChange={e=>setIncludePhotos(e.target.checked)} />
+          <span>Include photos</span>
+        </label>
         <button className="px-2 py-1 border rounded text-sm" onClick={exportCollected} disabled={!store.collectedPoles?.length}>Export CSV</button>
-        <button className="px-2 py-1 border rounded text-sm" onClick={exportFirst25} disabled={(store.collectedPoles?.length||0) < 1}>Export First 25</button>
+  <button className="px-2 py-1 border rounded text-sm" onClick={exportFirst25} disabled={(store.collectedPoles?.length||0) < 1}>Export First 25</button>
+  <button className="px-2 py-1 border rounded text-sm" onClick={exportSpansZip} disabled={(store.collectedPoles?.length||0) < 1}>Export FE SPANS ZIP</button>
+        <button className="px-2 py-1 border rounded text-sm" onClick={exportByProfile} disabled={(store.collectedPoles?.length||0) < 1}>Export Utility ZIP (Profile)</button>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-gray-500">Geospatial:</span>
+          <button className="px-2 py-1 border rounded text-xs" onClick={()=>exportGeo('geojson')} disabled={(store.collectedPoles?.length||0) < 1}>GeoJSON</button>
+          <button className="px-2 py-1 border rounded text-xs" onClick={()=>exportGeo('kml')} disabled={(store.collectedPoles?.length||0) < 1}>KML</button>
+          <button className="px-2 py-1 border rounded text-xs" onClick={()=>exportGeo('kmz')} disabled={(store.collectedPoles?.length||0) < 1}>KMZ</button>
+          {/* Shapefile export omitted intentionally to avoid heavy deps */}
+        </div>
+  <button className="px-2 py-1 border rounded text-sm" onClick={exportAepZip} disabled={(store.collectedPoles?.length||0) < 1}>Export AEP ZIP</button>
+  <button className="px-2 py-1 border rounded text-sm" onClick={exportFilteredByProfile} disabled={!rows.length}>Export Filtered ZIP</button>
+  <button className="px-2 py-1 border rounded text-sm" onClick={exportDoneOnly} disabled={!rows.length}>Export DONE-only</button>
+  <button className="px-2 py-1 border rounded text-sm" onClick={exportFailOnly} disabled={!rows.length}>Export FAIL-only</button>
         <button className="px-2 py-1 border rounded text-sm" onClick={()=>store.setCollectedPoles?.([])} disabled={!store.collectedPoles?.length}>Clear</button>
       </div>
 
   <div className="mt-3 overflow-auto">
-        <table className="w-full text-sm min-w-[720px]">
+        {/* Midspan Verification */}
+        {midspanChecks.length ? (
+          <div className="mb-3 rounded border p-2">
+            <div className="font-medium mb-1">Midspan Verification</div>
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="text-left text-gray-600">
+                  <th className="p-1">Span</th>
+                  <th className="p-1">Midspan</th>
+                  <th className="p-1">Target</th>
+                  <th className="p-1">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {midspanChecks.map(row => {
+                  const ok = row.midspanFt == null ? false : row.midspanFt >= row.groundTargetFt;
+                  return (
+                    <tr key={row.id} className="border-t">
+                      <td className="p-1">{row.from} → {row.to}</td>
+                      <td className="p-1">{row.midspanFt != null ? (store.useTickMarkFormat ? formatFeetInchesTickMarks(row.midspanFt) : formatFeetInchesVerbose(row.midspanFt)) : '—'}</td>
+                      <td className="p-1">{store.useTickMarkFormat ? formatFeetInchesTickMarks(row.groundTargetFt) : formatFeetInchesVerbose(row.groundTargetFt)}</td>
+                      <td className={ok ? 'p-1 text-emerald-700' : 'p-1 text-red-700'}>{ok ? 'PASS' : 'FAIL'}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            <div className="text-[11px] text-gray-600 mt-1">Midspan is evaluated only when both poles of the span are collected. Span distance is auto-derived from geolocation when not provided. Make-ready lowering at either end propagates to midspan in the calculation.</div>
+          </div>
+        ) : null}
+        {/* Summary Dashboard */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-2 text-sm">
+          <div className="border rounded p-2"><div className="text-xs text-gray-500">Total</div><div className="text-lg font-semibold">{summary.total}</div></div>
+          <div className="border rounded p-2"><div className="text-xs text-gray-500">Done</div><div className="text-lg font-semibold">{summary.done}</div></div>
+          <div className="border rounded p-2"><div className="text-xs text-gray-500">Photos</div><div className="text-lg font-semibold">{summary.withPhoto}</div></div>
+          <div className="border rounded p-2"><div className="text-xs text-gray-500">PASS</div><div className="text-lg font-semibold text-emerald-700">{summary.pass}</div></div>
+          <div className="border rounded p-2"><div className="text-xs text-gray-500">FAIL</div><div className="text-lg font-semibold text-red-700">{summary.fail}</div></div>
+        </div>
+
+        <table className="w-full text-sm min-w-[920px]">
           <thead>
             <tr className="text-left text-gray-600">
               <th className="p-2">ID</th>
@@ -736,13 +1451,17 @@ function FieldCollection({ openHelp }) {
               <th className="p-2">Voltage</th>
               <th className="p-2">XFMR</th>
               <th className="p-2">Span</th>
+      <th className="p-2">As-built Attach</th>
+      <th className="p-2">As-built Power</th>
+      <th className="p-2">Δ (in)</th>
+      <th className="p-2">FE Pass</th>
       <th className="p-2">Photo</th>
       <th className="p-2">Status</th>
               <th className="p-2">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {(store.collectedPoles || []).map((p, i) => (
+            {rows.map((p, i) => (
               <tr key={`${p.id}-${i}`} className="border-t">
                 <td className="p-2"><input className="border rounded px-2 py-1 w-28" value={p.id || ''} onChange={e=>store.updateCollectedPole(i,{ id: e.target.value })} /></td>
                 <td className="p-2">
@@ -766,6 +1485,14 @@ function FieldCollection({ openHelp }) {
                   <input type="checkbox" className="h-4 w-4" checked={!!p.hasTransformer} onChange={e=>store.updateCollectedPole(i,{ hasTransformer: e.target.checked })} />
                 </td>
                 <td className="p-2"><input className="border rounded px-2 py-1 w-20" value={p.spanDistance || ''} onChange={e=>store.updateCollectedPole(i,{ spanDistance: e.target.value })} /></td>
+                <td className="p-2"><input className="border rounded px-2 py-1 w-28" value={p.asBuilt?.attachHeight || ''} onChange={e=>store.updateCollectedPole(i,{ asBuilt: { ...(p.asBuilt||{}), attachHeight: e.target.value } })} placeholder="ft/in" /></td>
+                <td className="p-2"><input className="border rounded px-2 py-1 w-28" value={p.asBuilt?.powerHeight || ''} onChange={e=>store.updateCollectedPole(i,{ asBuilt: { ...(p.asBuilt||{}), powerHeight: e.target.value } })} placeholder="ft/in" /></td>
+                <td className="p-2 w-20">{computeVarianceIn(p.asBuilt?.attachHeight, p.height)}</td>
+                <td className="p-2 w-24">
+                  <span className={evaluateVariancePass(p.asBuilt?.attachHeight, p.height, store.presetProfile) === 'PASS' ? 'text-emerald-700' : 'text-red-700'}>
+                    {evaluateVariancePass(p.asBuilt?.attachHeight, p.height, store.presetProfile)}
+                  </span>
+                </td>
                 <td className="p-2">
                   <div className="flex items-center gap-2">
                     {p.photoDataUrl ? <img src={p.photoDataUrl} alt="photo" className="h-10 w-10 object-cover rounded border" /> : <span className="text-xs text-gray-500">None</span>}
@@ -850,7 +1577,12 @@ function BatchReport() {
         customRoadClearance: store.customRoadClearance,
         customCommToPower: store.customCommToPower,
       };
-      const out = computeAnalysis(inputs);
+      const out = computeAnalysis({ 
+        ...inputs, 
+        powerReference: store.powerReference, 
+        jobOwner: store.jobOwner,
+        submissionProfile: (store.submissionProfiles||[]).find(p=>p.name===store.currentSubmissionProfile)
+      });
       if (out?.results) rows.push({ span: s, from, to, ...out });
     }
     return rows;
@@ -1277,7 +2009,7 @@ Sample Project 3,45ft,Class 2,35' 6",175,95`;
             <h3 className="text-lg font-semibold text-blue-700 mb-3">🚀 Quick Start Guide</h3>
             <div className="bg-blue-50 p-4 rounded-lg">
               <ol className="list-decimal list-inside space-y-2 text-sm">
-                <li><strong>Create/Select a Job:</strong> Use the Job Setup panel to create a job (name, applicant, job #, preset). Select it to make it active.</li>
+                <li><strong>Create/Select a Job:</strong> Use the Job Setup panel to create a job (name, applicant, job #, preset, Owner). Select it to make it active.</li>
                 <li><strong>Enter Basic Data:</strong> Project name, pole height, and existing conditions</li>
                 <li><strong>Select Construction Type:</strong> New construction or existing pole attachment</li>
                 <li><strong>Add Span Information:</strong> Distance, adjacent pole height, wind conditions</li>
@@ -1299,6 +2031,7 @@ Sample Project 3,45ft,Class 2,35' 6",175,95`;
                 <li><strong>Select:</strong> Use the header dropdown to switch active jobs anytime.</li>
                 <li><strong>Auto-link:</strong> Collected poles are tagged to the active job.</li>
                 <li><strong>Exports:</strong> Collected CSV exports are filtered to the active job when one is selected.</li>
+                <li><strong>Owner default:</strong> Set an Owner (e.g., Mon Power). FE subsidiaries activate 44" comm-to-power rules automatically.</li>
               </ul>
             </div>
           </section>
@@ -1316,12 +2049,13 @@ Sample Project 3,45ft,Class 2,35' 6",175,95`;
                   <li>Tap <strong>Save Draft</strong> to keep editing later, or <strong>DONE</strong> to finalize the entry</li>
                 </ol>
               </div>
-              <div>
+        <div>
                 <h4 className="font-medium text-gray-800 mb-1">Manage collected poles</h4>
                 <ul className="list-disc list-inside space-y-1">
                   <li><strong>Edit inline:</strong> ID, GPS, heights, voltage, transformer, span</li>
                   <li><strong>Per-row GPS:</strong> Use the row <em>GPS</em> button to refresh coordinates on that row</li>
                   <li><strong>Status:</strong> Switch between <em>draft</em> and <em>done</em> per row</li>
+          <li><strong>QA Filters:</strong> Use Status/Photos/PASS-FAIL filters and the dashboard counters to speed up review</li>
                   <li><strong>Photos:</strong> Add/replace via <em>Camera</em> or <em>Library</em>; preview and <em>Remove</em> supported</li>
                   <li><strong>Persistence:</strong> Entries are cached in your browser and survive refreshes</li>
                 </ul>
@@ -1499,6 +2233,7 @@ Sample Project 3,45ft,Class 2,35' 6",175,95`;
                   <p><strong>CSV Export:</strong> Analysis results in spreadsheet format with your preferred height formatting</p>
                   <p><strong>PDF Report:</strong> Professional printable report with project details, calculations, and diagrams</p>
                   <p><strong>Batch Report:</strong> Multiple pole analysis when importing geospatial data</p>
+                  <p><strong>FirstEnergy SPANS ZIP:</strong> Job-scoped package with manifest.csv and photos/ suitable for SPANS submissions (max 25 per application recommended)</p>
                 </div>
               </div>
             </div>

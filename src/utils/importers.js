@@ -1,7 +1,5 @@
 // Geospatial import utilities: KML, KMZ, and Shapefile -> GeoJSON
-import JSZip from 'jszip';
-import shp from 'shpjs';
-import { kml as kmlToGeoJSON } from '@tmcw/togeojson';
+// Heavy libraries are lazy-loaded with dynamic imports to keep initial bundle small.
 
 // Common attribute mapping presets by provider/source (customize as needed)
 export const MAPPING_PRESETS = [
@@ -43,12 +41,14 @@ export async function importGeospatialFile(file) {
 }
 
 export async function parseKML(text) {
+  const { kml: kmlToGeoJSON } = await import('@tmcw/togeojson');
   const dom = new DOMParser().parseFromString(text, 'text/xml');
   const fc = kmlToGeoJSON(dom);
   return normalizeGeoJSON(fc);
 }
 
 export async function parseKMZ(file) {
+  const JSZip = (await import('jszip')).default;
   const zip = await JSZip.loadAsync(file);
   // Find first .kml in the zip
   const kmlEntry = Object.values(zip.files).find(f => f.name.toLowerCase().endsWith('.kml'));
@@ -60,6 +60,7 @@ export async function parseKMZ(file) {
 export async function parseShapefile(file) {
   // shpjs can handle a zip, ArrayBuffer, or URL; use file arrayBuffer
   const ab = await file.arrayBuffer();
+  const shp = (await import('shpjs')).default;
   const geojson = await shp(ab);
   return normalizeGeoJSON(geojson);
 }

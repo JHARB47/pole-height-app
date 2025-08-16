@@ -1,6 +1,7 @@
 import React from 'react';
 import useAppStore from '../utils/store';
 import { formatFeetInchesTickMarks, formatFeetInchesVerbose, parseFeet } from '../utils/calculations';
+import { WV_COMPANIES } from '../utils/constants';
 
 const LINE_TYPES = [
   { label: 'Communication', value: 'communication' },
@@ -189,7 +190,7 @@ export default function ExistingLinesEditor() {
           <thead>
             <tr className="text-left text-gray-600">
               <th className="p-2">Type</th>
-              <th className="p-2">Company</th>
+              <th className="p-2">Owner</th>
               <th className="p-2">Height (ft/in)</th>
               <th className="p-2">Make‑ready?</th>
               <th className="p-2">New Height (ft/in)</th>
@@ -208,8 +209,13 @@ export default function ExistingLinesEditor() {
                   </select>
                 </td>
                 <td className="p-2">
-                  <input className="border rounded px-2 py-1" value={row.companyName || ''}
-                         onChange={e=>update(idx, 'companyName', e.target.value)} placeholder="e.g., Comcast" />
+                  <input list="wv-companies" className="border rounded px-2 py-1" value={row.companyName || ''}
+                         onChange={e=>update(idx, 'companyName', e.target.value)} placeholder="e.g., Mon Power (Owner)" />
+                  <datalist id="wv-companies">
+                    {WV_COMPANIES.power.map(c => <option key={`p-${c.name}`} value={c.short || c.name}>{c.name}</option>)}
+                    {WV_COMPANIES.communication.map(c => <option key={`c-${c.name}`} value={c.short || c.name}>{c.name}</option>)}
+                  </datalist>
+                  <div className="text-[10px] text-gray-500 mt-0.5">Tip: Set FirstEnergy subsidiary names (Mon Power, Penelec, etc.) for FE rules</div>
                 </td>
                 <td className="p-2">
                   <input className={`border rounded px-2 py-1 ${row.height && parseFeet(row.height) == null ? 'border-red-400 bg-red-50' : ''}`} value={row.height || ''}

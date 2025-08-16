@@ -83,4 +83,66 @@ describe('computeAnalysis reliability', () => {
     const out = computeAnalysis(mockInputs({ spanDistance: 300, adjacentPoleHeight: 35, proposedLineHeight: '20ft 0in' }));
     expect(Array.isArray(out.warnings)).toBe(true);
   });
+
+  it('uses FE 44" comm-to-power when jobOwner is FE subsidiary', () => {
+    // Baseline with generic preset and no FE owner: expect 40"
+    const base = computeAnalysis(mockInputs({ presetProfile: '', existingPowerHeight: '35ft 0in', jobOwner: '', powerReference: 'power', dripLoopHeight: '' }));
+    expect(base.errors).toBeUndefined();
+    const sep40 = (35 - base.results.attach.proposedAttachFt) * 12; // inches
+    // With FE subsidiary owner at job level: expect ~44"
+    const fe = computeAnalysis(mockInputs({ presetProfile: '', existingPowerHeight: '35ft 0in', jobOwner: 'Mon Power', powerReference: 'power', dripLoopHeight: '' }));
+    expect(fe.errors).toBeUndefined();
+    const sep44 = (35 - fe.results.attach.proposedAttachFt) * 12;
+    expect(Math.round(sep40)).toBe(40);
+    expect(Math.round(sep44)).toBe(44);
+  });
+
+  it('applies environment-specific ground clearance override (residential)', () => {
+    const out = computeAnalysis(mockInputs({
+      spanEnvironment: 'residential',
+      submissionProfile: { envResidentialFt: 16.5 },
+    }));
+    expect(out.errors).toBeUndefined();
+    expect(out.results.clearances.groundClearance).toBeCloseTo(16.5, 5);
+  });
+
+  it('applies Interstate ground clearance from profile', () => {
+    const out = computeAnalysis(mockInputs({
+      spanEnvironment: 'interstate',
+      submissionProfile: { envInterstateFt: 18.0 },
+    }));
+    expect(out.errors).toBeUndefined();
+    expect(out.results.clearances.groundClearance).toBeCloseTo(18.0, 5);
+  });
+
+  it('applies Interstate (New Crossing) ground clearance from profile', () => {
+    const out = computeAnalysis(mockInputs({
+      spanEnvironment: 'interstateNewCrossing',
+      submissionProfile: { envInterstateNewCrossingFt: 21.0 },
+    }));
+    expect(out.errors).toBeUndefined();
+    expect(out.results.clearances.groundClearance).toBeCloseTo(21.0, 5);
+  });
+
+  it('applies Non-Residential Driveway ground clearance from profile', () => {
+    const out = computeAnalysis(mockInputs({
+      spanEnvironment: 'nonResidentialDriveway',
+      submissionProfile: { envNonResidentialDrivewayFt: 16.0 },
+    }));
+    expect(out.errors).toBeUndefined();
+    expect(out.results.clearances.groundClearance).toBeCloseTo(16.0, 5);
+  });
+
+  it('clamps proposed attach to min communications attach height when no power present', () => {
+    // Force commOwnerScenario by setting voltage to 'communication' and no power height
+    const out = computeAnalysis(mockInputs({
+      poleHeight: 18,
+      existingPowerHeight: '',
+      existingPowerVoltage: 'communication',
+      isNewConstruction: false,
+      submissionProfile: { minCommAttachFt: 14.0 },
+    }));
+    expect(out.errors).toBeUndefined();
+    expect(out.results.attach.proposedAttachFt).toBeGreaterThanOrEqual(14.0);
+  });
 });
