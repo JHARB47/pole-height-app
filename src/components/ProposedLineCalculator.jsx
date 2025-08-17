@@ -240,6 +240,9 @@ export default function ProposedLineCalculator() {
           {label:'Non-Residential Driveway / Alley / Parking',value:'nonResidentialDriveway'},
           {label:'Waterway',value:'waterway'},
           {label:'WV Highway',value:'wvHighway'},
+          {label:'PA Highway',value:'paHighway'},
+          {label:'OH Highway',value:'ohHighway'},
+          {label:'MD Highway',value:'mdHighway'},
           {label:'Railroad Crossing (CSX)',value:'railroad'},
         ]} />
          <Input label="Proposed Line (ft/in)" value={proposedLineHeight} onChange={e=>setProposedLineHeight(e.target.value)} />
@@ -267,6 +270,8 @@ export default function ProposedLineCalculator() {
       </div>
 
       {showReport ? <PrintableReport /> : showBatchReport ? <BatchReport /> : <ResultsPanel />}
+      <AgencyTemplatesPanel />
+      <FormAutofillPanel />
       
   <HelpModal open={showHelp} onClose={() => setShowHelp(false)} initialSection={helpSection} />
     </div>
@@ -408,6 +413,9 @@ function ProfileTuner() {
   <Editor label="Residential Driveway Target" field="envResidentialDrivewayFt" unit={'ft'} />
   <Editor label="Waterway Midspan Target" field="envWaterwayFt" unit={'ft'} />
   <Editor label="WV Highway Target" field="envWVHighwayFt" unit={'ft'} />
+  <Editor label="PA Highway Target" field="envPAHighwayFt" unit={'ft'} />
+  <Editor label="OH Highway Target" field="envOHHighwayFt" unit={'ft'} />
+  <Editor label="MD Highway Target" field="envMDHighwayFt" unit={'ft'} />
   <Editor label="Non-Residential Driveway Target" field="envNonResidentialDrivewayFt" unit={'ft'} />
   <Editor label="Interstate Target" field="envInterstateFt" unit={'ft'} />
   <Editor label="Interstate (New Crossing) Target" field="envInterstateNewCrossingFt" unit={'ft'} />
@@ -509,6 +517,151 @@ function ResultsPanel() {
         </div>
       ) : null}
       <div className="text-sm text-gray-600">Estimated cost: ${costAnalysis ?? 0}</div>
+    </div>
+  );
+}
+
+function AgencyTemplatesPanel() {
+  const store = useAppStore();
+  const [items, setItems] = React.useState([]);
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const { getTemplatesForEnvironment } = await import('../utils/permitTemplates');
+        const list = getTemplatesForEnvironment(store.spanEnvironment);
+        setItems(list || []);
+      } catch (e) {
+        if (import.meta?.env?.DEV) console.warn('Templates load failed', e);
+      }
+    })();
+  }, [store.spanEnvironment]);
+  if (!items?.length) return null;
+  return (
+    <div className="rounded border p-3 no-print">
+      <div className="font-medium mb-2">Agency Templates & Resources</div>
+      <div className="text-xs text-gray-600 mb-2">Environment: {store.spanEnvironment}</div>
+      <div className="grid md:grid-cols-2 gap-3 text-sm">
+        {items.map((a) => (
+          <div key={a.key} className="border rounded p-2">
+            <div className="font-medium mb-1">{a.name}</div>
+            {a.resources?.length ? (
+              <ul className="list-disc pl-5">
+                {a.resources.map((r, i) => (
+                  <li key={i} className="mb-1">
+                    <a className="text-blue-700 underline" href={r.url} target="_blank" rel="noreferrer">{r.label}</a>
+                    {r.notes ? <div className="text-xs text-gray-600">{r.notes}</div> : null}
+                  </li>
+                ))}
+              </ul>
+            ) : <div className="text-xs text-gray-500">No direct resources listed.</div>}
+            {a.requirements?.length ? (
+              <div className="mt-2">
+                <div className="text-xs uppercase text-gray-500">Common Requirements</div>
+                <ul className="list-disc pl-5 text-sm">
+                  {a.requirements.map((q, i) => <li key={i}>{q}</li>)}
+                </ul>
+              </div>
+            ) : null}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function FormAutofillPanel() {
+  const store = useAppStore();
+  const [basePdf, setBasePdf] = React.useState(null);
+  const [layoutText, setLayoutText] = React.useState('');
+  const [status, setStatus] = React.useState('');
+  const env = store.spanEnvironment;
+  const enabled = ['wvHighway','paHighway','ohHighway','mdHighway','railroad'].includes(env);
+  const [fields, setFields] = React.useState(null);
+
+  // Build normalized fields from current analysis/summary
+  React.useEffect(() => {
+    (async () => {
+      if (!enabled || !store.results) { setFields(null); return; }
+      try {
+        const job = (useAppStore.getState().jobs||[]).find(j=>j.id===useAppStore.getState().currentJobId);
+        const profileName = job?.submissionProfileName || useAppStore.getState().currentSubmissionProfile;
+        const baseProfile = (useAppStore.getState().submissionProfiles||[]).find(p=>p.name===profileName) || {};
+        const effectiveProfile = { ...baseProfile, ...(job?.submissionProfileOverrides||{}), name: baseProfile?.name };
+        const { makePermitSummary } = await import('../utils/permitSummary');
+        const summary = makePermitSummary({ env, results: useAppStore.getState().results, job, effectiveProfile, cachedMidspans: useAppStore.getState().cachedMidspans, store: useAppStore.getState() });
+        const { buildMM109Fields, buildCSXFields, buildStateHighwayFields } = await import('../utils/formFields');
+        let f;
+        if (env === 'railroad') f = buildCSXFields(summary);
+        else if (env === 'wvHighway') f = buildMM109Fields(summary);
+        else if (env === 'paHighway') f = buildStateHighwayFields(summary, 'PennDOT');
+        else if (env === 'ohHighway') f = buildStateHighwayFields(summary, 'ODOT');
+        else if (env === 'mdHighway') f = buildStateHighwayFields(summary, 'MDOT SHA');
+        else f = buildMM109Fields(summary);
+        setFields(f);
+        // Provide a small starter layout example for convenience
+        setLayoutText(prev => prev || JSON.stringify([
+          { key: 'applicant', pageIndex: 0, x: 100, y: 700, size: 10 },
+          { key: 'jobName', pageIndex: 0, x: 100, y: 684, size: 10 },
+          { key: 'jobNumber', pageIndex: 0, x: 100, y: 668, size: 10 },
+          { key: 'poleLatitude', pageIndex: 0, x: 400, y: 700, size: 10 },
+          { key: 'poleLongitude', pageIndex: 0, x: 400, y: 684, size: 10 },
+        ], null, 2));
+      } catch (e) {
+        if (import.meta?.env?.DEV) console.warn('Form fields build failed', e);
+        setFields(null);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled, env]);
+
+  const onFill = async () => {
+    try {
+      setStatus('');
+      if (!basePdf) { setStatus('Select an official PDF to fill.'); return; }
+      if (!fields) { setStatus('Run analysis and select a supported environment.'); return; }
+      let layout;
+      try { layout = JSON.parse(layoutText || '[]'); } catch { setStatus('Layout JSON is invalid.'); return; }
+      const buf = new Uint8Array(await basePdf.arrayBuffer());
+      const { fillPdfWithFields } = await import('../utils/pdfFormFiller');
+      const outBytes = await fillPdfWithFields(buf, fields, layout);
+      const blob = new Blob([outBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'filled-form.pdf'; a.click();
+      URL.revokeObjectURL(url);
+      setStatus('Filled PDF downloaded.');
+    } catch (e) {
+      setStatus(`Autofill failed: ${e?.message || e}`);
+    }
+  };
+
+  if (!enabled) return null;
+  return (
+    <div className="rounded border p-3 no-print">
+      <div className="font-medium mb-2">Form Autofill (Upload Official PDF)</div>
+      <div className="text-xs text-gray-600 mb-2">Use this helper to overlay your current job fields onto an official PDF template. Provide a simple layout JSON mapping (key → page/x/y/size). Start with the example and adjust coordinates to your form.</div>
+      <div className="grid md:grid-cols-3 gap-2 items-end">
+        <label className="text-sm text-gray-700 grid gap-1">
+          <span className="font-medium">Official PDF</span>
+          <input type="file" accept="application/pdf" onChange={e=>setBasePdf(e.target.files?.[0]||null)} />
+        </label>
+        <div className="md:col-span-2">
+          <label className="text-sm text-gray-700 grid gap-1">
+            <span className="font-medium">Layout JSON</span>
+            <textarea className="border rounded p-2 text-xs h-28" value={layoutText} onChange={e=>setLayoutText(e.target.value)} placeholder='[{"key":"applicant","pageIndex":0,"x":100,"y":700,"size":10}]' />
+          </label>
+        </div>
+      </div>
+      <div className="mt-2 flex items-center gap-2">
+        <button className="px-2 py-1 border rounded text-sm" onClick={onFill} disabled={!basePdf || !fields}>Fill PDF</button>
+        <div className="text-xs text-gray-600">{status}</div>
+      </div>
+      {fields ? (
+        <details className="mt-3">
+          <summary className="cursor-pointer text-sm text-gray-700">Normalized Fields (available keys)</summary>
+          <pre className="text-[11px] bg-gray-50 p-2 rounded overflow-auto max-h-64">{JSON.stringify(fields, null, 2)}</pre>
+        </details>
+      ) : null}
     </div>
   );
 }
@@ -754,7 +907,9 @@ function PermitPackButton() {
   const JSZip = (await import('jszip')).default;
   const zip = new JSZip();
   const { buildMM109PDF, buildCSXPDF } = await import('../utils/permits');
-  const { buildMM109Fields, buildCSXFields } = await import('../utils/formFields');
+  const { buildMM109Fields, buildCSXFields, buildStateHighwayFields } = await import('../utils/formFields');
+  const { detectPermitIssues } = await import('../utils/permitChecks');
+  const { getTemplatesForEnvironment } = await import('../utils/permitTemplates');
       const job = (store.jobs||[]).find(j=>j.id===store.currentJobId);
       const profileName = job?.submissionProfileName || store.currentSubmissionProfile;
       const baseProfile = (store.submissionProfiles||[]).find(p=>p.name===profileName) || {};
@@ -766,8 +921,46 @@ function PermitPackButton() {
   const summary = makePermitSummary({ env, results, job, effectiveProfile, cachedMidspans: store.cachedMidspans, store });
   zip.file('permit/summary.json', JSON.stringify(summary, null, 2));
   // Include normalized fields for easier transcription to official forms
-  const fields = env === 'railroad' ? buildCSXFields(summary) : buildMM109Fields(summary);
+  let fields;
+  if (env === 'railroad') {
+    fields = buildCSXFields(summary);
+  } else if (env === 'wvHighway') {
+    fields = buildMM109Fields(summary);
+  } else if (env === 'paHighway') {
+    fields = buildStateHighwayFields(summary, 'PennDOT');
+  } else if (env === 'ohHighway') {
+    fields = buildStateHighwayFields(summary, 'ODOT');
+  } else if (env === 'mdHighway') {
+    fields = buildStateHighwayFields(summary, 'MDOT SHA');
+  } else {
+    fields = buildMM109Fields(summary);
+  }
   zip.file('permit/fields.json', JSON.stringify(fields, null, 2));
+  // Include agency templates manifest with links and requirements
+  const templates = getTemplatesForEnvironment(env);
+  if (templates?.length) {
+    const lines = [];
+    for (const t of templates) {
+      lines.push(`Agency: ${t.name}`);
+      if (t.resources?.length) {
+        lines.push('Resources:');
+        for (const r of t.resources) {
+          lines.push(`- ${r.label}: ${r.url}`);
+          if (r.notes) lines.push(`  Notes: ${r.notes}`);
+        }
+      }
+      if (t.requirements?.length) {
+        lines.push('Common Requirements:');
+        for (const req of t.requirements) lines.push(`- ${req}`);
+      }
+      lines.push('');
+    }
+    zip.file('permit/templates.txt', lines.join('\n'));
+  }
+  // Detect pre-submission issues and include a simple report
+  const issues = detectPermitIssues(summary);
+  const issuesText = issues.length ? ['# Issues detected','', ...issues.map(x=>`- ${x}`)].join('\n') : '# Issues detected\n\nNone';
+  zip.file('permit/issues.txt', issuesText);
       // Attach cached midspans CSV
       if ((store.cachedMidspans||[]).length) {
         const rows = [['spanId','environment','spanFt','midspanFt','targetFt','attachFt','segments']];
@@ -813,6 +1006,9 @@ function PermitPackButton() {
       } else if (env === 'railroad') {
         const pdf = await buildCSXPDF(summary);
         zip.file('permit/railroad-draft.pdf', pdf);
+      } else if (env === 'paHighway' || env === 'ohHighway' || env === 'mdHighway') {
+        // No official forms embedded; include fields.json and rely on summary/diagram
+        // Future: add draft headers for each DOT if desired
       }
       // README
   const readme = [
@@ -824,14 +1020,18 @@ function PermitPackButton() {
     `Submission Profile: ${summary.job.submissionProfileName || (effectiveProfile?.name || '')}`,
     `Manifest Type: ${effectiveProfile?.manifestType || ''}`,
     `Target Source: ${summary?.span?.targetSource || 'computed'}`,
+    `Issues: ${issues.length}`,
         '',
   'Files:',
         '- summary.json: Data used to prepare the application',
   '- fields.json: Normalized key-value fields for form population (MM109/CSX)',
   '- plan-profile.svg: Simple plan/profile diagram',
+  '- templates.txt: Official template links and requirements for the selected agency',
   '- cached-midspans.csv: Cached spans with midspan/target used (when available)',
   '- checklist.txt: Pre-submission checklist to validate required fields',
+  '- issues.txt: Auto-detected missing fields or data gaps',
   env === 'wvHighway' ? '- mm109-draft.pdf: Draft application with populated fields' : '',
+  (env === 'paHighway' || env === 'ohHighway' || env === 'mdHighway') ? '- (no draft PDF included; use fields.json + summary)' : '',
   env === 'railroad' ? '- railroad-draft.pdf: Draft CSX application with populated fields' : '',
       ].join('\n');
       zip.file('permit/README.txt', readme);
@@ -857,7 +1057,7 @@ function PermitPackButton() {
       alert(`Permit pack failed: ${e?.message||e}`);
     }
   };
-  const isTargetEnv = store.spanEnvironment === 'wvHighway' || store.spanEnvironment === 'railroad';
+  const isTargetEnv = ['wvHighway','paHighway','ohHighway','mdHighway','railroad'].includes(store.spanEnvironment);
   return (
     <button className="px-2 py-1 border rounded text-sm" onClick={onPermit} disabled={!store.results || !isTargetEnv} title={isTargetEnv ? 'Generate permit package' : 'Select WV Highway or Railroad environment'}>
       Export Permit Pack

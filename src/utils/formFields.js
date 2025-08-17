@@ -57,4 +57,15 @@ export function buildCSXFields(summary) {
   };
 }
 
-export default { buildMM109Fields, buildCSXFields };
+export function buildStateHighwayFields(summary, agencyLabel) {
+  const f = baseFields(summary);
+  return {
+    ...f,
+    agency: agencyLabel || 'State DOT',
+    roadwayType: f.environment,
+    latitude: f.poleLatitude,
+    longitude: f.poleLongitude,
+  };
+}
+
+export default { buildMM109Fields, buildCSXFields, buildStateHighwayFields };
