@@ -120,4 +120,26 @@ export function getTemplatesForEnvironment(env) {
   return out;
 }
 
+export function buildTemplatesText(env) {
+  const templates = getTemplatesForEnvironment(env) || [];
+  if (!templates.length) return '';
+  const lines = [];
+  for (const t of templates) {
+    lines.push(`Agency: ${t.name}`);
+    if (t.resources?.length) {
+      lines.push('Resources:');
+      for (const r of t.resources) {
+        lines.push(`- ${r.label}: ${r.url}`);
+        if (r.notes) lines.push(`  Notes: ${r.notes}`);
+      }
+    }
+    if (t.requirements?.length) {
+      lines.push('Common Requirements:');
+      for (const req of t.requirements) lines.push(`- ${req}`);
+    }
+    lines.push('');
+  }
+  return lines.join('\n');
+}
+
 export default permitTemplates;

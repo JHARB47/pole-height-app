@@ -7,7 +7,7 @@ import SpanDiagram from './SpanDiagram';
 import { importGeospatialFile, mapGeoJSONToAppData, MAPPING_PRESETS, parseExistingLinesCSV, getAttributeKeys, splitFeaturesByGeometry } from '../utils/importers';
 import { buildManifest, csvFrom } from '../utils/manifests';
 import { makePermitSummary } from '../utils/permitSummary';
-import { buildGeoJSON, exportGeoJSON, exportKML, exportKMZ } from '../utils/geodata';
+// Geodata utilities are imported dynamically in onPermit to keep geospatial libs lazy-loaded
 import SpansEditor from './SpansEditor';
 
 export default function ProposedLineCalculator() {
@@ -574,9 +574,11 @@ function FormAutofillPanel() {
   const [basePdf, setBasePdf] = React.useState(null);
   const [layoutText, setLayoutText] = React.useState('');
   const [status, setStatus] = React.useState('');
+  const [autoPreview, setAutoPreview] = React.useState('');
   const env = store.spanEnvironment;
   const enabled = ['wvHighway','paHighway','ohHighway','mdHighway','railroad'].includes(env);
   const [fields, setFields] = React.useState(null);
+  const [presetName, setPresetName] = React.useState('Default');
 
   // Build normalized fields from current analysis/summary
   React.useEffect(() => {
@@ -587,8 +589,7 @@ function FormAutofillPanel() {
         const profileName = job?.submissionProfileName || useAppStore.getState().currentSubmissionProfile;
         const baseProfile = (useAppStore.getState().submissionProfiles||[]).find(p=>p.name===profileName) || {};
         const effectiveProfile = { ...baseProfile, ...(job?.submissionProfileOverrides||{}), name: baseProfile?.name };
-        const { makePermitSummary } = await import('../utils/permitSummary');
-        const summary = makePermitSummary({ env, results: useAppStore.getState().results, job, effectiveProfile, cachedMidspans: useAppStore.getState().cachedMidspans, store: useAppStore.getState() });
+  const summary = makePermitSummary({ env, results: useAppStore.getState().results, job, effectiveProfile, cachedMidspans: useAppStore.getState().cachedMidspans, store: useAppStore.getState() });
         const { buildMM109Fields, buildCSXFields, buildStateHighwayFields } = await import('../utils/formFields');
         let f;
         if (env === 'railroad') f = buildCSXFields(summary);
@@ -635,6 +636,75 @@ function FormAutofillPanel() {
     }
   };
 
+  const presetsForEnv = React.useMemo(() => {
+    const jobId = store.currentJobId || '_global';
+    const all = store.pdfLayouts?.[jobId]?.[env] || {};
+    return Object.keys(all).sort();
+  }, [store.pdfLayouts, store.currentJobId, env]);
+
+  const onSavePreset = () => {
+    try {
+      const layout = JSON.parse(layoutText || '[]');
+      store.savePdfLayout(env, presetName || 'Default', layout);
+      setStatus(`Saved preset "${presetName || 'Default'}" for ${env}.`);
+    } catch {
+      setStatus('Layout JSON is invalid.');
+    }
+  };
+  const onLoadPreset = (name) => {
+    const jobId = store.currentJobId || '_global';
+    const layout = store.pdfLayouts?.[jobId]?.[env]?.[name];
+    if (!layout) { setStatus('Preset not found.'); return; }
+    setLayoutText(JSON.stringify(layout, null, 2));
+    setPresetName(name);
+    setStatus(`Loaded preset "${name}".`);
+  };
+  const onDeletePreset = (name) => {
+    store.removePdfLayout(env, name);
+    setStatus(`Deleted preset "${name}".`);
+  };
+
+  const onAutoLayout = async () => {
+    try {
+      setStatus(''); setAutoPreview('');
+      if (!basePdf) { setStatus('Select an official PDF to analyze.'); return; }
+      const buf = new Uint8Array(await basePdf.arrayBuffer());
+      const { getPdfMeta, fillPdfAuto } = await import('../utils/pdfFormFiller');
+      const meta = await getPdfMeta(buf);
+      const pretty = `${meta.pages} page(s), first ${Math.round(meta.firstPage.width)}x${Math.round(meta.firstPage.height)}`;
+      setAutoPreview(`Detected PDF: ${pretty}. Using default layout for ${env}.`);
+      if (!fields) { setStatus('Run analysis first for normalized fields.'); return; }
+      const outBytes = await fillPdfAuto(buf, env, fields);
+      const blob = new Blob([outBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'filled-form-auto.pdf'; a.click();
+      URL.revokeObjectURL(url);
+      setStatus('Auto-filled PDF downloaded.');
+    } catch (e) {
+      setStatus(`Auto-layout failed: ${e?.message || e}`);
+    }
+  };
+
+  const onFillByForm = async () => {
+    try {
+      setStatus('');
+      if (!basePdf) { setStatus('Select an official PDF to fill.'); return; }
+      if (!fields) { setStatus('Run analysis and select a supported environment.'); return; }
+      const buf = new Uint8Array(await basePdf.arrayBuffer());
+      const { fillAcroFormByName } = await import('../utils/pdfFormFiller');
+      const outBytes = await fillAcroFormByName(buf, env, fields);
+      const blob = new Blob([outBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'filled-form-fields.pdf'; a.click();
+      URL.revokeObjectURL(url);
+      setStatus('Filled PDF (form fields) downloaded.');
+    } catch (e) {
+      setStatus(`Form fill failed: ${e?.message || e}`);
+    }
+  };
+
   if (!enabled) return null;
   return (
     <div className="rounded border p-3 no-print">
@@ -652,10 +722,30 @@ function FormAutofillPanel() {
           </label>
         </div>
       </div>
-      <div className="mt-2 flex items-center gap-2">
+      <div className="mt-2 grid md:grid-cols-3 gap-2 items-end">
+        <div className="grid gap-1 text-sm text-gray-700">
+          <span className="font-medium">Preset Name</span>
+          <input className="border rounded px-2 py-1" value={presetName} onChange={e=>setPresetName(e.target.value)} placeholder="Default" />
+        </div>
+        <div className="flex items-end gap-2">
+          <button className="px-2 py-1 border rounded text-sm" onClick={onSavePreset} disabled={!layoutText}>Save Preset</button>
+          <div className="text-xs text-gray-600">Scope: {store.currentJobId ? 'Job' : 'Global'} | Env: {env}</div>
+        </div>
+        <div className="flex items-end gap-2">
+          <select className="border rounded px-2 py-1 text-sm" onChange={(e)=>e.target.value && onLoadPreset(e.target.value)} value="">
+            <option value="" disabled>Load preset…</option>
+            {presetsForEnv.map(n => <option key={n} value={n}>{n}</option>)}
+          </select>
+          <button className="px-2 py-1 border rounded text-sm" onClick={()=>presetName && onDeletePreset(presetName)} disabled={!presetName}>Delete</button>
+        </div>
+      </div>
+      <div className="mt-2 flex items-center gap-2 flex-wrap">
         <button className="px-2 py-1 border rounded text-sm" onClick={onFill} disabled={!basePdf || !fields}>Fill PDF</button>
+  <button className="px-2 py-1 border rounded text-sm" onClick={onAutoLayout} disabled={!basePdf || !fields}>Auto-Layout & Fill</button>
+  <button className="px-2 py-1 border rounded text-sm" onClick={onFillByForm} disabled={!basePdf || !fields}>Fill by Form Fields</button>
         <div className="text-xs text-gray-600">{status}</div>
       </div>
+      {autoPreview ? <div className="text-xs text-amber-700 mt-1">{autoPreview}</div> : null}
       {fields ? (
         <details className="mt-3">
           <summary className="cursor-pointer text-sm text-gray-700">Normalized Fields (available keys)</summary>
@@ -909,7 +999,7 @@ function PermitPackButton() {
   const { buildMM109PDF, buildCSXPDF } = await import('../utils/permits');
   const { buildMM109Fields, buildCSXFields, buildStateHighwayFields } = await import('../utils/formFields');
   const { detectPermitIssues } = await import('../utils/permitChecks');
-  const { getTemplatesForEnvironment } = await import('../utils/permitTemplates');
+  const { buildTemplatesText } = await import('../utils/permitTemplates');
       const job = (store.jobs||[]).find(j=>j.id===store.currentJobId);
       const profileName = job?.submissionProfileName || store.currentSubmissionProfile;
       const baseProfile = (store.submissionProfiles||[]).find(p=>p.name===profileName) || {};
@@ -937,48 +1027,91 @@ function PermitPackButton() {
   }
   zip.file('permit/fields.json', JSON.stringify(fields, null, 2));
   // Include agency templates manifest with links and requirements
-  const templates = getTemplatesForEnvironment(env);
-  if (templates?.length) {
-    const lines = [];
-    for (const t of templates) {
-      lines.push(`Agency: ${t.name}`);
-      if (t.resources?.length) {
-        lines.push('Resources:');
-        for (const r of t.resources) {
-          lines.push(`- ${r.label}: ${r.url}`);
-          if (r.notes) lines.push(`  Notes: ${r.notes}`);
-        }
-      }
-      if (t.requirements?.length) {
-        lines.push('Common Requirements:');
-        for (const req of t.requirements) lines.push(`- ${req}`);
-      }
-      lines.push('');
-    }
-    zip.file('permit/templates.txt', lines.join('\n'));
-  }
+  const templatesTxt = buildTemplatesText(env);
+  if (templatesTxt) zip.file('permit/templates.txt', templatesTxt);
   // Detect pre-submission issues and include a simple report
   const issues = detectPermitIssues(summary);
   const issuesText = issues.length ? ['# Issues detected','', ...issues.map(x=>`- ${x}`)].join('\n') : '# Issues detected\n\nNone';
   zip.file('permit/issues.txt', issuesText);
+      // PCI (Post Construction Inspection) summary from collected poles (scoped to current job)
+      try {
+        const scopedPoles = (store.collectedPoles || []).filter(p=>!store.currentJobId || p.jobId===store.currentJobId);
+        if (scopedPoles.length) {
+          const header = ['id','latitude','longitude','plannedAttach','asBuiltAttach','varianceIn','variancePass','hasPhoto','status','timestamp'];
+          const rows = scopedPoles.map(p => [
+            p.id || '',
+            p.latitude || '',
+            p.longitude || '',
+            p.height || '',
+            p.asBuilt?.attachHeight || '',
+            computeVarianceIn(p.asBuilt?.attachHeight, p.height),
+            evaluateVariancePass(p.asBuilt?.attachHeight, p.height, store.presetProfile),
+            p.photoDataUrl ? 'Y' : 'N',
+            p.status || 'draft',
+            p.timestamp || ''
+          ]);
+          const csv = [header.join(','), ...rows.map(r=>r.map(v=>`${String(v).replaceAll('"','""')}`).join(','))].join('\n');
+          zip.file('permit/pci-summary.csv', csv);
+          // Simple TXT rollup
+          const done = scopedPoles.filter(p => (p.status||'draft')==='done').length;
+          const pass = scopedPoles.filter(p => evaluateVariancePass(p.asBuilt?.attachHeight, p.height, store.presetProfile)==='PASS').length;
+          const fail = scopedPoles.filter(p => evaluateVariancePass(p.asBuilt?.attachHeight, p.height, store.presetProfile)==='FAIL').length;
+          const withPhoto = scopedPoles.filter(p => !!p.photoDataUrl).length;
+          const pciTxt = [
+            '# PCI Summary',
+            '',
+            `Total: ${scopedPoles.length}`,
+            `Done: ${done}`,
+            `PASS: ${pass}`,
+            `FAIL: ${fail}`,
+            `Photos: ${withPhoto}`
+          ].join('\n');
+          zip.file('permit/pci-summary.txt', pciTxt);
+        }
+      } catch {/* non-fatal */}
       // Attach cached midspans CSV
       if ((store.cachedMidspans||[]).length) {
-        const rows = [['spanId','environment','spanFt','midspanFt','targetFt','attachFt','segments']];
+    const rows = [['spanId','environment','spanFt','spanLenSource','midspanFt','targetFt','attachFt','midLat','midLon','fromId','toId','fromLat','fromLon','toLat','toLon','segments']];
         for (const m of (store.cachedMidspans||[])) {
           rows.push([
             m.spanId ?? '',
             m.environment ?? '',
             m.spanFt ?? '',
+      m.spanLenSource ?? '',
             m.midspanFt ?? '',
             m.targetFt ?? '',
             m.attachFt ?? '',
+            m.midLat ?? '',
+            m.midLon ?? '',
+            m.fromId ?? '',
+            m.toId ?? '',
+            m.fromLat ?? '',
+            m.fromLon ?? '',
+            m.toLat ?? '',
+            m.toLon ?? '',
             Array.isArray(m.segments) ? m.segments.map(x=>`${x.env}:${x.portion || ''}`).join('|') : '',
           ]);
         }
         const csv = rows.map(r => r.map(v => String(v).replaceAll('"','""')).map(v => v.includes(',') ? `"${v}"` : v).join(',')).join('\n');
         zip.file('permit/cached-midspans.csv', csv);
+        // Also include a simple PASS/FAIL evaluation for midspan vs target
+        try {
+          const evalRows = [['spanId','environment','midspanFt','targetFt','status']];
+          for (const m of (store.cachedMidspans||[])) {
+            const ok = (m.midspanFt != null && m.targetFt != null) ? (Number(m.midspanFt) >= Number(m.targetFt)) : '';
+            evalRows.push([
+              m.spanId ?? '',
+              m.environment ?? '',
+              m.midspanFt ?? '',
+              m.targetFt ?? '',
+              ok === '' ? '' : (ok ? 'PASS' : 'FAIL')
+            ]);
+          }
+          const evalCsv = evalRows.map(r => r.map(v => String(v).replaceAll('"','""')).join(',')).join('\n');
+          zip.file('permit/midspan-eval.csv', evalCsv);
+        } catch {/* ignore */}
       }
-      // Generate a minimal SVG plan/profile diagram
+  // Generate a minimal SVG plan/profile diagram
   const w = 800, h = 300, margin = 40;
       const groundY = h - margin;
       const scaleY = (ft) => {
@@ -999,6 +1132,19 @@ function PermitPackButton() {
   const svg = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">\n  <rect width="100%" height="100%" fill="#fff"/>\n  <g stroke="#333" stroke-width="2" fill="none">\n    <line x1="${x1}" y1="${groundY}" x2="${x1}" y2="${margin}"/>\n    <line x1="${x2}" y1="${groundY}" x2="${x2}" y2="${margin}"/>\n    <path d="${path}" stroke="#1f77b4"/>\n    <line x1="${margin}" y1="${groundY}" x2="${w-margin}" y2="${groundY}" stroke="#666" stroke-dasharray="4 4"/>\n    <line x1="${margin}" y1="${targetY}" x2="${w-margin}" y2="${targetY}" stroke="#e53935" stroke-dasharray="6 6"/>\n  </g>\n  <g stroke="#000" stroke-width="1" fill="none">\n    <line x1="${barX}" y1="${barY}" x2="${barX+scalePx}" y2="${barY}"/>\n    <line x1="${barX}" y1="${barY-5}" x2="${barX}" y2="${barY+5}"/>\n    <line x1="${barX+scalePx}" y1="${barY-5}" x2="${barX+scalePx}" y2="${barY+5}"/>\n  </g>\n  <g fill="#1f77b4" stroke="none">\n    <circle cx="${x1}" cy="${y1}" r="3"/>\n    <circle cx="${x2}" cy="${y2}" r="3"/>\n    <circle cx="${(x1+x2)/2}" cy="${midY}" r="3"/>\n  </g>\n  <g font-family="sans-serif" font-size="12" fill="#333">\n    <text x="${x1-20}" y="${margin+12}" transform="rotate(-90 ${x1-20} ${margin+12})">Pole</text>\n    <text x="${x2+20}" y="${margin+12}" transform="rotate(90 ${x2+20} ${margin+12})">Pole</text>\n    <text x="${x1+6}" y="${y1-6}" fill="#1f77b4">Attach A</text>\n    <text x="${x2-6}" y="${y2-6}" fill="#1f77b4" text-anchor="end">Attach B</text>\n    <text x="${(x1+x2)/2+6}" y="${midY-8}" fill="#1f77b4">Midspan ${results.span.midspanFt?.toFixed?.(1)||results.span.midspanFt} ft</text>\n    <text x="${(w/2)}" y="${targetY-6}" text-anchor="middle" fill="#e53935">Ground target ${summary?.span?.targetFt?.toFixed?.(1)||summary?.span?.targetFt} ft</text>\n    <text x="${barX+scalePx/2}" y="${barY-6}" text-anchor="middle">~${Math.round(scaleFt)} ft</text>\n    <text x="${margin}" y="20" fill="#555">${summary?.type || ''} — target ${summary?.span?.targetFt || ''} ft (${summary?.span?.targetSource || 'computed'})</text>\n  </g>\n</svg>`;
       zip.file('permit/plan-profile.svg', svg);
 
+      // Optional: include geospatial exports if poles/spans exist in store
+      try {
+        const { buildGeoJSON } = await import('../utils/geodata');
+        const poles = store.collectedPoles || store.importedPoles || [];
+        const spans = store.importedSpans || [];
+        if ((poles.length || spans.length)) {
+          const fc = buildGeoJSON({ poles, spans, job });
+          zip.file('permit/geodata.geojson', JSON.stringify(fc, null, 2));
+        }
+      } catch {
+        // non-fatal if geodata builders are unavailable in this context
+      }
+
       // Add draft PDFs when applicable
       if (env === 'wvHighway') {
         const pdf = await buildMM109PDF(summary);
@@ -1010,7 +1156,29 @@ function PermitPackButton() {
         // No official forms embedded; include fields.json and rely on summary/diagram
         // Future: add draft headers for each DOT if desired
       }
-      // README
+    // README
+    // Include PCI totals if we have any collected poles
+    const scopedPolesForReadme = (store.collectedPoles || []).filter(p=>!store.currentJobId || p.jobId===store.currentJobId);
+    const pciDone = scopedPolesForReadme.filter(p => (p.status||'draft')==='done').length;
+    const pciPass = scopedPolesForReadme.filter(p => evaluateVariancePass(p.asBuilt?.attachHeight, p.height, store.presetProfile)==='PASS').length;
+    const pciFail = scopedPolesForReadme.filter(p => evaluateVariancePass(p.asBuilt?.attachHeight, p.height, store.presetProfile)==='FAIL').length;
+    const pciPhotos = scopedPolesForReadme.filter(p => !!p.photoDataUrl).length;
+    // Variance buckets (inches)
+    const bucket = (v) => {
+      const a = Math.abs(Number(v)||0);
+      if (a <= 2) return '≤2"';
+      if (a <= 6) return '3–6"';
+      if (a <= 12) return '7–12"';
+      return '>12"';
+    };
+    const byBucket = { '≤2"':0, '3–6"':0, '7–12"':0, '>12"':0 };
+    for (const p of scopedPolesForReadme) {
+      const planned = Number(p.height)||0;
+      const built = Number(p.asBuilt?.attachHeight)||0;
+      if (!planned || !built) continue;
+      const v = (built - planned) * 12; // inches
+      byBucket[bucket(v)]++;
+    }
   const readme = [
         '# Permit Package',
         '',
@@ -1022,12 +1190,18 @@ function PermitPackButton() {
     `Target Source: ${summary?.span?.targetSource || 'computed'}`,
     `Issues: ${issues.length}`,
         '',
+  (scopedPolesForReadme.length ? `PCI Totals — Done: ${pciDone} | PASS: ${pciPass} | FAIL: ${pciFail} | Photos: ${pciPhotos}` : ''),
+  (scopedPolesForReadme.length ? `Variance buckets (in): ≤2: ${byBucket['≤2"']} | 3–6: ${byBucket['3–6"']} | 7–12: ${byBucket['7–12"']} | >12: ${byBucket['>12"']}` : ''),
+  scopedPolesForReadme.length ? '' : '',
   'Files:',
         '- summary.json: Data used to prepare the application',
   '- fields.json: Normalized key-value fields for form population (MM109/CSX)',
   '- plan-profile.svg: Simple plan/profile diagram',
   '- templates.txt: Official template links and requirements for the selected agency',
   '- cached-midspans.csv: Cached spans with midspan/target used (when available)',
+  '- midspan-eval.csv: PASS/FAIL evaluation of cached midspans versus targets',
+  '- pci-summary.csv: Post Construction Inspection rollup for collected poles (if any)',
+  '- pci-summary.txt: Totals for PCI (done/pass/fail/photos)',
   '- checklist.txt: Pre-submission checklist to validate required fields',
   '- issues.txt: Auto-detected missing fields or data gaps',
   env === 'wvHighway' ? '- mm109-draft.pdf: Draft application with populated fields' : '',
@@ -1076,6 +1250,7 @@ function FieldCollection({ openHelp }) {
   const [filterPhoto, setFilterPhoto] = React.useState('all'); // all|with|without
   const [filterPass, setFilterPass] = React.useState('all'); // all|pass|fail
   const [includePhotos, setIncludePhotos] = React.useState(true);
+  const [exifTimestamp, setExifTimestamp] = React.useState('');
 
   const handleRowGPS = async (rowIndex) => {
     if (!('geolocation' in navigator)) { alert('Geolocation not supported'); return; }
@@ -1106,7 +1281,7 @@ function FieldCollection({ openHelp }) {
         attachmentType: store.attachmentType || '',
         status: 'done',
         photoDataUrl: currentPhotoDataUrl || '',
-  timestamp: new Date().toISOString(),
+  timestamp: exifTimestamp || new Date().toISOString(),
   jobId: store.currentJobId || '',
       };
       store.addCollectedPole(item);
@@ -1138,7 +1313,7 @@ function FieldCollection({ openHelp }) {
         attachmentType: store.attachmentType || '',
         status: 'draft',
         photoDataUrl: currentPhotoDataUrl || '',
-  timestamp: new Date().toISOString(),
+  timestamp: exifTimestamp || new Date().toISOString(),
   jobId: store.currentJobId || '',
       };
       store.addCollectedPole(item);
@@ -1171,9 +1346,9 @@ function FieldCollection({ openHelp }) {
               if (!store.poleLongitude) store.setPoleLongitude(lon.toFixed(6));
             }
             if (dt && !isNaN(new Date(dt))) {
-              // Update current row timestamp only when saving; we keep it for export from EXIF
-              // Store a temporary hint
-              // No state for temp; value will be embedded in file metadata; leave UI as-is
+              setExifTimestamp(new Date(dt).toISOString());
+  setExifTimestamp('');
+  setExifTimestamp('');
             }
           }
         } catch (e) {
@@ -1386,6 +1561,7 @@ function FieldCollection({ openHelp }) {
 
   // Geospatial exports: GeoJSON, KML, KMZ
   const exportGeo = async (type) => {
+  const { buildGeoJSON, exportGeoJSON, exportKML, exportKMZ } = await import('../utils/geodata');
     const job = (store.jobs||[]).find(j=>j.id===store.currentJobId) || {};
     // Prefer collected poles scoped to current job; augment with imported poles for span endpoints
     const jobPoles = (store.collectedPoles || []).filter(p=>!store.currentJobId || p.jobId===store.currentJobId);
@@ -1754,12 +1930,24 @@ function BatchReport() {
     for (const s of store.importedSpans || []) {
       const from = s.fromId ? poleById.get(String(s.fromId)) : null;
       const to = s.toId ? poleById.get(String(s.toId)) : null;
+      // Auto span length when endpoints available
+      const autoLen = (from?.latitude!=null && from?.longitude!=null && to?.latitude!=null && to?.longitude!=null)
+        ? Math.round(((() => {
+            const toRad = (d) => d * Math.PI / 180;
+            const Rm = 6371000;
+            const dLat = toRad((Number(to.latitude)||0) - (Number(from.latitude)||0));
+            const dLon = toRad((Number(to.longitude)||0) - (Number(from.longitude)||0));
+            const a = Math.sin(dLat/2)**2 + Math.cos(toRad(Number(from.latitude)||0))*Math.cos(toRad(Number(to.latitude)||0))*Math.sin(dLon/2)**2;
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const meters = Rm * c; return meters * 3.28084;
+          })())) : undefined;
+      const preferAuto = !!store.preferAutoSpanLength;
       const inputs = {
         poleHeight: from?.height || store.poleHeight,
         poleClass: from?.class || store.poleClass,
         existingPowerHeight: from?.powerHeight || store.existingPowerHeight,
         existingPowerVoltage: store.existingPowerVoltage,
-        spanDistance: s.length || store.spanDistance,
+  spanDistance: preferAuto ? (autoLen || s.length || store.spanDistance) : (s.length || store.spanDistance || autoLen),
         isNewConstruction: store.isNewConstruction,
         adjacentPoleHeight: to?.height || store.adjacentPoleHeight,
         attachmentType: store.attachmentType,

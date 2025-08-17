@@ -14,12 +14,16 @@ export function makePermitSummary({ env, results, job, effectiveProfile, cachedM
   if (!results) throw new Error('results required');
   const type = env === 'railroad' ? 'CSX Railroad Crossing' : (env === 'wvHighway' ? 'WVDOH MM109' : 'General');
   // Prefer cached midspans. If none available, treat target as computed (results.clearances)
-  const maxFromCache = (Array.isArray(cachedMidspans) ? cachedMidspans : [])
-    .filter(m => (m?.environment || '') === env)
+  const cacheForEnv = (Array.isArray(cachedMidspans) ? cachedMidspans : [])
+    .filter(m => (m?.environment || '') === env);
+  const targetNumbers = cacheForEnv
     .map(m => Number(m?.targetFt))
     .filter(v => Number.isFinite(v));
-  const controllingEnvTarget = maxFromCache.length ? Math.max(...maxFromCache) : null;
-  const targetSource = maxFromCache.length ? 'cachedMidspans' : 'computed';
+  const controllingEnvTarget = targetNumbers.length ? Math.max(...targetNumbers) : null;
+  const targetSource = targetNumbers.length ? 'cachedMidspans' : 'computed';
+  const controllingEntry = targetNumbers.length
+    ? cacheForEnv.reduce((best, m) => (Number(m?.targetFt) > Number(best?.targetFt || -Infinity) ? m : best), null)
+    : null;
   return {
     type,
     job: {
@@ -45,6 +49,21 @@ export function makePermitSummary({ env, results, job, effectiveProfile, cachedM
   targetFt: (controllingEnvTarget != null) ? controllingEnvTarget : results.clearances?.groundClearance,
   computedGroundClearanceFt: results.clearances?.groundClearance,
       targetSource,
+      // Geospatial midspan (from cached controlling entry when available)
+      midLatitude: controllingEntry?.midLat || '',
+      midLongitude: controllingEntry?.midLon || '',
+      endpoints: {
+        from: controllingEntry?.fromId ? {
+          id: controllingEntry.fromId,
+          latitude: controllingEntry?.fromLat || '',
+          longitude: controllingEntry?.fromLon || '',
+        } : null,
+        to: controllingEntry?.toId ? {
+          id: controllingEntry.toId,
+          latitude: controllingEntry?.toLat || '',
+          longitude: controllingEntry?.toLon || '',
+        } : null,
+      },
     },
     attach: {
       proposedFt: results.attach?.proposedAttachFt,

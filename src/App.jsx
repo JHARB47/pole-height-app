@@ -53,10 +53,12 @@ class ErrorBoundary extends React.Component {
 export default function App() {
   return (
     <ErrorBoundary>
-      <div style={{ padding: 12 }}>
-        <JobSetup />
-        <div style={{ height: 12 }} />
-        <ProposedLineCalculator />
+      <div className="safe-pt safe-pb">
+        <div className="mx-auto max-w-6xl px-3 md:px-6 py-3 md:py-4">
+          <JobSetup />
+          <div className="h-3" />
+          <ProposedLineCalculator />
+        </div>
       </div>
     </ErrorBoundary>
   );

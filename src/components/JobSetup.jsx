@@ -172,6 +172,16 @@ export default function JobSetup() {
               <input className="border rounded px-2 py-1" value={overrideMinCommAttachFt} onChange={e=>setOverrideMinCommAttachFt(e.target.value)} placeholder="blank = use profile" />
               <span className="text-xs text-gray-500">Applied after separation; will be clamped to maintain required power separation.</span>
             </label>
+            <label className="grid gap-1 text-sm">
+              <span className="font-medium">Δ Threshold for Span Length (ft)</span>
+              <input
+                className="border rounded px-2 py-1"
+                type="number" min="0" step="1"
+                value={store.spanLenDeltaThresholdFt ?? 10}
+                onChange={e=>store.setSpanLenDeltaThresholdFt(e.target.value)}
+              />
+              <span className="text-xs text-gray-500">Used in Spans editor to highlight manual vs auto length differences.</span>
+            </label>
           </div>
           <div className="text-xs text-gray-600 mt-1">Defaults follow NESC unless the Owner maps to utilities like FirstEnergy (44" separation, 18 ft road). Overrides let you tune job-specific specs.</div>
         </div>

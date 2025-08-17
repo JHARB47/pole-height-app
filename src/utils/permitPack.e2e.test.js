@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 
 // Build a minimal permit ZIP using the same summary + PDF + fields builders used by the UI
 import JSZip from 'jszip';
+import { buildTemplatesText } from './permitTemplates.js';
 
 async function loadBuilders() {
   const { makePermitSummary } = await import('./permitSummary.js');
@@ -136,5 +137,26 @@ describe('permit pack generation (e2e-lite)', () => {
     const buf = await zip.generateAsync({ type: 'nodebuffer' });
     const unzip = await JSZip.loadAsync(buf);
     expect(Object.keys(unzip.files)).toEqual(expect.arrayContaining(['permit/summary.json','permit/fields.json','permit/railroad-draft.pdf']));
+  });
+
+  it('includes templates.txt with PennDOT resources for PA Highway', async () => {
+    const txt = buildTemplatesText('paHighway');
+    expect(txt).toMatch(/PennDOT/);
+    expect(txt).toMatch(/HOP ePermitting Portal/);
+    expect(txt).toMatch(/epermitting\.penndot\.gov/);
+  });
+
+  it('includes templates.txt with ODOT resources for OH Highway', async () => {
+    const txt = buildTemplatesText('ohHighway');
+    expect(txt).toMatch(/Ohio Department of Transportation/);
+    expect(txt).toMatch(/ODOT Permits/);
+    expect(txt).toMatch(/transportation\.ohio\.gov/);
+  });
+
+  it('includes templates.txt with MDOT SHA resources for MD Highway', async () => {
+    const txt = buildTemplatesText('mdHighway');
+    expect(txt).toMatch(/MDOT SHA/);
+    expect(txt).toMatch(/Utility Permits/);
+    expect(txt).toMatch(/roads\.maryland\.gov/);
   });
 });
