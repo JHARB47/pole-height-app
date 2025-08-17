@@ -186,7 +186,7 @@ npm run test:watch
 
 **Netlify Deployment Issues**:
 
-- Ensure Node.js version is 18+ in build settings
+- Ensure Node.js version is set to 22 in build settings (matches `netlify.toml` and CI)
 - Check that `netlify.toml` is in the repository root
 - Verify build command is set to `npm run build`
 
