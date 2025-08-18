@@ -7,7 +7,8 @@ export default function SpansEditor() {
   const store = useAppStore();
   const spans = store.importedSpans || [];
   const [openDetail, setOpenDetail] = React.useState(null); // row index for mobile-friendly details
-  if (!spans.length) return null;
+  const [showFailOnly, setShowFailOnly] = React.useState(false);
+  const [showBigDeltaOnly, setShowBigDeltaOnly] = React.useState(false);
 
   const onEnvChange = (idx, val) => {
     store.updateImportedSpan(idx, { environment: val });
@@ -99,6 +100,78 @@ export default function SpansEditor() {
     };
   };
 
+  // Derived analytics for spans (midspan PASS/FAIL and delta buckets)
+  const derived = React.useMemo(() => {
+    const idx = poleIndex();
+    const list = (spans || []).map((s) => {
+      const f = s.fromId != null ? idx.get(String(s.fromId)) : undefined;
+      const t = s.toId != null ? idx.get(String(s.toId)) : undefined;
+      const autoLen = (f && t) ? Math.round(haversineFt(f.latitude, f.longitude, t.latitude, t.longitude)) : undefined;
+      const manual = s.lengthFt != null ? Number(s.lengthFt) : undefined;
+      const preferAuto = !!store.preferAutoSpanLength;
+      const shown = preferAuto ? (autoLen ?? manual ?? s.estimatedLengthFt ?? 0) : (manual ?? s.estimatedLengthFt ?? autoLen ?? 0);
+      const delta = (autoLen != null && manual != null) ? Math.abs(Number(autoLen) - Number(manual)) : 0;
+      const bigDelta = delta >= (Number(store.spanLenDeltaThresholdFt) || 10);
+      let pass = null; let mid = null; let target = null;
+      try {
+        const a = computeAnalysis({
+          poleHeight: store.poleHeight || 35,
+          existingPowerHeight: store.existingPowerHeight || '',
+          existingPowerVoltage: store.existingPowerVoltage || 'distribution',
+          spanDistance: preferAuto ? (autoLen || manual || s.estimatedLengthFt || 0) : (manual || s.estimatedLengthFt || autoLen || 0),
+          isNewConstruction: store.isNewConstruction,
+          adjacentPoleHeight: store.adjacentPoleHeight || store.poleHeight || 35,
+          attachmentType: store.attachmentType,
+          cableDiameter: store.cableDiameter,
+          windSpeed: store.windSpeed,
+          spanEnvironment: s.environment || store.spanEnvironment,
+          dripLoopHeight: store.dripLoopHeight,
+          proposedLineHeight: store.proposedLineHeight,
+          existingLines: store.existingLines,
+          iceThicknessIn: store.iceThicknessIn,
+          hasTransformer: store.hasTransformer,
+          presetProfile: store.presetProfile,
+          customMinTopSpace: store.customMinTopSpace,
+          customRoadClearance: store.customRoadClearance,
+          customCommToPower: store.customCommToPower,
+          powerReference: store.powerReference,
+          jobOwner: store.jobOwner,
+          submissionProfile: getEffectiveProfile(),
+        });
+        target = controllingTargetFromSegments(s.segments, s.environment || store.spanEnvironment) ?? a?.results?.clearances?.groundClearance;
+        mid = a?.results?.span?.midspanFt ?? null;
+        pass = (mid != null && target != null) ? (Number(mid) >= Number(target)) : null;
+      } catch { /* ignore */ }
+      return { f, t, autoLen, manual, shown, delta, bigDelta, pass, mid, target };
+    });
+    const buckets = { '≤5ft': 0, '6–15ft': 0, '16–30ft': 0, '>30ft': 0 };
+    for (const r of list) {
+      const d = r.delta || 0;
+      if (d <= 5) buckets['≤5ft']++;
+      else if (d <= 15) buckets['6–15ft']++;
+      else if (d <= 30) buckets['16–30ft']++;
+      else buckets['>30ft']++;
+    }
+    const counts = {
+      total: list.length,
+      withEndpoints: list.filter(r => r.f && r.t).length,
+      autoAvailable: list.filter(r => r.autoLen != null).length,
+      manualCount: list.filter(r => r.manual != null).length,
+      pass: list.filter(r => r.pass === true).length,
+      fail: list.filter(r => r.pass === false).length,
+      bigDelta: list.filter(r => r.bigDelta).length,
+    };
+    return { list, buckets, counts };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spans, store.preferAutoSpanLength, store.spanLenDeltaThresholdFt, store.poleHeight, store.existingPowerHeight, store.existingPowerVoltage, store.isNewConstruction, store.adjacentPoleHeight, store.attachmentType, store.cableDiameter, store.windSpeed, store.spanEnvironment, store.dripLoopHeight, store.proposedLineHeight, store.existingLines, store.iceThicknessIn, store.hasTransformer, store.presetProfile, store.customMinTopSpace, store.customRoadClearance, store.customCommToPower, store.powerReference, store.jobOwner, store.jobs, store.currentSubmissionProfile, store.submissionProfiles]);
+
+  const isRowVisible = (i) => {
+    const r = derived.list[i];
+    if (showFailOnly && r?.pass !== false) return false;
+    if (showBigDeltaOnly && !r?.bigDelta) return false;
+    return true;
+  };
+
   const runCalc = (idx) => {
     const s = spans[idx];
     const autoLen = getSpanLengthFt(s);
@@ -147,6 +220,14 @@ export default function SpansEditor() {
   if ((s.fromId == null || s.fromId === '') && coords?.from?.id) endpointPatch.fromId = coords.from.id;
   if ((s.toId == null || s.toId === '') && coords?.to?.id) endpointPatch.toId = coords.to.id;
   if (Object.keys(endpointPatch).length) store.updateImportedSpan(idx, endpointPatch);
+      // Compute metadata
+      const mid = a.results.span.midspanFt;
+      const target = controllingTargetFt ?? a.results.clearances.groundClearance;
+      const pass = (mid != null && target != null) ? (Number(mid) >= Number(target)) : null;
+      const deficitFt = (pass === false) ? Math.max(0, Number(target) - Number(mid)) : (pass === true ? 0 : null);
+      const manualLen = s.lengthFt != null ? Number(s.lengthFt) : null;
+      const autoLen2 = getSpanLengthFt(s) ?? null;
+      const deltaFt = (manualLen != null && autoLen2 != null) ? Math.abs(manualLen - autoLen2) : null;
       store.addCachedMidspan({
         spanId: s.id || `${idx+1}`,
         environment: s.environment || store.spanEnvironment,
@@ -156,6 +237,9 @@ export default function SpansEditor() {
         attachFt: a.results.attach.proposedAttachFt,
         segments: Array.isArray(s.segments) ? s.segments : null,
     spanLenSource,
+        pass,
+        deficitFt,
+        deltaFt,
         // coordinates
         midLat: coords?.mid?.lat ?? '',
         midLon: coords?.mid?.lon ?? '',
@@ -191,6 +275,8 @@ export default function SpansEditor() {
   if ((s.fromId == null || s.fromId === '') && coords?.from?.id) endpointPatch.fromId = coords.from.id;
   if ((s.toId == null || s.toId === '') && coords?.to?.id) endpointPatch.toId = coords.to.id;
   if (Object.keys(endpointPatch).length) store.updateImportedSpan(idx, endpointPatch);
+    const manualLen = s.lengthFt != null ? Number(s.lengthFt) : null;
+    const deltaFt = (manualLen != null && autoLen != null) ? Math.abs(manualLen - autoLen) : null;
     store.addCachedMidspan({
       spanId: s.id || `${idx+1}`,
       environment: s.environment || store.spanEnvironment,
@@ -200,6 +286,9 @@ export default function SpansEditor() {
       attachFt: null,
       segments: Array.isArray(s.segments) ? s.segments : null,
   spanLenSource,
+      pass: null,
+      deficitFt: null,
+      deltaFt,
       // coordinates
       midLat: coords?.mid?.lat ?? '',
       midLon: coords?.mid?.lon ?? '',
@@ -212,9 +301,31 @@ export default function SpansEditor() {
     });
   };
 
-  return (
+  return (!spans.length ? null : (
   <div className="rounded border p-3 no-print">
       <div className="font-medium mb-2">Spans (Per‑span Environment & Quick Calc)</div>
+      {/* Analytics summary */}
+      <div className="mb-2 grid grid-cols-1 md:grid-cols-3 gap-2 text-xs md:text-sm">
+        <div className="border rounded p-2">
+          <div className="font-medium mb-1">Status</div>
+          <div>Total: {derived.counts.total}</div>
+          <div>With endpoints: {derived.counts.withEndpoints}</div>
+          <div>Auto available: {derived.counts.autoAvailable}</div>
+          <div>Manual lengths: {derived.counts.manualCount}</div>
+        </div>
+        <div className="border rounded p-2">
+          <div className="font-medium mb-1">Compliance</div>
+          <div className="text-emerald-700">PASS: {derived.counts.pass}</div>
+          <div className="text-red-700">FAIL: {derived.counts.fail}</div>
+        </div>
+        <div className="border rounded p-2">
+          <div className="font-medium mb-1">Δ buckets (manual vs auto)</div>
+          <div>≤5ft: {derived.buckets['≤5ft']}</div>
+          <div>6–15ft: {derived.buckets['6–15ft']}</div>
+          <div>16–30ft: {derived.buckets['16–30ft']}</div>
+          <div>&gt;30ft: {derived.buckets['>30ft']}</div>
+        </div>
+      </div>
   <div className="mb-2 flex flex-wrap items-center gap-2">
         <label className="inline-flex items-center gap-1 text-sm text-gray-700" title="When on, calculations use GPS auto length when available.">
           <input type="checkbox" checked={!!store.preferAutoSpanLength} onChange={(e)=>store.setPreferAutoSpanLength(e.target.checked)} />
@@ -226,6 +337,14 @@ export default function SpansEditor() {
             <option value="comfortable">Comfortable</option>
             <option value="compact">Compact</option>
           </select>
+        </label>
+        <label className="inline-flex items-center gap-1 text-sm text-gray-700" title="Show only FAIL rows based on midspan vs target">
+          <input type="checkbox" checked={showFailOnly} onChange={(e)=>setShowFailOnly(e.target.checked)} />
+          Only FAIL
+        </label>
+        <label className="inline-flex items-center gap-1 text-sm text-gray-700" title="Show only rows where manual vs auto Δ ≥ threshold">
+          <input type="checkbox" checked={showBigDeltaOnly} onChange={(e)=>setShowBigDeltaOnly(e.target.checked)} />
+          Only big Δ
         </label>
         <label className="inline-flex items-center gap-1 text-sm text-gray-700" title="Show/Hide Segments column">
           <input type="checkbox" checked={!!store.spansColumnSegmentsVisible} onChange={(e)=>store.setSpansColumnSegmentsVisible(e.target.checked)} />
@@ -248,7 +367,7 @@ export default function SpansEditor() {
           <button
             className="px-2 py-0.5 border rounded text-sm"
             onClick={() => {
-  const rows = [['spanId','environment','spanFt','spanLenSource','midspanFt','targetFt','attachFt','midLat','midLon','fromId','toId','fromLat','fromLon','toLat','toLon','segments']];
+  const rows = [['spanId','environment','spanFt','spanLenSource','midspanFt','targetFt','attachFt','pass','deficitFt','deltaFt','midLat','midLon','fromId','toId','fromLat','fromLon','toLat','toLon','segments']];
               for (const m of (store.cachedMidspans||[])) {
                 rows.push([
                   m.spanId ?? '',
@@ -258,6 +377,9 @@ export default function SpansEditor() {
                   m.midspanFt ?? '',
                   m.targetFt ?? '',
                   m.attachFt ?? '',
+          (m.pass===true ? 'PASS' : (m.pass===false ? 'FAIL' : '')),
+          m.deficitFt ?? '',
+          m.deltaFt ?? '',
           m.midLat ?? '',
           m.midLon ?? '',
           m.fromId ?? '',
@@ -298,6 +420,21 @@ export default function SpansEditor() {
             });
           }}
         >Auto‑calc All Lengths</button>
+        <button
+          className="px-2 py-0.5 border rounded text-sm"
+          title="Compute analysis for all spans and add to cache"
+          onClick={() => {
+            spans.forEach((_, i) => { try { runCalc(i); } catch { /* ignore */ } });
+          }}
+        >Compute All (cache)</button>
+        <button
+          className="px-2 py-0.5 border rounded text-sm"
+          title="Clear cache and recompute for all spans"
+          onClick={() => {
+            try { store.clearCachedMidspans(); } catch { /* ignore */ }
+            spans.forEach((_, i) => { try { runCalc(i); } catch { /* ignore */ } });
+          }}
+        >Recompute All</button>
         <button
           className="px-2 py-0.5 border rounded text-sm"
           title="Infer endpoints for spans missing From/To using nearest poles"
@@ -342,6 +479,7 @@ export default function SpansEditor() {
         </thead>
         <tbody>
           {spans.map((s, i) => (
+            isRowVisible(i) ? (
             <tr key={i} className={`border-t even:bg-gray-50`}>
       <td className={`px-2 ${store.tableDensity==='compact' ? 'py-0.5' : 'py-1'}`}>{s.fromId || '?'} → {s.toId || '?'}</td>
       <td className={`px-2 ${store.tableDensity==='compact' ? 'py-0.5' : 'py-1'}`}>
@@ -536,6 +674,7 @@ export default function SpansEditor() {
                 </td>
               ) : null}
             </tr>
+            ) : null
           ))}
         </tbody>
       </table>
@@ -559,7 +698,7 @@ export default function SpansEditor() {
         </div>
       )}
     </div>
-  );
+  ));
 }
 
 function SegmentEditor({ segments, onChange }) {

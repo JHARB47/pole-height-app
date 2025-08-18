@@ -55,6 +55,9 @@
     "husky": "^9.0.11",
     "lint-staged": "^15.2.10"
   },
+  "overrides": {
+    "workbox-build": "6.6.0"
+  },
   "lint-staged": {
     "src/**/*.{js,jsx}": [
       "eslint --fix",
