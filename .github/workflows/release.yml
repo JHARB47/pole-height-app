@@ -16,16 +16,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 22
+      - name: Setup Node.js 22.12.x
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '22.12.0'
           cache: 'npm'
           registry-url: 'https://registry.npmjs.org'
           scope: ''
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build
         run: npm run build
@@ -40,10 +40,10 @@ jobs:
             if [ "$IS_PRIVATE" = "true" ]; then echo "package.json is private; skipping npm publish"; else echo "NPM_TOKEN not set; skipping npm publish"; fi
           fi
 
-      - name: Setup Node.js for GitHub Packages
+      - name: Setup Node.js 22.12.x for GitHub Packages
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '22.12.0'
           registry-url: 'https://npm.pkg.github.com'
           scope: '@${{ github.repository_owner }}'
 
