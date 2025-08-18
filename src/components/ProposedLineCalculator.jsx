@@ -1069,18 +1069,22 @@ function PermitPackButton() {
           zip.file('permit/pci-summary.txt', pciTxt);
         }
       } catch {/* non-fatal */}
-      // Attach cached midspans CSV
+      // Attach cached midspans CSV and QA summary
       if ((store.cachedMidspans||[]).length) {
-    const rows = [['spanId','environment','spanFt','spanLenSource','midspanFt','targetFt','attachFt','midLat','midLon','fromId','toId','fromLat','fromLon','toLat','toLon','segments']];
+        // Enriched cached midspans export (includes pass/deficit/delta)
+        const rows = [['spanId','environment','spanFt','spanLenSource','midspanFt','targetFt','attachFt','pass','deficitFt','deltaFt','midLat','midLon','fromId','toId','fromLat','fromLon','toLat','toLon','segments']];
         for (const m of (store.cachedMidspans||[])) {
           rows.push([
             m.spanId ?? '',
             m.environment ?? '',
             m.spanFt ?? '',
-      m.spanLenSource ?? '',
+            m.spanLenSource ?? '',
             m.midspanFt ?? '',
             m.targetFt ?? '',
             m.attachFt ?? '',
+            (m.pass===true ? 'PASS' : (m.pass===false ? 'FAIL' : '')),
+            m.deficitFt ?? '',
+            m.deltaFt ?? '',
             m.midLat ?? '',
             m.midLon ?? '',
             m.fromId ?? '',
@@ -1094,6 +1098,7 @@ function PermitPackButton() {
         }
         const csv = rows.map(r => r.map(v => String(v).replaceAll('"','""')).map(v => v.includes(',') ? `"${v}"` : v).join(',')).join('\n');
         zip.file('permit/cached-midspans.csv', csv);
+
         // Also include a simple PASS/FAIL evaluation for midspan vs target
         try {
           const evalRows = [['spanId','environment','midspanFt','targetFt','status']];
@@ -1109,6 +1114,30 @@ function PermitPackButton() {
           }
           const evalCsv = evalRows.map(r => r.map(v => String(v).replaceAll('"','""')).join(',')).join('\n');
           zip.file('permit/midspan-eval.csv', evalCsv);
+        } catch {/* ignore */}
+
+        // QA summary CSV (focused on compliance and deltas)
+        try {
+          const qaRows = [['spanId','environment','pass','deficitFt','deltaFt','spanLenSource','spanFt','midspanFt','targetFt','fromId','toId','midLat','midLon']];
+          for (const m of (store.cachedMidspans||[])) {
+            qaRows.push([
+              m.spanId ?? '',
+              m.environment ?? '',
+              (m.pass===true ? 'PASS' : (m.pass===false ? 'FAIL' : '')),
+              m.deficitFt ?? '',
+              m.deltaFt ?? '',
+              m.spanLenSource ?? '',
+              m.spanFt ?? '',
+              m.midspanFt ?? '',
+              m.targetFt ?? '',
+              m.fromId ?? '',
+              m.toId ?? '',
+              m.midLat ?? '',
+              m.midLon ?? '',
+            ]);
+          }
+          const qaCsv = qaRows.map(r => r.map(v => String(v).replaceAll('"','""')).join(',')).join('\n');
+          zip.file('permit/qa-summary.csv', qaCsv);
         } catch {/* ignore */}
       }
   // Generate a minimal SVG plan/profile diagram
@@ -1179,6 +1208,31 @@ function PermitPackButton() {
       const v = (built - planned) * 12; // inches
       byBucket[bucket(v)]++;
     }
+  // Build QA analytics summary from cached midspans (if available)
+  const qaM = (store.cachedMidspans||[]);
+  const qaCounts = (() => {
+    if (!qaM.length) return null;
+    const counts = { total: qaM.length, pass: 0, fail: 0, unknown: 0, sources: { auto: 0, lengthFt: 0, estimatedLengthFt: 0, unknown: 0 }, withEndpoints: 0 };
+    const buckets = { '≤5ft': 0, '6–15ft': 0, '16–30ft': 0, '>30ft': 0 };
+    for (const m of qaM) {
+      if (m.pass === true) counts.pass++;
+      else if (m.pass === false) counts.fail++;
+      else counts.unknown++;
+      const src = m.spanLenSource || 'unknown';
+      counts.sources[src] = (counts.sources[src] || 0) + 1;
+      const hasEndpoints = !!(m.fromLat && m.fromLon && m.toLat && m.toLon);
+      if (hasEndpoints) counts.withEndpoints++;
+      const d = Number(m.deltaFt);
+      if (Number.isFinite(d)) {
+        if (d <= 5) buckets['≤5ft']++;
+        else if (d <= 15) buckets['6–15ft']++;
+        else if (d <= 30) buckets['16–30ft']++;
+        else buckets['>30ft']++;
+      }
+    }
+    return { counts, buckets };
+  })();
+
   const readme = [
         '# Permit Package',
         '',
@@ -1190,6 +1244,10 @@ function PermitPackButton() {
     `Target Source: ${summary?.span?.targetSource || 'computed'}`,
     `Issues: ${issues.length}`,
         '',
+  (qaCounts ? `QA — Spans cached: ${qaCounts.counts.total} | PASS: ${qaCounts.counts.pass} | FAIL: ${qaCounts.counts.fail} | Unknown: ${qaCounts.counts.unknown}` : ''),
+  (qaCounts ? `QA — With endpoints: ${qaCounts.counts.withEndpoints} | Sources — auto: ${qaCounts.counts.sources.auto}, manual: ${qaCounts.counts.sources.lengthFt}, est: ${qaCounts.counts.sources.estimatedLengthFt}, unknown: ${qaCounts.counts.sources.unknown}` : ''),
+  (qaCounts ? `QA — Δ buckets (ft): ≤5: ${qaCounts.buckets['≤5ft']}, 6–15: ${qaCounts.buckets['6–15ft']}, 16–30: ${qaCounts.buckets['16–30ft']}, >30: ${qaCounts.buckets['>30ft']}` : ''),
+  (qaCounts ? '' : ''),
   (scopedPolesForReadme.length ? `PCI Totals — Done: ${pciDone} | PASS: ${pciPass} | FAIL: ${pciFail} | Photos: ${pciPhotos}` : ''),
   (scopedPolesForReadme.length ? `Variance buckets (in): ≤2: ${byBucket['≤2"']} | 3–6: ${byBucket['3–6"']} | 7–12: ${byBucket['7–12"']} | >12: ${byBucket['>12"']}` : ''),
   scopedPolesForReadme.length ? '' : '',
@@ -1198,8 +1256,9 @@ function PermitPackButton() {
   '- fields.json: Normalized key-value fields for form population (MM109/CSX)',
   '- plan-profile.svg: Simple plan/profile diagram',
   '- templates.txt: Official template links and requirements for the selected agency',
-  '- cached-midspans.csv: Cached spans with midspan/target used (when available)',
+  '- cached-midspans.csv: Cached spans with midspan/target used, plus PASS/FAIL and Δ when available',
   '- midspan-eval.csv: PASS/FAIL evaluation of cached midspans versus targets',
+  '- qa-summary.csv: Per-span QA export (PASS/FAIL, deficit, Δ, sources)',
   '- pci-summary.csv: Post Construction Inspection rollup for collected poles (if any)',
   '- pci-summary.txt: Totals for PCI (done/pass/fail/photos)',
   '- checklist.txt: Pre-submission checklist to validate required fields',
@@ -1347,8 +1406,6 @@ function FieldCollection({ openHelp }) {
             }
             if (dt && !isNaN(new Date(dt))) {
               setExifTimestamp(new Date(dt).toISOString());
-  setExifTimestamp('');
-  setExifTimestamp('');
             }
           }
         } catch (e) {
