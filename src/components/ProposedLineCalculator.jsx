@@ -4,9 +4,10 @@ import { DEFAULTS, parseFeet, formatFeetInches, formatFeetInchesTickMarks, forma
 import ExistingLinesEditor from './ExistingLinesEditor';
 import { WV_COMPANIES } from '../utils/constants';
 import SpanDiagram from './SpanDiagram';
-import { importGeospatialFile, mapGeoJSONToAppData, MAPPING_PRESETS, parseExistingLinesCSV, getAttributeKeys, splitFeaturesByGeometry } from '../utils/importers';
+import { importGeospatialFile, mapGeoJSONToAppData, MAPPING_PRESETS, parseExistingLinesCSV, getAttributeKeys, splitFeaturesByGeometry, parsePolesCSV, parseSpansCSV } from '../utils/importers';
 import { buildManifest, csvFrom } from '../utils/manifests';
 import { makePermitSummary } from '../utils/permitSummary';
+import { EXPORT_PRESETS, buildPolesCSV, buildSpansCSV, buildExistingLinesCSV, buildGeoJSON, buildKML, buildFirstEnergyJointUseCSV } from '../utils/exporters';
 // Geodata utilities are imported dynamically in onPermit to keep geospatial libs lazy-loaded
 import SpansEditor from './SpansEditor';
 
@@ -749,7 +750,7 @@ function FormAutofillPanel() {
       {fields ? (
         <details className="mt-3">
           <summary className="cursor-pointer text-sm text-gray-700">Normalized Fields (available keys)</summary>
-          <pre className="text-[11px] bg-gray-50 p-2 rounded overflow-auto max-h-64">{JSON.stringify(fields, null, 2)}</pre>
+          <pre className="text-[11px] bg-gray-50 p-2 rounded overflow-auto max-h-64 break-anywhere">{JSON.stringify(fields, null, 2)}</pre>
         </details>
       ) : null}
     </div>
@@ -861,7 +862,7 @@ function PrintableReport() {
        {makeReadyNotes ? (
          <div>
            <div className="font-medium">Make-ready</div>
-           <pre className="text-xs whitespace-pre-wrap">{makeReadyNotes}</pre>
+           <pre className="text-xs whitespace-pre-wrap break-anywhere">{makeReadyNotes}</pre>
            <div className="mt-1">Make-ready total: ${results.makeReadyTotal ?? 0}</div>
          </div>
        ) : null}
@@ -986,6 +987,7 @@ function ExportButtons() {
       <button className="px-2 py-1 border rounded text-sm" onClick={onCSV} disabled={!results}>Export CSV</button>
       <button className="px-2 py-1 border rounded text-sm" onClick={onPDF} disabled={!results}>Export PDF</button>
       <PermitPackButton />
+  <InteropExportButton />
     </div>
   );
 }
@@ -1140,6 +1142,8 @@ function PermitPackButton() {
           zip.file('permit/qa-summary.csv', qaCsv);
         } catch {/* ignore */}
       }
+
+// Interop export button moved to module scope (see below) to satisfy linter
   // Generate a minimal SVG plan/profile diagram
   const w = 800, h = 300, margin = 40;
       const groundY = h - margin;
@@ -1295,6 +1299,90 @@ function PermitPackButton() {
     <button className="px-2 py-1 border rounded text-sm" onClick={onPermit} disabled={!store.results || !isTargetEnv} title={isTargetEnv ? 'Generate permit package' : 'Select WV Highway or Railroad environment'}>
       Export Permit Pack
     </button>
+  );
+}
+
+// Interop export button — builds CSV/GeoJSON/KML ZIPs based on selected preset
+function InteropExportButton() {
+  const store = useAppStore();
+  const [open, setOpen] = React.useState(false);
+  const [format, setFormat] = React.useState('csv'); // csv|geojson|kml
+  const [preset, setPreset] = React.useState('generic');
+  const [includePoles, setIncludePoles] = React.useState(true);
+  const [includeSpans, setIncludeSpans] = React.useState(true);
+  const [includeLines, setIncludeLines] = React.useState(true);
+
+  React.useEffect(() => {
+    const job = (store.jobs||[]).find(j=>j.id===store.currentJobId);
+    if (job?.exportProfile) setPreset(job.exportProfile);
+  }, [store.jobs, store.currentJobId]);
+
+  const onExport = async () => {
+    const JSZip = (await import('jszip')).default;
+    const zip = new JSZip();
+    const poles = includePoles ? (store.importedPoles || []) : [];
+    const spans = includeSpans ? (store.importedSpans || []) : [];
+    const lines = includeLines ? (store.existingLines || []) : [];
+    if (format === 'csv') {
+      if (poles.length) zip.file('export/poles.csv', buildPolesCSV(poles, preset));
+      if (spans.length) zip.file('export/spans.csv', buildSpansCSV(spans, preset));
+      if (lines.length) zip.file('export/existing-lines.csv', buildExistingLinesCSV(lines, preset));
+      if (preset === 'firstEnergy' && (store.cachedMidspans||[]).length) {
+        const job = (store.jobs||[]).find(j=>j.id===store.currentJobId);
+        zip.file('export/fe-joint-use.csv', buildFirstEnergyJointUseCSV({ cachedMidspans: store.cachedMidspans, job }));
+      }
+    } else if (format === 'geojson') {
+      const fc = buildGeoJSON({ poles, spans });
+      zip.file('export/data.geojson', JSON.stringify(fc));
+    } else if (format === 'kml') {
+      const kml = buildKML({ poles, spans });
+      zip.file('export/data.kml', kml);
+    }
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `interop-export-${preset}.zip`; a.click();
+    URL.revokeObjectURL(url);
+    setOpen(false);
+  };
+
+  return (
+    <>
+      <button className="px-2 py-1 border rounded text-sm" onClick={()=>setOpen(true)}>Interop Export</button>
+      {open ? (
+        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
+          <div className="bg-white rounded shadow-lg w-[90vw] max-w-lg p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="font-medium">Interop Export</div>
+              <button className="text-sm" onClick={()=>setOpen(false)}>Close</button>
+            </div>
+            <div className="grid gap-2 text-sm">
+              <label className="grid gap-1">
+                <span className="font-medium">Preset</span>
+                <select className="border rounded px-2 py-1" value={preset} onChange={e=>setPreset(e.target.value)}>
+                  {(EXPORT_PRESETS||[]).map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                </select>
+              </label>
+              <label className="grid gap-1">
+                <span className="font-medium">Format</span>
+                <select className="border rounded px-2 py-1" value={format} onChange={e=>setFormat(e.target.value)}>
+                  <option value="csv">CSV (ZIP)</option>
+                  <option value="geojson">GeoJSON (ZIP)</option>
+                  <option value="kml">KML (ZIP)</option>
+                </select>
+              </label>
+              <div className="grid grid-cols-3 gap-2 mt-1">
+                <label className="inline-flex items-center gap-1 text-sm"><input type="checkbox" checked={includePoles} onChange={e=>setIncludePoles(e.target.checked)} /> Poles</label>
+                <label className="inline-flex items-center gap-1 text-sm"><input type="checkbox" checked={includeSpans} onChange={e=>setIncludeSpans(e.target.checked)} /> Spans</label>
+                <label className="inline-flex items-center gap-1 text-sm"><input type="checkbox" checked={includeLines} onChange={e=>setIncludeLines(e.target.checked)} /> Existing Lines</label>
+              </div>
+              <div className="text-xs text-gray-600">Uses current job’s export profile by default. CSV headers align to the chosen preset.</div>
+              <button className="mt-2 px-3 py-1 border rounded" onClick={onExport}>Export</button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }
 
@@ -2110,6 +2198,8 @@ function ImportPanel() {
   const [mapping, setMapping] = React.useState(MAPPING_PRESETS[0].mapping);
   const [batchPreview, setBatchPreview] = React.useState({ poles: 0, spans: 0, lines: 0 });
   const [csvText, setCsvText] = React.useState('');
+  const [csvPolesText, setCsvPolesText] = React.useState('');
+  const [csvSpansText, setCsvSpansText] = React.useState('');
   const [showConfig, setShowConfig] = React.useState(false);
   const [showAutoPreview, setShowAutoPreview] = React.useState(false);
   const [autoPreview, setAutoPreview] = React.useState(null);
@@ -2297,6 +2387,38 @@ function ImportPanel() {
         </div>
       </details>
       <details className="mt-3">
+        <summary className="cursor-pointer text-sm text-gray-700">Import Poles from CSV</summary>
+        <div className="grid gap-2 mt-2">
+          <textarea className="border rounded p-2 text-xs h-28" placeholder="Paste CSV with headers (example): id,height,class,power_ht,xfmr,latitude,longitude" value={csvPolesText} onChange={(e)=>setCsvPolesText(e.target.value)} />
+          <div className="flex items-center gap-2">
+            <button className="px-2 py-1 border rounded text-sm" onClick={()=>{
+              const rows = parsePolesCSV(csvPolesText, mapping.pole);
+              if (rows.length) {
+                store.setImportedPoles(rows);
+                setBatchPreview(prev => ({ ...prev, poles: rows.length }));
+              }
+            }}>Load Poles CSV</button>
+            <div className="text-xs text-gray-600">Populates the Imported Poles table used by batch/exports</div>
+          </div>
+        </div>
+      </details>
+      <details className="mt-3">
+        <summary className="cursor-pointer text-sm text-gray-700">Import Spans from CSV</summary>
+        <div className="grid gap-2 mt-2">
+          <textarea className="border rounded p-2 text-xs h-28" placeholder="Paste CSV with headers (example): id,from_id,to_id,length,attach" value={csvSpansText} onChange={(e)=>setCsvSpansText(e.target.value)} />
+          <div className="flex items-center gap-2">
+            <button className="px-2 py-1 border rounded text-sm" onClick={()=>{
+              const rows = parseSpansCSV(csvSpansText, mapping.span);
+              if (rows.length) {
+                store.setImportedSpans(rows);
+                setBatchPreview(prev => ({ ...prev, spans: rows.length }));
+              }
+            }}>Load Spans CSV</button>
+            <div className="text-xs text-gray-600">Populates the Imported Spans table used by batch/exports</div>
+          </div>
+        </div>
+      </details>
+      <details className="mt-3">
         <summary className="cursor-pointer text-sm text-gray-700">Import Existing Lines from CSV</summary>
         <div className="grid gap-2 mt-2">
           <textarea className="border rounded p-2 text-xs h-28" placeholder="Paste CSV with headers: type,height,company,makeReady,makeReadyHeight" value={csvText} onChange={(e)=>setCsvText(e.target.value)} />
@@ -2442,7 +2564,7 @@ Sample Project 3,45ft,Class 2,35' 6",175,95`;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-auto">
+  <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-auto break-anywhere">
         <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
           <h2 className="text-xl font-semibold">Application Use Directions</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-xl">&times;</button>
@@ -2659,7 +2781,7 @@ Sample Project 3,45ft,Class 2,35' 6",175,95`;
                 <div className="bg-teal-50 p-3 rounded text-sm space-y-2">
                   <p><strong>KML/KMZ:</strong> Google Earth files with pole location and attribute data</p>
                   <p><strong>Shapefile:</strong> GIS data (.zip with .shp, .dbf, .shx files)</p>
-                  <p><strong>CSV:</strong> Comma-separated values for existing lines data</p>
+                  <p><strong>CSV:</strong> Paste data for <em>Poles</em>, <em>Spans</em>, or <em>Existing Lines</em> in the Import panel (headers can be mapped via presets or custom profiles)</p>
                 </div>
                 
                 <div className="mt-3 space-x-2">

@@ -185,7 +185,7 @@ export default function ExistingLinesEditor() {
           </div>
         </div>
       )}
-      <div className="overflow-auto">
+  <div className="overflow-auto break-anywhere">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-gray-600">
@@ -215,7 +215,7 @@ export default function ExistingLinesEditor() {
                     {WV_COMPANIES.power.map(c => <option key={`p-${c.name}`} value={c.short || c.name}>{c.name}</option>)}
                     {WV_COMPANIES.communication.map(c => <option key={`c-${c.name}`} value={c.short || c.name}>{c.name}</option>)}
                   </datalist>
-                  <div className="text-[10px] text-gray-500 mt-0.5">Tip: Set FirstEnergy subsidiary names (Mon Power, Penelec, etc.) for FE rules</div>
+                  <div className="text-[10px] text-gray-500 mt-0.5">Tip: Use FE subsidiary names (Mon Power, Penelec, etc.) for FE rules.</div>
                 </td>
                 <td className="p-2">
                   <input className={`border rounded px-2 py-1 ${row.height && parseFeet(row.height) == null ? 'border-red-400 bg-red-50' : ''}`} value={row.height || ''}

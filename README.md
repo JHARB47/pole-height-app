@@ -10,6 +10,7 @@ A comprehensive web application for calculating NESC-compliant pole attachment h
 - **NESC Compliance**: Automatic validation against National Electrical Safety Code standards
 - **Advanced Calculations**: Sag calculations, clearance validation, and cost estimation
 - **Geospatial Import**: Support for KML/KMZ/Shapefile data import with configurable mapping
+- **CSV Import (Poles/Spans/Existing Lines)**: Robust, header-based CSV parser with mapping presets (ArcGIS, ikeGPS, Katapult Pro) and per-job export profile
 - **Format Preferences**: Choose between verbose (15ft 6in) and tick mark (15' 6") formatting
 - **Comprehensive Help**: Built-in help system with detailed documentation and examples
 - **Professional Reports**: Export calculations to CSV with print-optimized layouts
@@ -17,19 +18,14 @@ A comprehensive web application for calculating NESC-compliant pole attachment h
 - Mobile-friendly layout tweaks (responsive inputs/buttons)
 - GPS autofill: Use device location to populate pole latitude/longitude
 - Permit Pack export: WV Highway (MM109) and Railroad (CSX)
-	- Includes summary.json, plan-profile.svg (with scale bar), and draft PDFs (mm109-draft.pdf / railroad-draft.pdf)
-	- Draft PDFs generated with pdf-lib for convenient transcription to official forms
 - Spans Editor
-	- Per-span environment overrides and segment-aware targets across a span
-	- Cached results: export Cached Midspans to CSV and clear cache
-	- Permit Pack summary uses controlling (max) target from cached midspans when present
 
 ## 🛠 Technology Stack
 
 - **Frontend**: React 18 + Vite 4.5.14
 - **Styling**: TailwindCSS with responsive design and print optimization
 - **State Management**: Zustand with localStorage persistence
-- **Testing**: Vitest with comprehensive test coverage
+- **Testing**: Vitest with comprehensive test coverage (52 tests)
 - **Geospatial**: shpjs, @tmcw/togeojson for file import
 - **Icons**: Lucide React icon library
 
@@ -43,7 +39,7 @@ The application is optimized for Netlify deployment with the following configura
 
 - **Build Command**: `npm run build`
 - **Publish Directory**: `dist`
-- **Node Version**: 22
+- **Node Version**: 22 (pinned in `netlify.toml` and CI). Add a local `.nvmrc` to align your environment.
 
 #### Key Files
 
@@ -80,6 +76,12 @@ npm run preview
 
 # Lint code
 npm run lint
+If you see an engines warning locally, switch to Node 22:
+
+```bash
+nvm use 22
+```bash
+
 ```
 
 ## 🌍 Deployment to Netlify
@@ -129,6 +131,7 @@ Available environment variables:
 - **Buffer Polyfill**: Included for browser compatibility with geospatial libraries
 - **Code Splitting**: Automatic chunking for optimal loading performance
 - **Build Optimization**: Target ES2015 with CommonJS support
+- **CSV Parser**: Uses `papaparse` via ESM import
 - **Development Server**: Hot reload with network access enabled
 
 ## 🧪 Testing
@@ -168,7 +171,7 @@ npm run test:watch
 
 - **KML/KMZ**: Google Earth files with configurable attribute mapping
 - **Shapefiles**: Industry-standard GIS format (.shp, .dbf, .shx)
-- **CSV**: Structured data with customizable column mapping
+- **CSV**: Poles, Spans, and Existing Lines CSV. Mapping presets for ArcGIS/ikeGPS/Katapult Pro; save custom profiles per job.
 
 ## 🔧 Troubleshooting
 
@@ -189,6 +192,7 @@ npm run test:watch
 - Ensure Node.js version is set to 22 in build settings (matches `netlify.toml` and CI)
 - Check that `netlify.toml` is in the repository root
 - Verify build command is set to `npm run build`
+- If local `npm ci` fails due to lock mismatch, run `npm install` to refresh `package-lock.json`.
 
 ### Development Issues
 

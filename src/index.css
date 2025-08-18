@@ -4,6 +4,12 @@
 
 /* Print helpers */
 @layer utilities {
+	/* Prevent long tokens from overlapping UI; allow natural breaks */
+	.break-anywhere { 
+		word-break: break-word; 
+		overflow-wrap: anywhere; 
+	}
+
 	@media print {
 		.no-print { display: none !important; }
 

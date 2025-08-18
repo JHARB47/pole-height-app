@@ -1,4 +1,5 @@
 // Geospatial import utilities: KML, KMZ, and Shapefile -> GeoJSON
+import Papa from 'papaparse';
 // Heavy libraries are lazy-loaded with dynamic imports to keep initial bundle small.
 
 // Common attribute mapping presets by provider/source (customize as needed)
@@ -7,7 +8,7 @@ export const MAPPING_PRESETS = [
     label: 'Generic (id,height,class,length,attach)',
     value: 'generic',
     mapping: {
-      pole: { id: 'id', height: 'height', class: 'class', powerHeight: 'power_ht', hasTransformer: 'xfmr' },
+  pole: { id: 'id', height: 'height', class: 'class', powerHeight: 'power_ht', hasTransformer: 'xfmr', latitude: '', longitude: '' },
       span: { id: 'id', fromId: 'from_id', toId: 'to_id', length: 'length', proposedAttach: 'attach' },
       line: { type: 'type', height: 'height', company: 'company', makeReady: 'mr', makeReadyHeight: 'mr_height' },
     }
@@ -16,16 +17,50 @@ export const MAPPING_PRESETS = [
     label: 'FirstEnergy sample',
     value: 'firstEnergy',
     mapping: {
-      pole: { id: 'POLE_ID', height: 'HGT_FT', class: 'CLASS', powerHeight: 'PWR_HT', hasTransformer: 'XFMR' },
+  pole: { id: 'POLE_ID', height: 'HGT_FT', class: 'CLASS', powerHeight: 'PWR_HT', hasTransformer: 'XFMR', latitude: '', longitude: '' },
       span: { id: 'SPAN_ID', fromId: 'FROM_ID', toId: 'TO_ID', length: 'SPAN_FT', proposedAttach: 'ATTACH_FT' },
       line: { type: 'TYPE', height: 'HGT_FT', company: 'COMPANY', makeReady: 'MR', makeReadyHeight: 'MR_HGT' },
+    }
+  },
+  // Example presets for common external tools. Field names vary by org/project;
+  // use Configure Mapping to tweak if your export uses different headers.
+  {
+    label: 'ArcGIS Hosted Feature Layer (example)',
+    value: 'arcgis',
+    mapping: {
+      // Points layer attributes (commonly exported alongside geometry)
+  pole: { id: 'POLE_ID', height: 'HEIGHT_FT', class: 'CLASS', powerHeight: 'PWR_HT', hasTransformer: 'XFMR', latitude: 'LATITUDE', longitude: 'LONGITUDE' },
+      // Lines layer attributes (if a spans layer is present); length may be estimated from geometry if absent
+      span: { id: 'SPAN_ID', fromId: 'FROM_ID', toId: 'TO_ID', length: 'SPAN_FT', proposedAttach: 'ATTACH_FT' },
+      // Existing line attachments captured as attributes on either layer
+      line: { type: 'LINE_TYPE', height: 'LINE_HT', company: 'OWNER', makeReady: 'MAKE_READY', makeReadyHeight: 'NEW_HT' },
+    }
+  },
+  {
+    label: 'ikeGPS (example)',
+    value: 'ikegps',
+    mapping: {
+      // These reflect commonly used headers; adjust to your export as needed
+  pole: { id: 'POLE_ID', height: 'POLE_HEIGHT_FT', class: 'POLE_CLASS', powerHeight: 'PRIMARY_HT_FT', hasTransformer: 'TRANSFORMER', latitude: 'LAT', longitude: 'LON' },
+      span: { id: 'SPAN_ID', fromId: 'FROM_ID', toId: 'TO_ID', length: 'SPAN_FT', proposedAttach: 'ATTACH_FT' },
+      line: { type: 'LINE_TYPE', height: 'LINE_HT', company: 'COMPANY', makeReady: 'MAKE_READY', makeReadyHeight: 'NEW_HT' },
+    }
+  },
+  {
+    label: 'Katapult Pro Maps (example)',
+    value: 'katapultPro',
+    mapping: {
+      // CSV/KMZ exports typically include a name/id and optional metadata columns
+  pole: { id: 'ID', height: 'HEIGHT_FT', class: 'CLASS', powerHeight: 'PRIMARY_HT', hasTransformer: 'XFMR', latitude: 'LAT', longitude: 'LON' },
+      span: { id: 'SPAN_ID', fromId: 'FROM_ID', toId: 'TO_ID', length: 'SPAN_FT', proposedAttach: 'ATTACH_FT' },
+      line: { type: 'TYPE', height: 'HGT_FT', company: 'OWNER', makeReady: 'MAKE_READY', makeReadyHeight: 'NEW_HT' },
     }
   },
   {
     label: 'PSE sample',
     value: 'pse',
     mapping: {
-      pole: { id: 'POLE', height: 'HEIGHT', class: 'CLASS', powerHeight: 'PRIMARY_HT', hasTransformer: 'TRANSFORMER' },
+  pole: { id: 'POLE', height: 'HEIGHT', class: 'CLASS', powerHeight: 'PRIMARY_HT', hasTransformer: 'TRANSFORMER', latitude: '', longitude: '' },
       span: { id: 'SPAN', fromId: 'FROM_POLE', toId: 'TO_POLE', length: 'LENGTH_FT', proposedAttach: 'PROPOSED_FT' },
       line: { type: 'LINE_TYPE', height: 'LINE_HT', company: 'OWNER', makeReady: 'MAKE_READY', makeReadyHeight: 'NEW_HT' },
     }
@@ -209,32 +244,78 @@ function estimateLengthFromGeometry(f) {
 
 // Simple CSV parser for existing lines: expects headers including fields matching mapping.line
 export function parseExistingLinesCSV(csvText, lineMapping) {
-  const lines = (csvText || '').split(/\r?\n/).filter(Boolean);
-  if (!lines.length) return [];
-  const header = lines[0].split(',').map(h => h.trim());
-  const idx = (name) => {
-    if (!name) return -1;
-    const i = header.findIndex(h => h.toLowerCase() === String(name).toLowerCase());
-    return i;
-  };
-  const iType = idx(lineMapping?.type || 'type');
-  const iHeight = idx(lineMapping?.height || 'height');
-  const iCompany = idx(lineMapping?.company || 'company');
-  const iMR = idx(lineMapping?.makeReady || 'makeReady');
-  const iMRH = idx(lineMapping?.makeReadyHeight || 'makeReadyHeight');
-  const out = [];
-  for (let r = 1; r < lines.length; r++) {
-    const cols = lines[r].split(',');
-    if (!cols.length) continue;
-    const get = (i) => (i >= 0 && i < cols.length ? cols[i].trim() : '');
-    const heightNum = Number(get(iHeight));
-    out.push({
-      type: get(iType) || 'communication',
-      height: Number.isFinite(heightNum) ? String(heightNum) : get(iHeight),
-      companyName: get(iCompany),
-      makeReady: /^(y|yes|true|1)$/i.test(get(iMR)),
-      makeReadyHeight: get(iMRH),
-    });
-  }
-  return out;
+  const parsed = Papa.parse(csvText || '', { header: true, skipEmptyLines: 'greedy', dynamicTyping: false });
+  const rows = Array.isArray(parsed.data) ? parsed.data : [];
+  return rows.map((row) => {
+    const get = (key, fallback) => {
+      const k = key || fallback;
+      const v = k ? row[k] : '';
+      return typeof v === 'string' ? v.trim() : v;
+    };
+    const heightRaw = get(lineMapping?.height, 'height');
+    const heightNum = Number(heightRaw);
+    return {
+      type: get(lineMapping?.type, 'type') || 'communication',
+      height: Number.isFinite(heightNum) ? String(heightNum) : String(heightRaw || ''),
+      companyName: get(lineMapping?.company, 'company') || '',
+      makeReady: /^(y|yes|true|1)$/i.test(String(get(lineMapping?.makeReady, 'makeReady') || '')),
+      makeReadyHeight: String(get(lineMapping?.makeReadyHeight, 'makeReadyHeight') || ''),
+    };
+  });
 }
+
+// CSV parser for Poles table
+export function parsePolesCSV(csvText, poleMapping) {
+  const parsed = Papa.parse(csvText || '', { header: true, skipEmptyLines: 'greedy', dynamicTyping: false });
+  const rows = Array.isArray(parsed.data) ? parsed.data : [];
+  return rows.map((row) => {
+    const get = (key, fallback) => {
+      const k = key || fallback;
+      const v = k ? row[k] : '';
+      return typeof v === 'string' ? v.trim() : v;
+    };
+    const num = (key, fallback) => {
+      const raw = get(key, fallback);
+      if (raw === '' || raw == null) return undefined;
+      const n = Number(raw);
+      return Number.isFinite(n) ? n : undefined;
+    };
+    return {
+      id: String(get(poleMapping?.id, 'id') || ''),
+      latitude: num(poleMapping?.latitude, 'latitude') ?? null,
+      longitude: num(poleMapping?.longitude, 'longitude') ?? null,
+      height: num(poleMapping?.height, 'height'),
+      class: get(poleMapping?.class, 'class') || undefined,
+      powerHeight: num(poleMapping?.powerHeight, 'power_ht'),
+      hasTransformer: /^(y|yes|true|1)$/i.test(String(get(poleMapping?.hasTransformer, 'xfmr') || '')),
+    };
+  });
+}
+
+// CSV parser for Spans table
+export function parseSpansCSV(csvText, spanMapping) {
+  const parsed = Papa.parse(csvText || '', { header: true, skipEmptyLines: 'greedy', dynamicTyping: false });
+  const rows = Array.isArray(parsed.data) ? parsed.data : [];
+  return rows.map((row) => {
+    const get = (key, fallback) => {
+      const k = key || fallback;
+      const v = k ? row[k] : '';
+      return typeof v === 'string' ? v.trim() : v;
+    };
+    const num = (key, fallback) => {
+      const raw = get(key, fallback);
+      if (raw === '' || raw == null) return undefined;
+      const n = Number(raw);
+      return Number.isFinite(n) ? n : undefined;
+    };
+    return {
+      id: String(get(spanMapping?.id, 'id') || ''),
+      fromId: String(get(spanMapping?.fromId, 'from_id') || ''),
+      toId: String(get(spanMapping?.toId, 'to_id') || ''),
+      length: num(spanMapping?.length, 'length'),
+      proposedAttach: num(spanMapping?.proposedAttach, 'attach'),
+    };
+  });
+}
+
+// (No helper needed; ESM import above)

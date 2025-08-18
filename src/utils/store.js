@@ -176,6 +176,7 @@ const useAppStore = create(persist((set) => ({
   //   commCompany,                    // Attaching communications company (for manifests/hints)
   //   submissionProfileName,         // One of submissionProfiles[].name
   //   submissionProfileOverrides,    // { commToPowerIn?, minTopSpaceFt?, roadClearanceFt?, manifestType? }
+  //   exportProfile,                 // One of EXPORT_PRESETS values (e.g., 'arcgis','ikegps','katapultPro','firstEnergy')
   // }
   jobs: [],
   currentJobId: '',
@@ -193,6 +194,7 @@ const useAppStore = create(persist((set) => ({
       commCompany: job?.commCompany || '',
       submissionProfileName: job?.submissionProfileName || s.currentSubmissionProfile || 'generic',
       submissionProfileOverrides: job?.submissionProfileOverrides || {},
+  exportProfile: job?.exportProfile || 'generic',
     };
     const merged = [...(s.jobs || []), newJob];
     return { jobs: merged, currentJobId: id, projectName: newJob.name, applicantName: newJob.applicantName, jobNumber: newJob.jobNumber, presetProfile: newJob.presetProfile, jobOwner: newJob.jobOwner };

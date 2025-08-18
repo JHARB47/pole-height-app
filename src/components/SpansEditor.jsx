@@ -464,7 +464,7 @@ export default function SpansEditor() {
           }}
         >Replace all with auto</button>
       </div>
-      <div className="overflow-x-auto">
+  <div className="overflow-x-auto break-anywhere">
   <table className={`w-full ${store.tableDensity==='compact' ? 'text-[11px]' : 'text-xs md:text-sm'}`}>
         <thead className="sticky top-0 bg-white z-10">
           <tr className="text-left text-gray-700">

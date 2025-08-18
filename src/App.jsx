@@ -54,7 +54,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <div className="safe-pt safe-pb">
-        <div className="mx-auto max-w-6xl px-3 md:px-6 py-3 md:py-4">
+        <div className="mx-auto max-w-6xl px-3 md:px-6 py-3 md:py-4 break-anywhere">
           <JobSetup />
           <div className="h-3" />
           <ProposedLineCalculator />

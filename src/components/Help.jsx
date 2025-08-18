@@ -7,10 +7,10 @@ export default function Help({ open, onClose }) {
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
       <div className="absolute inset-x-0 top-0 md:inset-y-6 md:mx-auto md:max-w-4xl bg-white shadow-xl md:rounded-lg overflow-hidden">
         <div className="flex items-center justify-between border-b px-4 py-2">
-          <div className="font-semibold">Help & User Guide — Pole Plan Wizard</div>
+          <div className="font-semibold">Help — Pole Plan Wizard</div>
           <button className="text-sm px-2 py-1 border rounded" onClick={onClose}>Close</button>
         </div>
-        <div className="px-4 md:px-6 py-3 md:py-4 max-h-[80vh] overflow-y-auto text-sm leading-6 text-gray-800">
+        <div className="px-4 md:px-6 py-3 md:py-4 max-h-[80vh] overflow-y-auto text-sm leading-6 text-gray-800 break-anywhere">
           <Section title="Getting Started">
             <ul className="list-disc pl-5">
               <li>Open Job Setup to select or create a Job (name, number, applicant, owner, submission profile).</li>
@@ -23,6 +23,8 @@ export default function Help({ open, onClose }) {
             <ul className="list-disc pl-5">
               <li>Jobs: Create multiple jobs/projects; switch with the job selector. Each job keeps its own settings and exports.</li>
               <li>Submission Profiles: Choose utility/regional rules (e.g., FirstEnergy). Overrides per job are supported.</li>
+              <li>Export Job Bundle: From Job Setup, download a ZIP snapshot (job.json, state.json, imported data, cached midspans, and logo) for sharing or backup.</li>
+              <li>Duplicate & Import: Quickly duplicate a job or import a previously exported bundle to resume work.</li>
               <li>Notes & Branding: Add engineering notes and optional logo for reports.</li>
             </ul>
           </Section>
@@ -62,6 +64,18 @@ export default function Help({ open, onClose }) {
         <li>Permit Pack README highlights PCI totals and a QA/QC section (span counts, PASS/FAIL, Δ buckets, sources).</li>
         <li>QA/QC summary (qa-summary.csv) provides per-span PASS/FAIL, deficit, Δ, and source for quick review or dashboards.</li>
               <li>PDF Layout Presets: Create and reuse overlay presets per job/environment for custom PDFs.</li>
+            </ul>
+          </Section>
+
+          <Section title="Interop with ArcGIS, ikeGPS, and Katapult Pro">
+            <ul className="list-disc pl-5">
+              <li>Import panel → Mapping Preset now includes example presets for ArcGIS Hosted Feature Layers, ikeGPS, and Katapult Pro Maps.</li>
+              <li>Field names vary by organization/project—use “Configure Mapping” to fine‑tune headers, then “Save Profile” for reuse.</li>
+              <li>Supported formats: CSV (Poles, Spans, Existing Lines), KML/KMZ, and Shapefile (.zip). Lengths are auto‑estimated from line geometry if a length field is missing.</li>
+              <li>After import, use Spans Editor to infer endpoints, prefer auto length, and Compute/Recompute All to populate Cached Midspans.</li>
+              <li>Exports: Use Cached Midspans CSV and Permit Pack (README, qa-summary.csv, cached-midspans.csv) for sharing/round‑trips.</li>
+              <li>Interop Export: From the export toolbar, click “Interop Export.” Choose a Preset (defaults to the Job’s Export Profile) and Format (CSV/GeoJSON/KML). CSV headers align with the selected preset.</li>
+              <li>FirstEnergy note: When the preset is FirstEnergy and you’ve computed Cached Midspans, the export ZIP includes a sample FE joint‑use CSV.</li>
             </ul>
           </Section>
 
@@ -109,7 +123,7 @@ export default function Help({ open, onClose }) {
             </ul>
           </Section>
 
-          <div className="mt-4 text-xs text-gray-500">Version info and environment are available in the footer of the deploy (Netlify). Node 22.x is recommended for local builds.</div>
+          <div className="mt-4 text-xs text-gray-500">Version info and environment are available in the footer of the deploy (Netlify). Node 22.x is recommended for local builds. For CSV, the app uses a robust parser that handles quoted values and embedded commas.</div>
         </div>
       </div>
     </div>
