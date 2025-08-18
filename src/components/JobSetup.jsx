@@ -198,12 +198,12 @@ export default function JobSetup() {
   };
 
   return (
-    <div className="rounded border p-3">
+  <div id="job" className="app-section anchor-offset">
       <div className="flex items-center justify-between">
-        <div className="font-medium">Job Setup</div>
+        <div className="section-title">Job Setup</div>
         <div className="text-xs text-gray-600">Jobs: {(store.jobs || []).length}</div>
       </div>
-  <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+  <div className="section-grid mt-2 sm:grid-cols-2 lg:grid-cols-4">
         <label className="grid gap-1 text-sm">
           <span className="font-medium">Select Job</span>
           <div className="flex gap-2 items-center">
@@ -254,8 +254,8 @@ export default function JobSetup() {
         </label>
 
         {/* Job-level Standards/Profile */}
-        <div className="sm:col-span-2 lg:col-span-4 border rounded p-2">
-          <div className="font-medium text-sm mb-2">Job Standards & Export Profile</div>
+        <div className="sm:col-span-2 lg:col-span-4 border rounded p-2 vertical-rhythm">
+          <div className="font-medium text-sm">Job Standards & Export Profile</div>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
             <label className="grid gap-1 text-sm">
               <span className="font-medium">Submission Profile</span>
@@ -309,14 +309,15 @@ export default function JobSetup() {
               <span className="text-xs text-gray-500">Used in Spans editor to highlight manual vs auto length differences.</span>
             </label>
           </div>
-          <div className="text-xs text-gray-600 mt-1">Defaults follow NESC unless the Owner maps to utilities like FirstEnergy (44" separation, 18 ft road). Overrides let you tune job-specific specs.</div>
+      <div className="text-xs text-gray-600">Defaults follow NESC unless the Owner maps to utilities like FirstEnergy (44" separation, 18 ft road). Overrides let you tune job-specific specs.</div>
         </div>
         <label className="grid gap-1 text-sm sm:col-span-2 lg:col-span-4">
           <span className="font-medium">Notes</span>
           <textarea className="border rounded px-2 py-1" rows={2} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Optional job notes" />
         </label>
       </div>
-      <div className="mt-2 flex gap-2">
+    <div className="section-divider" />
+    <div className="mt-2 flex flex-wrap gap-2">
         <button className="px-3 py-1 border rounded" onClick={onCreate}>Create</button>
         <button className="px-3 py-1 border rounded" onClick={onUpdate} disabled={!store.currentJobId}>Update</button>
         <button className="px-3 py-1 border rounded text-red-700" onClick={onDelete} disabled={!store.currentJobId}>Delete</button>

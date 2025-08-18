@@ -37,4 +37,42 @@
 	}
 	.safe-pt { padding-top: env(safe-area-inset-top); }
 	.safe-pb { padding-bottom: env(safe-area-inset-bottom); }
+
+	/* Offset in-page anchors to account for sticky header */
+	.anchor-offset { scroll-margin-top: 56px; }
+}
+
+/* Reusable section and workflow helpers to improve readability/navigation */
+@layer components {
+	.app-section {
+		@apply rounded border p-3 md:p-4 bg-white;
+	}
+
+	.section-title {
+		@apply text-base md:text-lg font-semibold mb-2;
+	}
+
+	.section-subtitle {
+		@apply text-xs text-gray-600 mb-2;
+	}
+
+	.section-grid {
+		@apply grid gap-3 md:gap-4;
+	}
+
+	.section-divider {
+		@apply border-t border-gray-200 my-3 md:my-4;
+	}
+
+	.vertical-rhythm > * + * {
+		margin-top: 0.75rem;
+	}
+
+	.workflow-nav {
+		@apply sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-gray-200;
+	}
+
+	.workflow-nav a {
+		@apply text-sm md:text-[13px] text-gray-700 hover:text-black px-2 py-2 inline-block;
+	}
 }
