@@ -30,7 +30,7 @@
     "react-dom": "^18.2.0",
     "shpjs": "^4.0.4",
   "zustand": "^4.4.1",
-  "tokml": "^0.4.0"
+  "@placemarkio/tokml": "^0.3.7"
   },
   "devDependencies": {
     "@types/react": "^18.2.21",
@@ -38,9 +38,7 @@
     "@vitejs/plugin-react": "^4.0.4",
     "autoprefixer": "^10.4.15",
     "buffer": "^6.0.3",
-    "@stackbit/cms-git": "^1.0.35",
-    "@stackbit/types": "^2.1.14",
-    "esbuild": "^0.19.2",
+    "esbuild": "^0.25.9",
     "eslint": "^8.47.0",
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
@@ -48,7 +46,7 @@
     "postcss": "^8.4.28",
     "tailwindcss": "^3.3.3",
   "vite": "^4.4.9",
-  "vite-plugin-pwa": "^0.20.0",
+  "vite-plugin-pwa": "^1.0.2",
     "vitest": "^1.6.0",
     "stylelint": "^16.7.0",
     "stylelint-config-standard": "^36.0.0",
@@ -57,7 +55,12 @@
     "lint-staged": "^15.2.10"
   },
   "overrides": {
-    "workbox-build": "6.6.0"
+    "workbox-build": "6.6.0",
+    "glob": "^10.4.5",
+    "rimraf": "^5.0.10",
+    "minimatch": "^9.0.0",
+    "minimist": "^1.2.8",
+    "sourcemap-codec": "npm:@jridgewell/sourcemap-codec@^1.5.0"
   },
   "lint-staged": {
     "src/**/*.{js,jsx}": [

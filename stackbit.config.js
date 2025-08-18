@@ -1,1 +1,1 @@
-// Deprecated: Stackbit config moved to TypeScript in stackbit.config.ts
+// Stackbit config removed as not needed for build/runtime functionality
