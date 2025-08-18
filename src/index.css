@@ -10,6 +10,15 @@
 		overflow-wrap: anywhere; 
 	}
 
+	/* Two-line clamp for verbose text */
+	.line-clamp-2 {
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		line-clamp: 2;
+		overflow: hidden;
+	}
+
 	@media print {
 		.no-print { display: none !important; }
 
