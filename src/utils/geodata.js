@@ -79,14 +79,12 @@ export function exportGeoJSON(fc, filename = 'geodata.geojson') {
 }
 
 export async function exportKML(fc, filename = 'geodata.kml') {
-  const { default: tokml } = await import('tokml');
-  const kml = tokml(fc, { documentName: 'Pole Plan Wizard', name: 'id', description: 'jobId' });
+  const kml = buildKMLFromGeoJSON(fc, 'Pole Plan Wizard');
   downloadText(filename, kml, 'application/vnd.google-earth.kml+xml');
 }
 
 export async function exportKMZ(fc, filename = 'geodata.kmz') {
-  const { default: tokml } = await import('tokml');
-  const kml = tokml(fc, { documentName: 'Pole Plan Wizard', name: 'id', description: 'jobId' });
+  const kml = buildKMLFromGeoJSON(fc, 'Pole Plan Wizard');
   const zip = new JSZip();
   zip.file('doc.kml', kml);
   const blob = await zip.generateAsync({ type: 'blob' });
@@ -95,3 +93,40 @@ export async function exportKMZ(fc, filename = 'geodata.kmz') {
 }
 
 // Shapefile export intentionally omitted to keep bundle light and avoid heavy deps.
+
+function escXml(s) {
+  return String(s ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;');
+}
+
+function buildKMLFromGeoJSON(fc, documentName = 'Export') {
+  const parts = [];
+  parts.push('<?xml version="1.0" encoding="UTF-8"?>');
+  parts.push('<kml xmlns="http://www.opengis.net/kml/2.2"><Document>');
+  parts.push(`<name>${escXml(documentName)}</name>`);
+  for (const f of fc.features || []) {
+    const g = f.geometry || {};
+    parts.push('<Placemark>');
+    const name = f.properties?.id ?? f.properties?.name ?? '';
+    if (name) parts.push(`<name>${escXml(name)}</name>`);
+    parts.push('<ExtendedData>');
+    const props = f.properties || {};
+    for (const [k, v] of Object.entries(props)) {
+      if (v == null) continue;
+      parts.push(`<Data name="${escXml(k)}"><value>${escXml(v)}</value></Data>`);
+    }
+    parts.push('</ExtendedData>');
+    if (g.type === 'Point' && Array.isArray(g.coordinates)) {
+      const [lon, lat] = g.coordinates;
+      parts.push(`<Point><coordinates>${lon},${lat},0</coordinates></Point>`);
+    } else if (g.type === 'LineString' && Array.isArray(g.coordinates)) {
+      const coordString = g.coordinates.map(([lon, lat]) => `${lon},${lat},0`).join(' ');
+      parts.push(`<LineString><coordinates>${coordString}</coordinates></LineString>`);
+    }
+    parts.push('</Placemark>');
+  }
+  parts.push('</Document></kml>');
+  return parts.join('');
+}
