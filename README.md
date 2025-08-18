@@ -7,54 +7,38 @@ A comprehensive web application for calculating NESC-compliant pole attachment h
 
 ## 🚀 Features
 
-- **NESC Compliance**: Automatic validation against National Electrical Safety Code standards
-- **Advanced Calculations**: Sag calculations, clearance validation, and cost estimation
-- **Geospatial Import**: Support for KML/KMZ/Shapefile data import with configurable mapping
-- **CSV Import (Poles/Spans/Existing Lines)**: Robust, header-based CSV parser with mapping presets (ArcGIS, ikeGPS, Katapult Pro) and per-job export profile
-- **Format Preferences**: Choose between verbose (15ft 6in) and tick mark (15' 6") formatting
-- **Comprehensive Help**: Built-in help system with detailed documentation and examples
-- **Professional Reports**: Export calculations to CSV with print-optimized layouts
-- **State Persistence**: User preferences and data saved locally between sessions
+- NESC Compliance: Automatic validation against National Electrical Safety Code standards
+- Advanced Calculations: Sag calculations, clearance validation, and cost estimation
+- Geospatial Import: Support for KML/KMZ/Shapefile data import with configurable mapping
+- CSV Import (Poles/Spans/Existing Lines): Header-based CSV parser with presets (ArcGIS, ikeGPS, Katapult Pro) and per-job export profile
+- Format Preferences: Choose between verbose (15ft 6in) and tick mark (15' 6") formatting
+- Comprehensive Help: Built-in help system with detailed documentation and examples
+- Professional Reports: Export calculations to CSV with print-optimized layouts
+- State Persistence: User preferences and data saved locally between sessions
 - Mobile-friendly layout tweaks (responsive inputs/buttons)
 - GPS autofill: Use device location to populate pole latitude/longitude
 - Permit Pack export: WV Highway (MM109) and Railroad (CSX)
-- Spans Editor
 
-## 🛠 Technology Stack
+## 🔄 Interop Exports
 
-- **Frontend**: React 18 + Vite 4.5.14
-- **Styling**: TailwindCSS with responsive design and print optimization
-- **State Management**: Zustand with localStorage persistence
-- **Testing**: Vitest with comprehensive test coverage (52 tests)
-- **Geospatial**: shpjs, @tmcw/togeojson for file import
-- **Icons**: Lucide React icon library
+The Interop Export modal supports:
 
-## 🏗 Build Configuration
+- CSV (ZIP): poles, spans, existing lines aligned to the selected preset
+- GeoJSON (ZIP) and KML (ZIP)
+- Shapefile (ZIP): optional dependency
 
-### For Netlify Deployment
+Shapefile export is lazy-loaded and won’t affect bundle size unless used. To enable it locally:
 
-The application is optimized for Netlify deployment with the following configuration:
+```bash
+npm i -D @mapbox/shp-write
+```
 
-#### Build Settings
+If @mapbox/shp-write is not installed, the app will fall back to GeoJSON and display a note in the UI.
 
-- **Build Command**: `npm run build`
-- **Publish Directory**: `dist`
-- **Node Version**: 22 (pinned in `netlify.toml` and CI). Add a local `.nvmrc` to align your environment.
+Notes:
 
-#### Key Files
-
-- `netlify.toml` - Netlify deployment configuration
-- `vite.config.js` - Optimized Vite build with code splitting
-- `package.json` - Dependencies and build scripts
-
-### Code Splitting
-
-The build automatically splits code into optimized chunks:
-
-- **geospatial**: Geospatial libraries (shpjs, togeojson, jszip) - ~300KB
-- **vendor**: React core libraries (react, react-dom, zustand) - ~144KB  
-- **icons**: Lucide React icons - minimal
-- **main**: Application code - ~84KB
+- Vite may log “Module 'assert' has been externalized for browser compatibility” for @mapbox/shp-write; this is expected and safe.
+- PLA presets (PoleForeman/O‑Calc/SpidaCalc) are minimal and currently map to the generic CSV schema.
 
 ## 📦 Installation & Development
 
@@ -76,12 +60,12 @@ npm run preview
 
 # Lint code
 npm run lint
+```
+
 If you see an engines warning locally, switch to Node 22:
 
 ```bash
 nvm use 22
-```bash
-
 ```
 
 ## 🌍 Deployment to Netlify
@@ -89,8 +73,8 @@ nvm use 22
 ### Automatic Deployment (Recommended)
 
 1. Connect your GitHub repository to Netlify
-2. Netlify will automatically detect the build settings from `netlify.toml`
-3. Deploy will run `npm run build` and publish the `dist` folder
+2. Netlify will automatically detect the build settings from netlify.toml
+3. Deploy will run npm run build and publish the dist folder
 
 ### Manual Deployment
 
@@ -104,7 +88,7 @@ npm run build
 
 ### Environment Variables
 
-Copy `.env.example` to `.env` for local development:
+Copy .env.example to .env for local development:
 
 ```bash
 cp .env.example .env
@@ -112,68 +96,64 @@ cp .env.example .env
 
 Available environment variables:
 
-- `VITE_APP_NAME` - Application name
-- `VITE_APP_VERSION` - Version number
-- `VITE_DEBUG_MODE` - Enable debug features
-- `VITE_ENABLE_*` - Feature flags
+- VITE_APP_NAME - Application name
+- VITE_APP_VERSION - Version number
+- VITE_DEBUG_MODE - Enable debug features
+- VITE_ENABLE_* - Feature flags
 
 ## 📋 Configuration
 
 ### Netlify Features Enabled
 
-- **SPA Routing**: All routes redirect to `index.html` for client-side routing
-- **Security Headers**: X-Frame-Options, CSP, and other security headers
-- **Static Asset Caching**: Optimized caching for `/assets/*` files
-- **File Upload Support**: CSP configured for geospatial file imports
+- SPA Routing: All routes redirect to index.html for client-side routing
+- Security Headers: X-Frame-Options, CSP, and other security headers
+- Static Asset Caching: Optimized caching for /assets/* files
+- File Upload Support: CSP configured for geospatial file imports
 
 ### Vite Configuration Highlights
 
-- **Buffer Polyfill**: Included for browser compatibility with geospatial libraries
-- **Code Splitting**: Automatic chunking for optimal loading performance
-- **Build Optimization**: Target ES2015 with CommonJS support
-- **CSV Parser**: Uses `papaparse` via ESM import
-- **Development Server**: Hot reload with network access enabled
+- Buffer Polyfill: Included for browser compatibility with geospatial libraries
+- Code Splitting: Automatic chunking for optimal loading performance
+- Build Optimization: Target ES2015 with CommonJS support
+- CSV Parser: Uses papaparse via ESM import
+- Development Server: Hot reload with network access enabled
 
-## 🧪 Testing
-
-Comprehensive test suite covering:
-
-- Calculation engine accuracy
-- Format parsing and conversion
-- Integration testing
-- Reliability testing with edge cases
-
+ 
 ```bash
-# Run all tests
-npm test
-
-# Run tests in watch mode
-npm run test:watch
+npm i -D @mapbox/shp-write
 ```
 
-## 📚 Usage
+If @mapbox/shp-write is not installed, the app will fall back to GeoJSON and display a note in the UI.
 
-### Quick Start
+Notes:
 
-1. Enter basic pole and span information
-2. Configure existing utilities and proposed attachments
-3. Review calculated clearances and NESC compliance
-4. Export results or generate reports
+- Vite may log “Module 'assert' has been externalized for browser compatibility” for @mapbox/shp-write; this is expected and safe.
+- PLA presets (PoleForeman/O‑Calc/SpidaCalc) are minimal and currently map to the generic CSV schema.
 
-### Advanced Features
-
-- **Batch Processing**: Import multiple spans from CSV/Shapefile
-- **Custom Clearances**: Override default NESC requirements
-- **Make-Ready Analysis**: Calculate costs for existing utility modifications
-- **Professional Reports**: Export with company branding and detailed calculations
-
-### File Import Support
+ 
 
 - **KML/KMZ**: Google Earth files with configurable attribute mapping
 - **Shapefiles**: Industry-standard GIS format (.shp, .dbf, .shx)
 - **CSV**: Poles, Spans, and Existing Lines CSV. Mapping presets for ArcGIS/ikeGPS/Katapult Pro; save custom profiles per job.
 
-## 🔧 Troubleshooting
+## �️ Interop Exports
+
+The Interop Export modal supports:
+
+- CSV (ZIP): poles, spans, existing lines aligned to the selected preset
+- GeoJSON (ZIP) and KML (ZIP)
+- Shapefile (ZIP): optional dependency
+
+Shapefile export is lazy-loaded and won’t affect bundle size unless used. To enable it locally:
+
+```bash
+npm i -D @mapbox/shp-write
+```
+
+If the package is not installed, the app will fall back to GeoJSON and display a note in the UI.
+
+
+## �🔧 Troubleshooting
 
 ### Common Build Issues
 

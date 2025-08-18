@@ -7,7 +7,6 @@ export const EXPORT_PRESETS = [
   { label: 'ikeGPS (example)', value: 'ikegps' },
   { label: 'Katapult Pro (example)', value: 'katapultPro' },
   { label: 'FirstEnergy Joint-Use (example)', value: 'firstEnergy' },
-  // PLA-ready placeholders (map to generic schema for now)
   { label: 'PoleForeman (beta)', value: 'poleForeman' },
   { label: 'O-Calc (beta)', value: 'oCalc' },
   { label: 'SpidaCalc (beta)', value: 'spidaCalc' },
@@ -27,6 +26,10 @@ export function buildPolesCSV(poles = [], preset = 'generic') {
     ikegps: ['POLE_ID', 'POLE_HEIGHT_FT', 'POLE_CLASS', 'PRIMARY_HT_FT', 'TRANSFORMER', 'Longitude', 'Latitude'],
     katapultPro: ['ID', 'HEIGHT_FT', 'CLASS', 'PRIMARY_HT', 'XFMR', 'Longitude', 'Latitude'],
     firstEnergy: ['POLE_ID', 'HGT_FT', 'CLASS', 'PWR_HT', 'XFMR', 'Longitude', 'Latitude'],
+    // PLA-focused schemas (beta): keep minimal, non-proprietary headers
+    poleForeman: ['POLE_ID', 'POLE_HT_FT', 'CLASS', 'PRIMARY_HT_FT', 'Longitude', 'Latitude'],
+    oCalc: ['POLE_ID', 'HEIGHT_FT', 'CLASS', 'PRIMARY_HT_FT', 'Longitude', 'Latitude'],
+    spidaCalc: ['POLE_ID', 'HEIGHT_FT', 'CLASS', 'PRIMARY_HT_FT', 'Longitude', 'Latitude'],
   };
   const headers = base[preset] || base.generic;
   const rows = [headers.join(',')];
@@ -39,7 +42,7 @@ export function buildPolesCSV(poles = [], preset = 'generic') {
     const lon = p.longitude ?? '';
     const lat = p.latitude ?? '';
     const map = {
-      POLE_ID: id, HGT_FT: h, HEIGHT_FT: h, POLE_HEIGHT_FT: h,
+      POLE_ID: id, HGT_FT: h, HEIGHT_FT: h, POLE_HEIGHT_FT: h, POLE_HT_FT: h,
       CLASS: cls, POLE_CLASS: cls,
       PWR_HT: pwr, PRIMARY_HT: pwr, PRIMARY_HT_FT: pwr,
       XFMR: xfmr, TRANSFORMER: xfmr,
@@ -80,6 +83,9 @@ export function buildExistingLinesCSV(lines = [], preset = 'generic') {
     ikegps: ['LINE_TYPE', 'LINE_HT', 'COMPANY', 'MAKE_READY', 'NEW_HT'],
     katapultPro: ['TYPE', 'HGT_FT', 'OWNER', 'MAKE_READY', 'NEW_HT'],
     firstEnergy: ['TYPE', 'HGT_FT', 'COMPANY', 'MR', 'MR_HGT'],
+  poleForeman: ['TYPE', 'HGT_FT', 'OWNER', 'MAKE_READY', 'NEW_HT'],
+  oCalc: ['TYPE', 'HGT_FT', 'OWNER', 'MAKE_READY', 'NEW_HT'],
+  spidaCalc: ['TYPE', 'HGT_FT', 'OWNER', 'MAKE_READY', 'NEW_HT'],
   };
   const headers = base[preset] || base.generic;
   const rows = [headers.join(',')];
