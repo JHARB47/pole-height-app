@@ -1,5 +1,5 @@
 // Geodata builders and exporters for poles and spans
-// Exports: buildGeoJSON, exportGeoJSON, exportKML, exportKMZ
+// Exports: buildGeoJSON, exportGeoJSON, exportKML, exportKMZ, exportShapefile (optional)
 
 import JSZip from 'jszip';
 
@@ -92,7 +92,38 @@ export async function exportKMZ(fc, filename = 'geodata.kmz') {
   const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
 }
 
-// Shapefile export intentionally omitted to keep bundle light and avoid heavy deps.
+// Optional Shapefile export (ZIP) via dynamic import of 'shp-write'.
+// If the library is not installed, we show a helpful message and fall back to GeoJSON.
+export async function exportShapefile(fc, filename = 'geodata-shapefile.zip') {
+  try {
+    // Lazy-load to avoid increasing bundle size unless needed
+    let shpwrite;
+    try {
+      shpwrite = await import('@mapbox/shp-write');
+    } catch {
+      shpwrite = await import('shp-write');
+    }
+    // 'shp-write' expects a FeatureCollection and returns an object with ArrayBuffers
+    const options = { folder: 'shapefile', types: { point: 'poles', line: 'spans' } };
+    const zipBlob = await new Promise((resolve, reject) => {
+      try {
+  const fn = (shpwrite && (shpwrite.default || shpwrite.write)) || null;
+  if (!fn) throw new Error('shp-write export function not found');
+  fn(fc, options, (err, blob) => {
+          if (err) reject(err); else resolve(blob);
+        });
+      } catch (e) { reject(e); }
+    });
+    const url = URL.createObjectURL(zipBlob);
+    const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
+  } catch (e) {
+    // Library not present or runtime error — provide guidance and offer a GeoJSON fallback
+    const msg = 'Shapefile export requires optional dependency \'shp-write\'. Install it to enable (npm i shp-write). Exporting GeoJSON instead.';
+  try { console.warn(msg, e); } catch { /* ignore console error */ }
+  try { exportGeoJSON(fc, filename.replace(/\.zip$/i, '.geojson')); } catch { /* ignore */ }
+  try { alert(msg); } catch { /* ignore in non-DOM env */ }
+  }
+}
 
 function escXml(s) {
   return String(s ?? '')

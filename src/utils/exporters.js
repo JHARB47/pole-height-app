@@ -7,6 +7,10 @@ export const EXPORT_PRESETS = [
   { label: 'ikeGPS (example)', value: 'ikegps' },
   { label: 'Katapult Pro (example)', value: 'katapultPro' },
   { label: 'FirstEnergy Joint-Use (example)', value: 'firstEnergy' },
+  // PLA-ready placeholders (map to generic schema for now)
+  { label: 'PoleForeman (beta)', value: 'poleForeman' },
+  { label: 'O-Calc (beta)', value: 'oCalc' },
+  { label: 'SpidaCalc (beta)', value: 'spidaCalc' },
 ];
 
 function csvEscape(v) {

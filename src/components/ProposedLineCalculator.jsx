@@ -1744,6 +1744,15 @@ function InteropExportButton() {
     } else if (format === 'kml') {
       const kml = buildKML({ poles, spans });
       zip.file('export/data.kml', kml);
+    } else if (format === 'shapefile') {
+      // Build full FeatureCollection using geodata builder (joins spans to pole coords)
+      const { buildGeoJSON: buildGeo, exportShapefile } = await import('../utils/geodata');
+      const job = (store.jobs||[]).find(j=>j.id===store.currentJobId) || {};
+      const fc = buildGeo({ poles, spans, job });
+      if (!fc.features.length) { alert('No geodata to export'); return; }
+      await exportShapefile(fc, `interop-export-${preset}.zip`);
+      setOpen(false);
+      return;
     }
     const blob = await zip.generateAsync({ type: 'blob' });
     const url = URL.createObjectURL(blob);
@@ -1776,6 +1785,7 @@ function InteropExportButton() {
                   <option value="csv">CSV (ZIP)</option>
                   <option value="geojson">GeoJSON (ZIP)</option>
                   <option value="kml">KML (ZIP)</option>
+                  <option value="shapefile">Shapefile (ZIP)</option>
                 </select>
               </label>
               <div className="grid grid-cols-3 gap-2 mt-1">
