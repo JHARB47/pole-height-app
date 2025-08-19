@@ -1,1 +1,12 @@
-npm test
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Skip in environments without dependencies installed (e.g., bare Git ops)
+if [ ! -d node_modules ]; then
+	echo "[husky] node_modules not found; skipping pre-commit checks"
+	exit 0
+fi
+
+# Fast checks before commit
+npm run -s lint || exit 1
+npm test -s || exit 1

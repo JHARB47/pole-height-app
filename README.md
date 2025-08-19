@@ -118,7 +118,6 @@ Available environment variables:
 - CSV Parser: Uses papaparse via ESM import
 - Development Server: Hot reload with network access enabled
 
- 
 ```bash
 npm i -D @mapbox/shp-write
 ```
@@ -129,8 +128,6 @@ Notes:
 
 - Vite may log “Module 'assert' has been externalized for browser compatibility” for @mapbox/shp-write; this is expected and safe.
 - PLA presets (PoleForeman/O‑Calc/SpidaCalc) are minimal and currently map to the generic CSV schema.
-
- 
 
 - **KML/KMZ**: Google Earth files with configurable attribute mapping
 - **Shapefiles**: Industry-standard GIS format (.shp, .dbf, .shx)
@@ -151,7 +148,6 @@ npm i -D @mapbox/shp-write
 ```
 
 If the package is not installed, the app will fall back to GeoJSON and display a note in the UI.
-
 
 ## �🔧 Troubleshooting
 
