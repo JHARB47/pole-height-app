@@ -1,5 +1,4 @@
 #!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
 
 # Skip in environments without dependencies installed (e.g., bare Git ops)
 if [ ! -d node_modules ]; then

@@ -1,5 +1,4 @@
 #!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
 
 # Skip in CI or when dependencies missing
 if [ "$CI" = "true" ] || [ ! -d node_modules ]; then
