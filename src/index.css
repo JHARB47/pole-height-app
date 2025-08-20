@@ -2,6 +2,51 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile/resilience base improvements */
+@layer base {
+		html {
+			min-height: 100dvh;
+		}
+
+	/* Inherit fonts into form controls for consistent sizing */
+	button,
+	input,
+	select,
+	textarea {
+		font: inherit;
+	}
+
+	/* Improve tap responsiveness */
+	button,
+	[role="button"] {
+		touch-action: manipulation;
+	}
+
+	/* Contain media overflow */
+	img,
+	svg,
+	canvas,
+	video,
+	audio,
+	iframe,
+	embed,
+	object {
+		display: block;
+		max-width: 100%;
+		height: auto;
+	}
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+	* {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}
+
 /* Print helpers */
 @layer utilities {
 	/* Prevent long tokens from overlapping UI; allow natural breaks */
