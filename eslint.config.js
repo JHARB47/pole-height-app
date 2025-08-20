@@ -28,4 +28,25 @@ export default [
       'react-refresh/only-export-components': 'warn',
     },
   },
+  // Node contexts: scripts and build/config files
+  {
+    files: [
+      'scripts/**/*.{js,mjs,cjs}',
+      '*.config.{js,cjs,mjs,ts}',
+      'vite.config.js',
+      'postcss.config.js',
+      'tailwind.config.js',
+      'eslint.config.js',
+      'stylelint.config.cjs'
+    ],
+    languageOptions: {
+      globals: globals.node,
+      sourceType: 'module'
+    },
+    rules: {
+      'react-hooks/rules-of-hooks': 'off',
+      'react-hooks/exhaustive-deps': 'off',
+      'react-refresh/only-export-components': 'off'
+    }
+  }
 ];
