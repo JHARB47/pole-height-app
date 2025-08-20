@@ -5,6 +5,20 @@
 
 A comprehensive web application for calculating NESC-compliant pole attachment heights for utility engineering workflows.
 
+## Typical user workflow (field ➜ analysis ➜ deliverables)
+
+1. Create a Job and set the submission profile (e.g., FirstEnergy / Mon Power)
+2. Add poles and spans manually or import geospatial/CSV (KML/KMZ/Shapefile/CSV)
+3. Enter existing power height and proposed attach details; set environment (road/railroad/etc.)
+4. Review computed results: proposed attach, midspan, clearances, sag, guying, warnings
+5. Resolve any warnings (e.g., clearance deficits or owner rules), adjust inputs if needed
+6. Export deliverables:
+
+- Interop: CSV/GeoJSON/KML for GIS/engineering tools
+- Permit Pack: WV Highway (MM109) / Railroad (CSX) with summary, fields, and draft PDFs
+
+1. Save state (auto-persisted) or export project data; deploy or share as needed
+
 ## 🚀 Features
 
 - NESC Compliance: Automatic validation against National Electrical Safety Code standards
@@ -25,7 +39,7 @@ The Interop Export modal supports:
 
 - CSV (ZIP): poles, spans, existing lines aligned to the selected preset
 - GeoJSON (ZIP) and KML (ZIP)
-- Shapefile (ZIP): optional dependency
+- Shapefile (ZIP): optional dependency; install only if you need export functionality
 
 Shapefile export is lazy-loaded and won’t affect bundle size unless used. To enable it locally:
 
@@ -39,6 +53,14 @@ Notes:
 
 - Vite may log “Module 'assert' has been externalized for browser compatibility” for @mapbox/shp-write; this is expected and safe.
 - PLA presets (PoleForeman/O‑Calc/SpidaCalc) are minimal and currently map to the generic CSV schema.
+
+Shapefile import is also optional. To enable importing .zip/.shp:
+
+```bash
+npm i -D shpjs
+```
+
+If shpjs is not installed, the import panel will show an availability hint and a copy-to-clipboard install command.
 
 ## 📦 Installation & Development
 
@@ -60,6 +82,11 @@ npm run preview
 
 # Lint code
 npm run lint
+# Lint CSS
+npm run lint:css
+
+# Full check (lint + tests + build + audit)
+npm run check
 ```
 
 If you see an engines warning locally, switch to Node 22:
@@ -68,7 +95,22 @@ If you see an engines warning locally, switch to Node 22:
 nvm use 22
 ```
 
+If npm commands appear to hang in VS Code, open a new terminal (so it starts as a login shell) and run:
+
+```bash
+# Confirm tools are on PATH
+node -v && npm -v
+
+# Install with fewer spinners/audit to reduce stalls
+npm ci --no-audit --progress=false
+
+# Run stepwise to spot where it stalls
+npm run -s build:stepwise
+```
+
 ## 🌍 Deployment to Netlify
+
+See `DEPLOYMENT.md` for a detailed, step-by-step checklist.
 
 ### Automatic Deployment (Recommended)
 
@@ -112,44 +154,16 @@ Available environment variables:
 
 ### Vite Configuration Highlights
 
-- Buffer Polyfill: Included for browser compatibility with geospatial libraries
-- Code Splitting: Automatic chunking for optimal loading performance
+- PWA: Service worker and manifest via vite-plugin-pwa (autoUpdate mode)
+- Buffer Polyfill: Provided via alias for browser compatibility with geospatial libs
+- Code Splitting: Manual chunks for better caching and perf
+  - geospatial: ['shpjs', '@tmcw/togeojson', 'jszip']
+  - vendor: ['react', 'react-dom', 'zustand']
 - Build Optimization: Target ES2015 with CommonJS support
 - CSV Parser: Uses papaparse via ESM import
 - Development Server: Hot reload with network access enabled
 
-```bash
-npm i -D @mapbox/shp-write
-```
-
-If @mapbox/shp-write is not installed, the app will fall back to GeoJSON and display a note in the UI.
-
-Notes:
-
-- Vite may log “Module 'assert' has been externalized for browser compatibility” for @mapbox/shp-write; this is expected and safe.
-- PLA presets (PoleForeman/O‑Calc/SpidaCalc) are minimal and currently map to the generic CSV schema.
-
-- **KML/KMZ**: Google Earth files with configurable attribute mapping
-- **Shapefiles**: Industry-standard GIS format (.shp, .dbf, .shx)
-- **CSV**: Poles, Spans, and Existing Lines CSV. Mapping presets for ArcGIS/ikeGPS/Katapult Pro; save custom profiles per job.
-
-## �️ Interop Exports
-
-The Interop Export modal supports:
-
-- CSV (ZIP): poles, spans, existing lines aligned to the selected preset
-- GeoJSON (ZIP) and KML (ZIP)
-- Shapefile (ZIP): optional dependency
-
-Shapefile export is lazy-loaded and won’t affect bundle size unless used. To enable it locally:
-
-```bash
-npm i -D @mapbox/shp-write
-```
-
-If the package is not installed, the app will fall back to GeoJSON and display a note in the UI.
-
-## �🔧 Troubleshooting
+## 🔧 Troubleshooting
 
 ### Common Build Issues
 

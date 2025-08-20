@@ -1,0 +1,71 @@
+name: CI (Maven)
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '**/pom.xml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '**/pom.xml'
+
+jobs:
+  build:
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-maven
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect Maven project(s)
+        id: probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git ls-files -- '**/pom.xml' | grep -q .; then
+            echo "has_pom=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_pom=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Java 17 (Temurin)
+        if: steps.probe.outputs.has_pom == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'maven'
+
+      - name: Maven Version
+        if: steps.probe.outputs.has_pom == 'true'
+        run: |
+          java -version
+          if [ -f ./mvnw ]; then ./mvnw -v; else mvn -v; fi
+
+      - name: Test (all pom.xml)
+        if: steps.probe.outputs.has_pom == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t POMS < <(git ls-files -- '**/pom.xml')
+          for POM in "${POMS[@]}"; do
+            echo "::group::Testing $(dirname "$POM")"
+            if [ -f ./mvnw ]; then ./mvnw -B -ntp -f "$POM" test; else mvn -B -ntp -f "$POM" test; fi
+            echo "::endgroup::"
+          done
+
+      - name: Package (all pom.xml)
+        if: steps.probe.outputs.has_pom == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t POMS < <(git ls-files -- '**/pom.xml')
+          for POM in "${POMS[@]}"; do
+            echo "::group::Packaging $(dirname "$POM")"
+            if [ -f ./mvnw ]; then ./mvnw -B -ntp -f "$POM" -DskipTests package; else mvn -B -ntp -f "$POM" -DskipTests package; fi
+            echo "::endgroup::"
+          done

@@ -1,6 +1,8 @@
 {
     "recommendations": [
-        "openai.chatgpt",
+    "openai.chatgpt",
+    "dbaeumer.vscode-eslint",
+    "EditorConfig.EditorConfig",
         "bradlc.vscode-tailwindcss",
         "stylelint.vscode-stylelint"
     ]

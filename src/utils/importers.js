@@ -95,9 +95,42 @@ export async function parseKMZ(file) {
 export async function parseShapefile(file) {
   // shpjs can handle a zip, ArrayBuffer, or URL; use file arrayBuffer
   const ab = await file.arrayBuffer();
-  const shp = (await import('shpjs')).default;
-  const geojson = await shp(ab);
-  return normalizeGeoJSON(geojson);
+  try {
+  const mod = 'shp' + 'js';
+  const shpmod = await dynamicImportOptional(mod);
+    const shp = shpmod && (shpmod.default || shpmod);
+    if (!shp) throw new Error('missing-shpjs');
+    const geojson = await shp(ab);
+    return normalizeGeoJSON(geojson);
+  } catch (e) {
+    const msg = 'Shapefile import requires optional dependency "shpjs". Install it to enable (npm i -D shpjs).';
+    console.warn(msg, e);
+    throw new Error(msg);
+  }
+}
+
+// Cached probe for optional shapefile import support (shpjs)
+let _hasShpImport;
+export async function hasShapefileImportSupport() {
+  if (_hasShpImport != null) return _hasShpImport;
+  try {
+    const mod = 'shp' + 'js';
+    const m = await dynamicImportOptional(mod);
+    _hasShpImport = !!m;
+    return _hasShpImport;
+  } catch {
+    _hasShpImport = false;
+    return false;
+  }
+}
+
+// Testable helper: optional dynamic import that returns null when module is missing
+export async function dynamicImportOptional(m) {
+  try {
+    return await (new Function('m', 'return import(/* @vite-ignore */ m)'))(m);
+  } catch {
+    return null;
+  }
 }
 
 function normalizeGeoJSON(geo) {
@@ -126,7 +159,7 @@ export function splitFeaturesByGeometry(fc) {
 }
 
 export function getAttributeKeys(feature) {
-  return feature && feature.properties ? Object.keys(feature.properties) : [];
+  return Object.keys(feature?.properties ?? {});
 }
 
 // Map GeoJSON features to app data using a mapping config
@@ -138,6 +171,13 @@ export function getAttributeKeys(feature) {
 // }
 export function mapGeoJSONToAppData(fc, config) {
   const { poles, lines } = splitFeaturesByGeometry(fc);
+  /**
+   * @type {{
+   *  poleTable: Array<{ id: any, latitude: number|null, longitude: number|null, height?: number, class?: any, powerHeight?: number, hasTransformer: boolean }>,
+   *  spanTable: Array<{ id: any, fromId: any, toId: any, length?: number, proposedAttach?: number }>,
+   *  existingLines: Array<{ type: string, height: string, companyName: string, makeReady: boolean, makeReadyHeight: string }>
+   * }}
+   */
   const result = { poleTable: [], spanTable: [], existingLines: [] };
 
   // Poles (points)
@@ -187,7 +227,7 @@ export function mapGeoJSONToAppData(fc, config) {
   return result;
 }
 
-function getProp(obj, key) { if (!key) return undefined; return obj?.[key]; }
+function getProp(obj, key) { return key ? obj?.[key] : undefined; }
 function getNumber(obj, key) {
   if (!key) return undefined;
   const v = obj?.[key];
@@ -201,65 +241,99 @@ function numberOrEmpty(obj, key) {
 function truthy(obj, key) {
   if (!key) return false;
   const v = obj?.[key];
-  if (typeof v === 'boolean') return v;
-  if (typeof v === 'number') return v !== 0;
-  if (typeof v === 'string') return /^(y|yes|true|1)$/i.test(v.trim());
-  return false;
+  return !!v && v !== 'false' && v !== '0' && v !== 'no' && v !== 'n';
 }
+
+// Calculate Haversine distance between two points
+function calculateHaversineDistance(lon1, lat1, lon2, lat2) {
+  const toRad = (d) => (d * Math.PI) / 180;
+  const Rm = 6371000; // Earth radius meters
+  
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Rm * c; // meters
+}
+
+// Check if coordinates are valid
+function areValidCoordinates(lon1, lat1, lon2, lat2) {
+  if (!Number.isFinite(lon1) || !Number.isFinite(lat1) || !Number.isFinite(lon2) || !Number.isFinite(lat2)) {
+    return false;
+  }
+  if (lat1 < -90 || lat1 > 90 || lat2 < -90 || lat2 > 90) {
+    return false;
+  }
+  if (lon1 < -180 || lon1 > 180 || lon2 < -180 || lon2 > 180) {
+    return false;
+  }
+  return true;
+}
+
+// Calculate length from a single coordinate array
+function measureLength(coordinates) {
+  let meters = 0;
+  for (let i = 1; i < coordinates.length; i++) {
+    const [lon1, lat1] = coordinates[i - 1] || [];
+    const [lon2, lat2] = coordinates[i] || [];
+    
+    if (areValidCoordinates(lon1, lat1, lon2, lat2)) {
+      meters += calculateHaversineDistance(lon1, lat1, lon2, lat2);
+    }
+  }
+  return meters;
+}
+
 function estimateLengthFromGeometry(f) {
-  // Haversine sum over segments; coordinates are [lon, lat]
   try {
     const geom = f.geometry;
     if (!geom) return undefined;
-    const segments = [];
+    
+    let meters = 0;
     if (geom.type === 'LineString') {
-      segments.push(geom.coordinates);
+      meters = measureLength(geom.coordinates);
     } else if (geom.type === 'MultiLineString') {
-      for (const arr of geom.coordinates || []) segments.push(arr);
+      for (const lineCoords of geom.coordinates || []) {
+        meters += measureLength(lineCoords);
+      }
     } else {
       return undefined;
     }
-    const toRad = (d) => (d * Math.PI) / 180;
-    const Rm = 6371000; // Earth radius meters
-    const havSeg = (lon1, lat1, lon2, lat2) => {
-      const dLat = toRad(lat2 - lat1);
-      const dLon = toRad(lon2 - lon1);
-      const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return Rm * c; // meters
-    };
-    let meters = 0;
-    for (const coords of segments) {
-      for (let i = 1; i < coords.length; i++) {
-        const [lon1, lat1] = coords[i - 1];
-        const [lon2, lat2] = coords[i];
-        meters += havSeg(lon1, lat1, lon2, lat2);
-      }
-    }
+    
     return meters * 3.28084; // ft
-  } catch {
+  } catch (error) {
+    console.warn("Error estimating length from geometry:", error);
     return undefined;
   }
 }
 
 // Simple CSV parser for existing lines: expects headers including fields matching mapping.line
+// Shared CSV helpers
+// Shared CSV helpers
+function getFromRow(row, key, fallback) {
+  const k = key || fallback;
+  const v = k ? row[k] : '';
+  return typeof v === 'string' ? v.trim() : v;
+}
+function numFromRow(row, key, fallback) {
+  const raw = getFromRow(row, key, fallback);
+  if (raw === '' || raw == null) return undefined;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : undefined;
+}
+
 export function parseExistingLinesCSV(csvText, lineMapping) {
   const parsed = Papa.parse(csvText || '', { header: true, skipEmptyLines: 'greedy', dynamicTyping: false });
   const rows = Array.isArray(parsed.data) ? parsed.data : [];
   return rows.map((row) => {
-    const get = (key, fallback) => {
-      const k = key || fallback;
-      const v = k ? row[k] : '';
-      return typeof v === 'string' ? v.trim() : v;
-    };
-    const heightRaw = get(lineMapping?.height, 'height');
+    const heightRaw = getFromRow(row, lineMapping?.height, 'height');
     const heightNum = Number(heightRaw);
     return {
-      type: get(lineMapping?.type, 'type') || 'communication',
+      type: getFromRow(row, lineMapping?.type, 'type') || 'communication',
       height: Number.isFinite(heightNum) ? String(heightNum) : String(heightRaw || ''),
-      companyName: get(lineMapping?.company, 'company') || '',
-      makeReady: /^(y|yes|true|1)$/i.test(String(get(lineMapping?.makeReady, 'makeReady') || '')),
-      makeReadyHeight: String(get(lineMapping?.makeReadyHeight, 'makeReadyHeight') || ''),
+      companyName: getFromRow(row, lineMapping?.company, 'company') || '',
+      makeReady: /^(y|yes|true|1)$/i.test(String(getFromRow(row, lineMapping?.makeReady, 'makeReady') || '')),
+      makeReadyHeight: String(getFromRow(row, lineMapping?.makeReadyHeight, 'makeReadyHeight') || ''),
     };
   });
 }
@@ -269,25 +343,14 @@ export function parsePolesCSV(csvText, poleMapping) {
   const parsed = Papa.parse(csvText || '', { header: true, skipEmptyLines: 'greedy', dynamicTyping: false });
   const rows = Array.isArray(parsed.data) ? parsed.data : [];
   return rows.map((row) => {
-    const get = (key, fallback) => {
-      const k = key || fallback;
-      const v = k ? row[k] : '';
-      return typeof v === 'string' ? v.trim() : v;
-    };
-    const num = (key, fallback) => {
-      const raw = get(key, fallback);
-      if (raw === '' || raw == null) return undefined;
-      const n = Number(raw);
-      return Number.isFinite(n) ? n : undefined;
-    };
     return {
-      id: String(get(poleMapping?.id, 'id') || ''),
-      latitude: num(poleMapping?.latitude, 'latitude') ?? null,
-      longitude: num(poleMapping?.longitude, 'longitude') ?? null,
-      height: num(poleMapping?.height, 'height'),
-      class: get(poleMapping?.class, 'class') || undefined,
-      powerHeight: num(poleMapping?.powerHeight, 'power_ht'),
-      hasTransformer: /^(y|yes|true|1)$/i.test(String(get(poleMapping?.hasTransformer, 'xfmr') || '')),
+  id: String(getFromRow(row, poleMapping?.id, 'id') || ''),
+  latitude: numFromRow(row, poleMapping?.latitude, 'latitude') ?? null,
+  longitude: numFromRow(row, poleMapping?.longitude, 'longitude') ?? null,
+  height: numFromRow(row, poleMapping?.height, 'height'),
+  class: getFromRow(row, poleMapping?.class, 'class') || undefined,
+  powerHeight: numFromRow(row, poleMapping?.powerHeight, 'power_ht'),
+  hasTransformer: /^(y|yes|true|1)$/i.test(String(getFromRow(row, poleMapping?.hasTransformer, 'xfmr') || '')),
     };
   });
 }
@@ -297,23 +360,12 @@ export function parseSpansCSV(csvText, spanMapping) {
   const parsed = Papa.parse(csvText || '', { header: true, skipEmptyLines: 'greedy', dynamicTyping: false });
   const rows = Array.isArray(parsed.data) ? parsed.data : [];
   return rows.map((row) => {
-    const get = (key, fallback) => {
-      const k = key || fallback;
-      const v = k ? row[k] : '';
-      return typeof v === 'string' ? v.trim() : v;
-    };
-    const num = (key, fallback) => {
-      const raw = get(key, fallback);
-      if (raw === '' || raw == null) return undefined;
-      const n = Number(raw);
-      return Number.isFinite(n) ? n : undefined;
-    };
     return {
-      id: String(get(spanMapping?.id, 'id') || ''),
-      fromId: String(get(spanMapping?.fromId, 'from_id') || ''),
-      toId: String(get(spanMapping?.toId, 'to_id') || ''),
-      length: num(spanMapping?.length, 'length'),
-      proposedAttach: num(spanMapping?.proposedAttach, 'attach'),
+  id: String(getFromRow(row, spanMapping?.id, 'id') || ''),
+  fromId: String(getFromRow(row, spanMapping?.fromId, 'from_id') || ''),
+  toId: String(getFromRow(row, spanMapping?.toId, 'to_id') || ''),
+  length: numFromRow(row, spanMapping?.length, 'length'),
+  proposedAttach: numFromRow(row, spanMapping?.proposedAttach, 'attach'),
     };
   });
 }

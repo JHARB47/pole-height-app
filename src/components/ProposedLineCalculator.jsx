@@ -1,10 +1,12 @@
+// @ts-nocheck
+// Note: This file is plain JSX with dynamic imports and DOM APIs. Suppress TS diagnostics for better DX.
 import React, { useEffect } from 'react';
 import useAppStore from '../utils/store';
 import { DEFAULTS, parseFeet, formatFeetInches, formatFeetInchesTickMarks, formatFeetInchesVerbose, resultsToCSV, computeAnalysis } from '../utils/calculations';
 import ExistingLinesEditor from './ExistingLinesEditor';
 import { WV_COMPANIES } from '../utils/constants';
 import SpanDiagram from './SpanDiagram';
-import { importGeospatialFile, mapGeoJSONToAppData, MAPPING_PRESETS, parseExistingLinesCSV, getAttributeKeys, splitFeaturesByGeometry, parsePolesCSV, parseSpansCSV } from '../utils/importers';
+import { importGeospatialFile, mapGeoJSONToAppData, MAPPING_PRESETS, parseExistingLinesCSV, getAttributeKeys, splitFeaturesByGeometry, parsePolesCSV, parseSpansCSV, hasShapefileImportSupport } from '../utils/importers';
 import { buildManifest, csvFrom } from '../utils/manifests';
 import { makePermitSummary } from '../utils/permitSummary';
 import { EXPORT_PRESETS, buildPolesCSV, buildSpansCSV, buildExistingLinesCSV, buildGeoJSON, buildKML, buildFirstEnergyJointUseCSV } from '../utils/exporters';
@@ -1718,19 +1720,46 @@ function InteropExportButton() {
   const [includePoles, setIncludePoles] = React.useState(true);
   const [includeSpans, setIncludeSpans] = React.useState(true);
   const [includeLines, setIncludeLines] = React.useState(true);
+  const [hasShp, setHasShp] = React.useState(false);
+  const [busy, setBusy] = React.useState(false);
 
   React.useEffect(() => {
     const job = (store.jobs||[]).find(j=>j.id===store.currentJobId);
     if (job?.exportProfile) setPreset(job.exportProfile);
   }, [store.jobs, store.currentJobId]);
 
+  // Probe optional Shapefile support when the modal opens
+  React.useEffect(() => {
+    let cancelled = false;
+    if (open) {
+      (async () => {
+        try {
+          const mod = await import('../utils/geodata');
+          const supported = typeof mod.hasShapefileSupport === 'function' ? await mod.hasShapefileSupport() : false;
+          if (!cancelled) setHasShp(!!supported);
+          // If user had shapefile selected but it's not supported, revert to geojson
+          if (!cancelled && format === 'shapefile' && !supported) setFormat('geojson');
+        } catch {
+          if (!cancelled) {
+            setHasShp(false);
+            if (format === 'shapefile') setFormat('geojson');
+          }
+        }
+      })();
+    }
+    return () => { cancelled = true; };
+  }, [open, format]);
+
   const onExport = async () => {
-    const JSZip = (await import('jszip')).default;
-    const zip = new JSZip();
+    if (busy) return;
+    setBusy(true);
+    let zip;
     const poles = includePoles ? (store.importedPoles || []) : [];
     const spans = includeSpans ? (store.importedSpans || []) : [];
     const lines = includeLines ? (store.existingLines || []) : [];
-    if (format === 'csv') {
+    try {
+      if (format === 'csv') {
+        const JSZip = (await import('jszip')).default; zip = new JSZip();
       if (poles.length) zip.file('export/poles.csv', buildPolesCSV(poles, preset));
       if (spans.length) zip.file('export/spans.csv', buildSpansCSV(spans, preset));
       if (lines.length) zip.file('export/existing-lines.csv', buildExistingLinesCSV(lines, preset));
@@ -1738,13 +1767,20 @@ function InteropExportButton() {
         const job = (store.jobs||[]).find(j=>j.id===store.currentJobId);
         zip.file('export/fe-joint-use.csv', buildFirstEnergyJointUseCSV({ cachedMidspans: store.cachedMidspans, job }));
       }
-    } else if (format === 'geojson') {
+      } else if (format === 'geojson') {
+        const JSZip = (await import('jszip')).default; zip = new JSZip();
       const fc = buildGeoJSON({ poles, spans });
       zip.file('export/data.geojson', JSON.stringify(fc));
-    } else if (format === 'kml') {
+      } else if (format === 'kml') {
+        const JSZip = (await import('jszip')).default; zip = new JSZip();
       const kml = buildKML({ poles, spans });
       zip.file('export/data.kml', kml);
-    } else if (format === 'shapefile') {
+      } else if (format === 'shapefile') {
+      if (!hasShp) {
+        alert('Shapefile export requires optional dependency "@mapbox/shp-write". Install it to enable.');
+        setFormat('geojson');
+          return;
+      }
       // Build full FeatureCollection using geodata builder (joins spans to pole coords)
       const { buildGeoJSON: buildGeo, exportShapefile } = await import('../utils/geodata');
       const job = (store.jobs||[]).find(j=>j.id===store.currentJobId) || {};
@@ -1752,14 +1788,21 @@ function InteropExportButton() {
       if (!fc.features.length) { alert('No geodata to export'); return; }
       await exportShapefile(fc, `interop-export-${preset}.zip`);
       setOpen(false);
-      return;
+        return;
     }
-    const blob = await zip.generateAsync({ type: 'blob' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = `interop-export-${preset}.zip`; a.click();
-    URL.revokeObjectURL(url);
-    setOpen(false);
+      if (zip) {
+        const blob = await zip.generateAsync({ type: 'blob' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `interop-export-${preset}.zip`; a.click();
+        URL.revokeObjectURL(url);
+        setOpen(false);
+      }
+    } catch (e) {
+      alert(`Export failed: ${e?.message || e}`);
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -1770,7 +1813,7 @@ function InteropExportButton() {
           <div className="bg-white rounded shadow-lg w-[90vw] max-w-lg p-4">
             <div className="flex items-center justify-between mb-2">
               <div className="font-medium">Interop Export</div>
-              <button className="text-sm" onClick={()=>setOpen(false)}>Close</button>
+              <button className="text-sm disabled:opacity-60" onClick={()=>!busy && setOpen(false)} disabled={busy}>Close</button>
             </div>
             <div className="grid gap-2 text-sm">
               <label className="grid gap-1">
@@ -1785,16 +1828,38 @@ function InteropExportButton() {
                   <option value="csv">CSV (ZIP)</option>
                   <option value="geojson">GeoJSON (ZIP)</option>
                   <option value="kml">KML (ZIP)</option>
-                  <option value="shapefile">Shapefile (ZIP)</option>
+                  {hasShp ? (
+                    <option value="shapefile">Shapefile (ZIP)</option>
+                  ) : (
+                    <option value="shapefile" disabled title="Install @mapbox/shp-write to enable">Shapefile (ZIP) — requires @mapbox/shp-write</option>
+                  )}
                 </select>
               </label>
+              {!hasShp ? (
+                <div className="text-xs text-gray-600 flex items-center gap-2">
+                  <span>Shapefile export is optional. Install @mapbox/shp-write to enable.</span>
+                  <button
+                    type="button"
+                    className="px-2 py-0.5 border rounded"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard?.writeText?.('npm i -D @mapbox/shp-write');
+                        alert('Copied: npm i -D @mapbox/shp-write');
+                      } catch {
+                        alert('Run: npm i -D @mapbox/shp-write');
+                      }
+                    }}
+                    title="Copy install command"
+                  >Copy install cmd</button>
+                </div>
+              ) : null}
               <div className="grid grid-cols-3 gap-2 mt-1">
                 <label className="inline-flex items-center gap-1 text-sm"><input type="checkbox" checked={includePoles} onChange={e=>setIncludePoles(e.target.checked)} /> Poles</label>
                 <label className="inline-flex items-center gap-1 text-sm"><input type="checkbox" checked={includeSpans} onChange={e=>setIncludeSpans(e.target.checked)} /> Spans</label>
                 <label className="inline-flex items-center gap-1 text-sm"><input type="checkbox" checked={includeLines} onChange={e=>setIncludeLines(e.target.checked)} /> Existing Lines</label>
               </div>
               <div className="text-xs text-gray-600">Uses current job’s export profile by default. CSV headers align to the chosen preset.</div>
-              <button className="mt-2 px-3 py-1 border rounded" onClick={onExport}>Export</button>
+              <button className="mt-2 px-3 py-1 border rounded disabled:opacity-60" onClick={onExport} disabled={busy}>{busy ? 'Exporting…' : 'Export'}</button>
             </div>
           </div>
         </div>
@@ -2623,8 +2688,29 @@ function ImportPanel() {
   const [showAutoPreview, setShowAutoPreview] = React.useState(false);
   const [autoPreview, setAutoPreview] = React.useState(null);
   const [attrKeys, setAttrKeys] = React.useState({ pole: [], span: [], line: [] });
+  const [hasShp, setHasShp] = React.useState(null);
+  const shapefileLike = React.useMemo(() => {
+    const n = (file?.name || '').toLowerCase();
+    return n.endsWith('.zip') || n.endsWith('.shp') || n.endsWith('.dbf');
+  }, [file]);
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const ok = await hasShapefileImportSupport();
+        if (!cancelled) setHasShp(ok);
+      } catch {
+        if (!cancelled) setHasShp(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
   const onImport = async () => {
     if (!file) return;
+    if (shapefileLike && hasShp === false) {
+      setStatus('Shapefile import requires optional dependency "shpjs". Copy the install command below.');
+      return;
+    }
     try {
       setStatus('Parsing…');
       const fc = await importGeospatialFile(file);
@@ -2674,8 +2760,25 @@ function ImportPanel() {
         <label className="text-sm text-gray-700 grid gap-1">
           <span className="font-medium">File</span>
           <input type="file" accept=".kml,.kmz,.zip,.shp,.dbf" onChange={e=>setFile(e.target.files?.[0]||null)} />
+          {shapefileLike && hasShp === false ? (
+            <div className="text-xs text-red-700 mt-1 flex items-center gap-2">
+              <span>Shapefile import requires optional dependency "shpjs".</span>
+              <button
+                type="button"
+                className="px-2 py-0.5 border rounded text-xs"
+                onClick={async ()=>{
+                  try {
+                    await navigator.clipboard.writeText('npm i -D shpjs');
+                    setStatus('Copied: npm i -D shpjs');
+                  } catch {
+                    setStatus('npm i -D shpjs');
+                  }
+                }}
+              >Copy install cmd</button>
+            </div>
+          ) : null}
         </label>
-        <button className="self-end h-9 px-3 border rounded" onClick={onImport} disabled={!file}>Import</button>
+        <button className="self-end h-9 px-3 border rounded" onClick={onImport} disabled={!file || (shapefileLike && hasShp === false)}>Import</button>
         <div className="self-end text-sm text-gray-600">{status}</div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">

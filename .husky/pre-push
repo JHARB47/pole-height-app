@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Skip in CI or when dependencies missing
+if [ "$CI" = "true" ] || [ ! -d node_modules ]; then
+	echo "[husky] Skipping pre-push (CI or no node_modules)"
+	exit 0
+fi
+
+# Full, slower gate before pushing
+npm run -s verify || exit 1

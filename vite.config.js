@@ -38,7 +38,8 @@ export default defineConfig({
     chunkSizeWarningLimit: 600,
     rollupOptions: {
       external: (id) => {
-        // Externalize specific problematic modules
+        // Externalize specific optional/problematic modules so Rollup doesn't try to resolve them
+        if (id === '@mapbox/shp-write' || id.includes('/@mapbox/shp-write')) return true
         if (id.includes('globalThis')) return true
         return false
       },
@@ -47,9 +48,7 @@ export default defineConfig({
           // Separate geospatial libraries into their own chunk for better caching
           geospatial: ['shpjs', '@tmcw/togeojson', 'jszip'],
           // Keep React libraries together
-          vendor: ['react', 'react-dom', 'zustand'],
-          // Lucide icons in separate chunk
-          icons: ['lucide-react']
+          vendor: ['react', 'react-dom', 'zustand']
         }
       }
     }
@@ -63,5 +62,9 @@ export default defineConfig({
       // Provide buffer polyfill for browser
       buffer: 'buffer',
     }
+  },
+  // Prevent pre-bundling the optional shapefile exporter during dev/optimizeDeps
+  optimizeDeps: {
+    exclude: ['@mapbox/shp-write']
   }
 })
