@@ -65,12 +65,10 @@
   "overrides": {},
   "lint-staged": {
     "src/**/*.{js,jsx}": [
-      "eslint --fix",
-      "git add"
+  "eslint --fix"
     ],
     "src/**/*.css": [
-      "stylelint --fix",
-      "git add"
+  "stylelint --fix"
     ]
   },
   "engines": {
