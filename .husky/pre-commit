@@ -1,1 +1,24 @@
-npm test
+#!/usr/bin/env sh
+
+# Skip in environments without dependencies installed (e.g., bare Git ops)
+if [ ! -d node_modules ]; then
+	echo "[husky] node_modules not found; skipping pre-commit checks"
+	exit 0
+fi
+
+# Skip inside CI (CI runners already execute full verify)
+if [ "$CI" = "true" ]; then
+	echo "[husky] CI detected; skipping local pre-commit checks"
+	exit 0
+fi
+
+# Fast checks before commit: prefer staged-only linting if available
+if [ -x "./node_modules/.bin/lint-staged" ]; then
+	./node_modules/.bin/lint-staged || exit 1
+else
+	npm run -s lint || exit 1
+	npm run -s lint:css || exit 1
+fi
+
+# Run unit tests
+npm test -s || exit 1

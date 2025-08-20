@@ -1,10 +1,8 @@
-name: Release
+name: PR Checks
 
 on:
-  workflow_dispatch:
-  push:
-    tags:
-      - 'v*.*.*'
+  pull_request:
+    branches: [ main ]
 
 jobs:
   verify:
@@ -32,15 +30,6 @@ jobs:
 
       - name: Security audit (non-blocking)
         run: npm audit --omit=dev --audit-level=moderate || echo "audit reported issues (non-blocking)"
-
-      - name: Upload dist artifact (optional)
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: dist
-          if-no-files-found: warn
-
-  # Publishing disabled (package is private). Add publish steps later if needed.
 
   coverage:
     name: Coverage

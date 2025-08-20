@@ -16,6 +16,9 @@ try {
 }
 
 const useAppStore = create(persist((set) => ({
+  // UI: per-section last saved timestamps
+  uiSectionSaved: {}, // e.g., { map: ISO, spans: ISO, existing: ISO, field: ISO }
+  setSectionSaved: (section) => set((s) => ({ uiSectionSaved: { ...(s.uiSectionSaved || {}), [section]: new Date().toISOString() } })),
   // Core pole data
   poleHeight: '',
   setPoleHeight: (height) => set({ poleHeight: height }),
@@ -287,6 +290,7 @@ const useAppStore = create(persist((set) => ({
   }),
   // Reset all state
   reset: () => set({
+  uiSectionSaved: {},
     poleHeight: '',
     poleClass: '',
     presetProfile: '',

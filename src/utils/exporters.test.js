@@ -51,4 +51,12 @@ describe('exporters', () => {
     expect(kml).toContain('<Point>');
     expect(kml).toContain('<LineString>');
   });
+
+  it('PoleForeman preset uses POLE_HT_FT header', () => {
+    const poles = [{ id: 'PF1', height: 40, class: '3', powerHeight: 30, latitude: 40, longitude: -80 }];
+    const csv = buildPolesCSV(poles, 'poleForeman');
+    const [header, row] = csv.split('\n');
+    expect(header).toBe('POLE_ID,POLE_HT_FT,CLASS,PRIMARY_HT_FT,Longitude,Latitude');
+    expect(row).toBe('PF1,40,3,30,-80,40');
+  });
 });

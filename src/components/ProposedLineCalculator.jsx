@@ -1,10 +1,12 @@
+// @ts-nocheck
+// Note: This file is plain JSX with dynamic imports and DOM APIs. Suppress TS diagnostics for better DX.
 import React, { useEffect } from 'react';
 import useAppStore from '../utils/store';
 import { DEFAULTS, parseFeet, formatFeetInches, formatFeetInchesTickMarks, formatFeetInchesVerbose, resultsToCSV, computeAnalysis } from '../utils/calculations';
 import ExistingLinesEditor from './ExistingLinesEditor';
 import { WV_COMPANIES } from '../utils/constants';
 import SpanDiagram from './SpanDiagram';
-import { importGeospatialFile, mapGeoJSONToAppData, MAPPING_PRESETS, parseExistingLinesCSV, getAttributeKeys, splitFeaturesByGeometry, parsePolesCSV, parseSpansCSV } from '../utils/importers';
+import { importGeospatialFile, mapGeoJSONToAppData, MAPPING_PRESETS, parseExistingLinesCSV, getAttributeKeys, splitFeaturesByGeometry, parsePolesCSV, parseSpansCSV, hasShapefileImportSupport } from '../utils/importers';
 import { buildManifest, csvFrom } from '../utils/manifests';
 import { makePermitSummary } from '../utils/permitSummary';
 import { EXPORT_PRESETS, buildPolesCSV, buildSpansCSV, buildExistingLinesCSV, buildGeoJSON, buildKML, buildFirstEnergyJointUseCSV } from '../utils/exporters';
@@ -91,6 +93,33 @@ export default function ProposedLineCalculator() {
   const [showBatchReport, setShowBatchReport] = React.useState(false);
   const [showHelp, setShowHelp] = React.useState(false);
   const [helpSection, setHelpSection] = React.useState(null);
+  // Scrollspy + collapsible sections state
+  const [activeSection, setActiveSection] = React.useState('job');
+  const [openSections, setOpenSections] = React.useState(() => {
+    try {
+      const raw = localStorage.getItem('ppw:openSections');
+      return raw ? JSON.parse(raw) : { job: true, map: true, spans: true, existing: true, field: true, results: true };
+    } catch {
+      return { job: true, map: true, spans: true, existing: true, field: true, results: true };
+    }
+  });
+  useEffect(() => {
+    try { localStorage.setItem('ppw:openSections', JSON.stringify(openSections)); } catch { /* ignore storage errors */ }
+  }, [openSections]);
+  useEffect(() => {
+    const ids = ['job','map','spans','existing','field','results'];
+    const els = ids.map(id => document.getElementById(id)).filter(Boolean);
+    if (!els.length) return;
+  const obs = new IntersectionObserver((entries) => {
+      // pick the most visible entry near top
+      const visible = entries
+    .filter(entry => entry.isIntersecting)
+    .sort((a,b) => (a.boundingClientRect.top) - (b.boundingClientRect.top));
+      if (visible[0]?.target?.id) setActiveSection(visible[0].target.id);
+    }, { rootMargin: '-40% 0px -55% 0px', threshold: [0, 0.25, 0.5, 0.75, 1] });
+    els.forEach(el => obs.observe(el));
+    return () => obs.disconnect();
+  }, [showReport, showBatchReport]);
 
   // Make-ready notes & estimate
   useEffect(() => {
@@ -165,6 +194,33 @@ export default function ProposedLineCalculator() {
 
   return (
     <div className="p-3 md:p-4 space-y-4">
+      {/* Workflow nav */}
+      <nav className="workflow-nav no-print">
+        <div className="mx-auto max-w-6xl px-3 md:px-6 flex items-center gap-1 overflow-x-auto">
+          {[
+            { id: 'job', label: 'Job' },
+            { id: 'map', label: 'Import/Map' },
+            { id: 'spans', label: 'Spans' },
+            { id: 'existing', label: 'Existing Lines' },
+            { id: 'field', label: 'Field' },
+            { id: 'results', label: 'Results' },
+          ].map((link, i, arr) => (
+            <React.Fragment key={link.id}>
+              <a
+                href={`#${link.id}`}
+                aria-current={activeSection === link.id ? 'step' : undefined}
+                className={
+                  `px-2 py-1 rounded whitespace-nowrap ` +
+                  (activeSection === link.id
+                    ? 'bg-blue-50 text-blue-700 font-semibold'
+                    : 'text-gray-700 hover:bg-gray-50')
+                }
+              >{link.label}</a>
+              {i < arr.length - 1 ? <span className="text-gray-300">•</span> : null}
+            </React.Fragment>
+          ))}
+        </div>
+      </nav>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h1 className="text-lg md:text-xl font-semibold">Pole Plan Wizard</h1>
@@ -181,8 +237,28 @@ export default function ProposedLineCalculator() {
           >Here</button> for Use Directions
         </div>
       </div>
+      {/* Invisible anchor for #job and optional collapse */}
+      <div id="job" className="anchor-offset" />
   {!showReport && (
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 no-print">
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 no-print app-section">
+        <div className="flex items-start justify-between sm:col-span-2 lg:col-span-4">
+          <div>
+            <div className="section-title">Job Setup</div>
+            <div className="section-subtitle">Project info, GPS, design parameters, and profiles.</div>
+          </div>
+          <div className="flex items-center gap-2">
+            <SectionSaveButton sectionKey="job" />
+            <button
+              type="button"
+              className="ml-2 px-2 py-1 text-xs border rounded"
+              onClick={() => setOpenSections(s => ({ ...s, job: !s.job }))}
+              aria-expanded={!!openSections.job}
+            >{openSections.job ? 'Collapse' : 'Expand'}</button>
+          </div>
+        </div>
+        {!openSections.job ? null : (
+        <>
+  <SectionTips section="job" />
          <Input label="Project Name" value={projectName} onChange={e=>setProjectName(e.target.value)} />
          <Input label="Applicant" value={applicantName} onChange={e=>setApplicantName(e.target.value)} />
          <Input label="Job #" value={jobNumber} onChange={e=>setJobNumber(e.target.value)} />
@@ -251,15 +327,95 @@ export default function ProposedLineCalculator() {
          <Input label="Override Road Clearance (ft)" value={customRoadClearance} onChange={e=>setCustomRoadClearance(e.target.value)} placeholder="optional" />
          <Input label="Override Comm-Power (ft)" value={customCommToPower} onChange={e=>setCustomCommToPower(e.target.value)} placeholder="optional" />
          <Select label="Display Format" value={useTickMarkFormat ? 'ticks' : 'verbose'} onChange={e=>setUseTickMarkFormat(e.target.value === 'ticks')} options={[{label:'Verbose (15ft 6in)',value:'verbose'},{label:'Tick Marks (15\' 6")',value:'ticks'}]} />
+  </>
+        )}
+  {openSections.job ? <SectionSaveButton sectionKey="job" align="bottom" /> : null}
        </div>
   )}
 
       {!showReport && (
         <>
-          <ImportPanel />
-          <SpansEditor />
-          <ExistingLinesEditor />
-          <FieldCollection openHelp={(section)=>{ setHelpSection(section); setShowHelp(true); }} />
+          <div id="map" className="app-section anchor-offset">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="section-title">Import & Mapping</div>
+                <div className="section-subtitle">Load KML/KMZ/Shapefile or CSV, map attributes, and batch-apply.</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <SectionSaveButton sectionKey="map" />
+                <button
+                  type="button"
+                  className="ml-2 px-2 py-1 text-xs border rounded"
+                  onClick={() => setOpenSections(s => ({ ...s, map: !s.map }))}
+                  aria-expanded={!!openSections.map}
+                >{openSections.map ? 'Collapse' : 'Expand'}</button>
+              </div>
+            </div>
+            {openSections.map ? <ImportPanel /> : null}
+            {openSections.map ? <SectionTips section="map" /> : null}
+            {openSections.map ? <SectionSaveButton sectionKey="map" align="bottom" /> : null}
+          </div>
+          <div id="spans" className="app-section anchor-offset">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="section-title">Spans</div>
+                <div className="section-subtitle">Per‑span environment, auto/manual length, and quick calculations.</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <SectionSaveButton sectionKey="spans" />
+                <button
+                  type="button"
+                  className="ml-2 px-2 py-1 text-xs border rounded"
+                  onClick={() => setOpenSections(s => ({ ...s, spans: !s.spans }))}
+                  aria-expanded={!!openSections.spans}
+                >{openSections.spans ? 'Collapse' : 'Expand'}</button>
+              </div>
+            </div>
+            {openSections.spans ? <SpansEditor /> : null}
+            {openSections.spans ? <SectionTips section="spans" /> : null}
+            {openSections.spans ? <SectionSaveButton sectionKey="spans" align="bottom" /> : null}
+          </div>
+          <div id="existing" className="app-section anchor-offset">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="section-title">Existing Lines</div>
+                <div className="section-subtitle">Track existing attachments and make‑ready.</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <SectionSaveButton sectionKey="existing" />
+                <button
+                  type="button"
+                  className="ml-2 px-2 py-1 text-xs border rounded"
+                  onClick={() => setOpenSections(s => ({ ...s, existing: !s.existing }))}
+                  aria-expanded={!!openSections.existing}
+                >{openSections.existing ? 'Collapse' : 'Expand'}</button>
+              </div>
+            </div>
+            {openSections.existing ? <ExistingLinesEditor /> : null}
+            {openSections.existing ? <SectionTips section="existing" /> : null}
+            {openSections.existing ? <SectionSaveButton sectionKey="existing" align="bottom" /> : null}
+          </div>
+          <div id="field" className="app-section anchor-offset">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="section-title">Field Collection</div>
+                <div className="section-subtitle">Mobile capture with GPS, photos, and Draft/Done workflow.</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <FieldActionsCompact />
+                <SectionSaveButton sectionKey="field" />
+                <button
+                  type="button"
+                  className="ml-2 px-2 py-1 text-xs border rounded"
+                  onClick={() => setOpenSections(s => ({ ...s, field: !s.field }))}
+                  aria-expanded={!!openSections.field}
+                >{openSections.field ? 'Collapse' : 'Expand'}</button>
+              </div>
+            </div>
+            {openSections.field ? <FieldCollection openHelp={(section)=>{ setHelpSection(section); setShowHelp(true); }} showBottomActions={false} /> : null}
+            {openSections.field ? <SectionTips section="field" /> : null}
+            {openSections.field ? <SectionSaveButton sectionKey="field" align="bottom" /> : null}
+          </div>
         </>
       )}
 
@@ -270,7 +426,26 @@ export default function ProposedLineCalculator() {
         <button className="px-2 py-1 border rounded text-sm" onClick={()=>{ setShowReport(false); setShowBatchReport(b=>!b); }} disabled={!useAppStore.getState().importedSpans.length}>{showBatchReport ? 'Back to Editor' : 'Batch Report'}</button>
       </div>
 
-      {showReport ? <PrintableReport /> : showBatchReport ? <BatchReport /> : <ResultsPanel />}
+  <div id="results" className="app-section anchor-offset">
+        <div className="flex items-start justify-between">
+          <div>
+            <div className="section-title">Results</div>
+            <div className="section-subtitle">Summary outputs, reports, and exports.</div>
+          </div>
+          <div className="flex items-center gap-2">
+            <SectionSaveButton sectionKey="results" />
+            <button
+              type="button"
+              className="ml-2 px-2 py-1 text-xs border rounded"
+              onClick={() => setOpenSections(s => ({ ...s, results: !s.results }))}
+              aria-expanded={!!openSections.results}
+            >{openSections.results ? 'Collapse' : 'Expand'}</button>
+          </div>
+        </div>
+        {openSections.results ? (showReport ? <PrintableReport /> : showBatchReport ? <BatchReport /> : <ResultsPanel />) : null}
+  {openSections.results ? <SectionTips section="results" /> : null}
+        {openSections.results ? <SectionSaveButton sectionKey="results" align="bottom" /> : null}
+      </div>
       <AgencyTemplatesPanel />
       <FormAutofillPanel />
       
@@ -279,6 +454,238 @@ export default function ProposedLineCalculator() {
   );
 }
 
+// Reusable inline tips for each section
+function SectionTips({ section }) {
+  const content = React.useMemo(() => {
+    switch (section) {
+      case 'job':
+        return [
+          'Set Owner to Mon Power when using FirstEnergy presets; this drives FE-specific targets.',
+          'Use the GPS button in Job Setup for accurate coordinates; each Field row can also capture GPS.',
+          'Submission Profile controls clearances (Comm→Power, Road, Min Top Space) and midspan targets.',
+          'Power Reference selects which power point is used (Neutral/Secondary/Drip Loop/Conductor).',
+          'Override fields are optional and apply on top of the active submission profile.',
+          'Switch Display Format to Tick Marks for 15\' 6" style readouts in Results.',
+        ];
+      case 'map':
+        return [
+          'Imports support CSV, KML/KMZ, and Shapefiles; use presets for ArcGIS, ikeGPS, and Katapult Pro.',
+          'Prefer auto span length from coordinates when endpoints are present; manual is respected when set.',
+          'Use Auto-map to preview and apply field mappings; review differences before applying.',
+        ];
+      case 'spans':
+        return [
+          'Set environment per span to drive midspan clearance targets (road, residential, pedestrian, etc.).',
+          'Prefer auto length from endpoints (Haversine). You can override with a manual length if needed.',
+          'Use Compute/Recompute to refresh cached midspans; map links open in a new tab for quick checks.',
+        ];
+      case 'existing':
+        return [
+          'Capture existing attachments and propose make-ready heights. Cost is estimated at ~$12.50 per inch.',
+          'Use clear company names (e.g., Comcast) to improve make-ready summaries in the Results and Report.',
+        ];
+      case 'field':
+        return [
+          'One row per pole. Use GPS per row and attach a photo; EXIF GPS and timestamp are read when available.',
+          'Use Draft/Done to track status. “First 25” export aligns to typical FE SPANS limits.',
+          'Variance PASS/FAIL compares as-built vs planned attach using the active preset tolerance.',
+          'Scope is per Job. Set the current job at the top; exports include job profile metadata.',
+          'As a PWA, the app works offline. Sync by exporting CSV/ZIP when connectivity is available.',
+        ];
+      case 'results':
+        return [
+          'Standards Compliance shows PASS/FAIL for midspan ground clearance and Comm→Power separation.',
+          'The “Basis” explains what controlled the recommended attach height in this scenario.',
+          'Switch display format (Verbose vs Tick Marks) in Job Setup to change readouts.',
+          'Use Export CSV/PDF or generate a Permit Pack for WV/PA/OH/MD Highway or Railroad.',
+        ];
+      default:
+        return [];
+    }
+  }, [section]);
+
+  if (!content.length) return null;
+  return (
+    <details className="mt-2 mb-1">
+      <summary className="cursor-pointer text-xs font-medium text-blue-800">Tips</summary>
+      <ul className="mt-1 text-xs text-blue-900 bg-blue-50 border border-blue-200 rounded p-2 list-disc pl-5">
+        {content.map((t, i) => (
+          <li key={i} className="mb-0.5">{t}</li>
+        ))}
+      </ul>
+    </details>
+  );
+}
+
+function SectionSaveButton({ sectionKey, align }) {
+  const store = useAppStore();
+  const ts = store.uiSectionSaved?.[sectionKey];
+  const label = ts ? `Saved ${new Date(ts).toLocaleTimeString()}` : 'Save';
+  return (
+    <div className={align === 'bottom' ? 'mt-2 flex items-center gap-2 justify-end' : ''}>
+      <button
+        type="button"
+        className="px-2 py-1 text-xs border rounded"
+        onClick={() => store.setSectionSaved?.(sectionKey)}
+        title={ts ? `Last saved: ${new Date(ts).toLocaleString()}` : 'Save section state'}
+      >{label}</button>
+    </div>
+  );
+}
+
+function FieldActionsCompact() {
+  // A compact action bar for Field Collection placed in the section header
+  const store = useAppStore();
+  const [includePhotos, setIncludePhotos] = React.useState(true);
+  const exportGeo = async (type) => {
+    const { buildGeoJSON, exportGeoJSON, exportKML, exportKMZ } = await import('../utils/geodata');
+    const job = (store.jobs||[]).find(j=>j.id===store.currentJobId) || {};
+    const jobPoles = (store.collectedPoles || []).filter(p=>!store.currentJobId || p.jobId===store.currentJobId);
+    const importedPoles = store.importedPoles || [];
+    const byId = new Map();
+    for (const p of importedPoles) if (p?.id) byId.set(String(p.id), p);
+    for (const p of jobPoles) if (p?.id) byId.set(String(p.id), p);
+    const poles = jobPoles.length ? Array.from(new Set([...jobPoles, ...importedPoles.filter(ip => ip && ip.id && !jobPoles.find(jp => String(jp.id) === String(ip.id)))])) : importedPoles;
+    let spans = [];
+    if ((store.importedSpans || []).length) {
+      spans = (store.importedSpans || []).map((s, idx) => ({ id: s.id || `S${idx+1}`, fromId: s.fromId, toId: s.toId, length: s.length, proposedAttach: s.proposedAttach, environment: s.environment }));
+    }
+    const fc = buildGeoJSON({ poles, spans, job });
+    if (!fc.features.length) return alert('No geolocated poles/spans to export');
+    if (type === 'geojson') return exportGeoJSON(fc, `${job.name||'job'}-geodata.geojson`);
+    if (type === 'kml') return exportKML(fc, `${job.name||'job'}-geodata.kml`);
+    if (type === 'kmz') return exportKMZ(fc, `${job.name||'job'}-geodata.kmz`);
+  };
+  const exportCollected = () => {
+    const activeJob = (store.jobs||[]).find(j=>j.id===store.currentJobId);
+    const header = ['id','latitude','longitude','height','class','powerHeight','voltage','hasTransformer','spanDistance','adjacentPoleHeight','attachmentType','status','hasPhoto','timestamp','asBuiltAttachHeight','asBuiltPowerHeight','varianceIn','variancePass','commCompany'];
+    const rows = (store.collectedPoles || []).filter(p=>!store.currentJobId || p.jobId===store.currentJobId).map(p => [
+      p.id || '', p.latitude || '', p.longitude || '', p.height || '', p.poleClass || '', p.powerHeight || '', p.voltage || '', p.hasTransformer ? 'Y' : 'N', p.spanDistance || '', p.adjacentPoleHeight || '', p.attachmentType || '', (p.status || 'draft'), (p.photoDataUrl ? 'Y' : 'N'), p.timestamp || '',
+      p.asBuilt?.attachHeight || '', p.asBuilt?.powerHeight || '',
+      computeVarianceIn(p.asBuilt?.attachHeight, p.height), evaluateVariancePass(p.asBuilt?.attachHeight, p.height, store.presetProfile),
+      activeJob?.commCompany || ''
+    ]);
+    const csv = [header.join(','), ...rows.map(r=>r.map(v=>`${String(v).replaceAll('"','""')}`).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'collected-poles.csv'; a.click(); URL.revokeObjectURL(url);
+  };
+  const exportFirst25 = () => {
+    const subset = (store.collectedPoles || []).filter(p=>!store.currentJobId || p.jobId===store.currentJobId).slice(0, 25);
+    const header = ['id','latitude','longitude','height','class','powerHeight','voltage','hasTransformer','spanDistance','adjacentPoleHeight','attachmentType','status','hasPhoto','timestamp','asBuiltAttachHeight','asBuiltPowerHeight','varianceIn','variancePass'];
+    const rows = subset.map(p => [
+      p.id || '', p.latitude || '', p.longitude || '', p.height || '', p.poleClass || '', p.powerHeight || '', p.voltage || '', p.hasTransformer ? 'Y' : 'N', p.spanDistance || '', p.adjacentPoleHeight || '', p.attachmentType || '', (p.status || 'draft'), (p.photoDataUrl ? 'Y' : 'N'), p.timestamp || '',
+      p.asBuilt?.attachHeight || '', p.asBuilt?.powerHeight || '',
+      computeVarianceIn(p.asBuilt?.attachHeight, p.height), evaluateVariancePass(p.asBuilt?.attachHeight, p.height, store.presetProfile)
+    ]);
+    const csv = [header.join(','), ...rows.map(r=>r.map(v=>`${String(v).replaceAll('"','""')}`).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'collected-poles-first-25.csv'; a.click(); URL.revokeObjectURL(url);
+  };
+  const exportSpansZip = async () => {
+    try {
+      const JSZip = (await import('jszip')).default;
+      const zip = new JSZip();
+      const polesAll = (store.collectedPoles || []).filter(p=>!store.currentJobId || p.jobId===store.currentJobId);
+      const activeJob = (store.jobs||[]).find(j=>j.id===store.currentJobId);
+      const effectiveProfile = (()=>{
+        const baseName = activeJob?.submissionProfileName || store.currentSubmissionProfile;
+        const base = (store.submissionProfiles||[]).find(p=>p.name===baseName) || {};
+        return { ...base, ...(activeJob?.submissionProfileOverrides||{}), name: base?.name };
+      })();
+      const poles = polesAll.map(p => ({
+        ...p,
+        _varianceIn: computeVarianceIn(p.asBuilt?.attachHeight, p.height),
+        _variancePass: evaluateVariancePass(p.asBuilt?.attachHeight, p.height, store.presetProfile)
+      }));
+  const { header, rows } = buildManifest('firstEnergy', poles, activeJob);
+  zip.file('manifest.csv', csvFrom(header, rows));
+      zip.file('job-profile.json', JSON.stringify({ jobId: activeJob?.id || '', jobName: activeJob?.name || '', owner: activeJob?.jobOwner || store.jobOwner || '', commCompany: activeJob?.commCompany || '', submissionProfile: effectiveProfile, includePhotos }, null, 2));
+      if (includePhotos) {
+        const photos = zip.folder('photos');
+        const index = [];
+        for (const p of poles) {
+          if (!p.photoDataUrl) continue;
+          const safeId = p.id ? String(p.id).replaceAll(/[^A-Za-z0-9_-]/g,'_') : `row-${index.length+1}`;
+          const dataUrl = String(p.photoDataUrl);
+          const m = dataUrl.match(/^data:(.+);base64,(.*)$/);
+          const mime = m?.[1] || 'image/jpeg';
+          const base64 = m?.[2] || dataUrl.split(',')[1];
+          const ext = mime.includes('png') ? 'png' : (mime.includes('webp') ? 'webp' : 'jpg');
+          const file = `${safeId}.${ext}`;
+          if (base64) { photos.file(file, base64, { base64: true }); index.push(`${safeId},${file},${mime}`); }
+        }
+        if (index.length) photos.file('index.csv', ['id,file,mime', ...index].join('\n'));
+      }
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `fe-spans.zip`; a.click(); URL.revokeObjectURL(url);
+    } catch (e) { alert(`ZIP export failed: ${e?.message || e}`); }
+  };
+  const exportByProfile = async () => {
+    const job = (store.jobs||[]).find(j=>j.id===store.currentJobId);
+    const name = job?.submissionProfileName || store.currentSubmissionProfile;
+    if (name === 'firstEnergy') return exportSpansZip();
+    if (name === 'aep') return exportAepZipInternal();
+    if (name === 'duke') {
+      const scoped = (store.collectedPoles || []).filter(p => !store.currentJobId || p.jobId === store.currentJobId);
+      return exportRowsByProfileInternal(scoped, '');
+    }
+    return exportAepZipInternal();
+  };
+  const exportRowsByProfileInternal = async (subset, suffix) => {
+    const JSZip = (await import('jszip')).default;
+    const zip = new JSZip();
+    const activeJob = (store.jobs||[]).find(j=>j.id===store.currentJobId);
+    const name = activeJob?.submissionProfileName || store.currentSubmissionProfile;
+    const effectiveProfile = (()=>{
+      const base = (store.submissionProfiles||[]).find(p=>p.name===name) || {};
+      return { ...base, ...(activeJob?.submissionProfileOverrides||{}), name: base?.name };
+    })();
+    const withVariance = subset.map(p => ({ ...p, _varianceIn: computeVarianceIn(p.asBuilt?.attachHeight, p.height), _variancePass: evaluateVariancePass(p.asBuilt?.attachHeight, p.height, store.presetProfile) }));
+    const { header, rows, fileLabel } = buildManifest(name, withVariance, activeJob);
+    zip.file('manifest.csv', csvFrom(header, rows));
+    zip.file('job-profile.json', JSON.stringify({ jobId: activeJob?.id || '', jobName: activeJob?.name || '', owner: activeJob?.jobOwner || store.jobOwner || '', commCompany: activeJob?.commCompany || '', submissionProfile: effectiveProfile, includePhotos }, null, 2));
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${fileLabel}${suffix||''}.zip`; a.click(); URL.revokeObjectURL(url);
+  };
+  const exportAepZipInternal = async () => {
+    try {
+      const JSZip = (await import('jszip')).default;
+      const zip = new JSZip();
+      const poles = (store.collectedPoles || []).filter(p=>!store.currentJobId || p.jobId===store.currentJobId);
+      const activeJob = (store.jobs||[]).find(j=>j.id===store.currentJobId);
+      const effectiveProfile = (()=>{
+        const baseName = activeJob?.submissionProfileName || store.currentSubmissionProfile;
+        const base = (store.submissionProfiles||[]).find(p=>p.name===baseName) || {};
+        return { ...base, ...(activeJob?.submissionProfileOverrides||{}), name: base?.name };
+      })();
+      const { header, rows, fileLabel } = buildManifest('aep', poles, activeJob);
+      zip.file('manifest.csv', csvFrom(header, rows));
+      zip.file('job-profile.json', JSON.stringify({ jobId: activeJob?.id || '', jobName: activeJob?.name || '', owner: activeJob?.jobOwner || store.jobOwner || '', commCompany: activeJob?.commCompany || '', submissionProfile: effectiveProfile, includePhotos }, null, 2));
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${fileLabel}.zip`; a.click(); URL.revokeObjectURL(url);
+    } catch (e) { alert(`ZIP export failed: ${e?.message || e}`); }
+  };
+
+  return (
+    <div className="flex items-center gap-2 text-xs">
+      <label className="inline-flex items-center gap-1" title="Include photos when available in ZIP exports">
+        <input type="checkbox" checked={includePhotos} onChange={(e)=>setIncludePhotos(e.target.checked)} />
+        Photos
+      </label>
+      <button className="px-2 py-1 border rounded" onClick={exportCollected} disabled={!store.collectedPoles?.length}>Export CSV</button>
+      <button className="px-2 py-1 border rounded" onClick={exportFirst25} disabled={(store.collectedPoles?.length||0) < 1}>First 25</button>
+      <button className="px-2 py-1 border rounded" onClick={exportSpansZip} disabled={(store.collectedPoles?.length||0) < 1}>FE SPANS</button>
+      <button className="px-2 py-1 border rounded" onClick={exportByProfile} disabled={(store.collectedPoles?.length||0) < 1}>Utility ZIP</button>
+      <div className="flex items-center gap-1">
+        <span>Geo:</span>
+        <button className="px-2 py-1 border rounded" onClick={()=>exportGeo('geojson')} disabled={(store.collectedPoles?.length||0) < 1}>GeoJSON</button>
+        <button className="px-2 py-1 border rounded" onClick={()=>exportGeo('kml')} disabled={(store.collectedPoles?.length||0) < 1}>KML</button>
+        <button className="px-2 py-1 border rounded" onClick={()=>exportGeo('kmz')} disabled={(store.collectedPoles?.length||0) < 1}>KMZ</button>
+      </div>
+      <button className="px-2 py-1 border rounded" onClick={()=>store.setCollectedPoles?.([])} disabled={!store.collectedPoles?.length}>Clear</button>
+    </div>
+  );
+}
 // --- As-built variance helpers (FirstEnergy/Mon Power defaults) ---
 function getAttachToleranceIn(presetProfile) {
   const p = DEFAULTS.presets[presetProfile];
@@ -439,7 +846,7 @@ function ResultsPanel() {
   const { clearances } = results;
   const fmt = useTickMarkFormat ? formatFeetInchesTickMarks : formatFeetInchesVerbose;
   return (
-    <div className="grid gap-4">
+  <div className="grid gap-4">
       <div className="rounded border p-3">
         <div className="font-medium mb-2">Pole</div>
         <div className="text-sm text-gray-700">
@@ -452,6 +859,7 @@ function ResultsPanel() {
           ) : null}
         </div>
       </div>
+  <div className="section-divider" />
       <div className="rounded border p-3">
         <div className="font-medium mb-2">Attachment & Span</div>
         <div className="text-sm text-gray-700">
@@ -479,6 +887,7 @@ function ResultsPanel() {
           ) : null}
         </div>
       </div>
+  <div className="section-divider" />
       <div className="rounded border p-3">
         <div className="font-medium mb-2">Clearances (targets)</div>
         <div className="text-sm text-gray-700 grid grid-cols-2 gap-x-4 gap-y-1">
@@ -1311,19 +1720,46 @@ function InteropExportButton() {
   const [includePoles, setIncludePoles] = React.useState(true);
   const [includeSpans, setIncludeSpans] = React.useState(true);
   const [includeLines, setIncludeLines] = React.useState(true);
+  const [hasShp, setHasShp] = React.useState(false);
+  const [busy, setBusy] = React.useState(false);
 
   React.useEffect(() => {
     const job = (store.jobs||[]).find(j=>j.id===store.currentJobId);
     if (job?.exportProfile) setPreset(job.exportProfile);
   }, [store.jobs, store.currentJobId]);
 
+  // Probe optional Shapefile support when the modal opens
+  React.useEffect(() => {
+    let cancelled = false;
+    if (open) {
+      (async () => {
+        try {
+          const mod = await import('../utils/geodata');
+          const supported = typeof mod.hasShapefileSupport === 'function' ? await mod.hasShapefileSupport() : false;
+          if (!cancelled) setHasShp(!!supported);
+          // If user had shapefile selected but it's not supported, revert to geojson
+          if (!cancelled && format === 'shapefile' && !supported) setFormat('geojson');
+        } catch {
+          if (!cancelled) {
+            setHasShp(false);
+            if (format === 'shapefile') setFormat('geojson');
+          }
+        }
+      })();
+    }
+    return () => { cancelled = true; };
+  }, [open, format]);
+
   const onExport = async () => {
-    const JSZip = (await import('jszip')).default;
-    const zip = new JSZip();
+    if (busy) return;
+    setBusy(true);
+    let zip;
     const poles = includePoles ? (store.importedPoles || []) : [];
     const spans = includeSpans ? (store.importedSpans || []) : [];
     const lines = includeLines ? (store.existingLines || []) : [];
-    if (format === 'csv') {
+    try {
+      if (format === 'csv') {
+        const JSZip = (await import('jszip')).default; zip = new JSZip();
       if (poles.length) zip.file('export/poles.csv', buildPolesCSV(poles, preset));
       if (spans.length) zip.file('export/spans.csv', buildSpansCSV(spans, preset));
       if (lines.length) zip.file('export/existing-lines.csv', buildExistingLinesCSV(lines, preset));
@@ -1331,19 +1767,42 @@ function InteropExportButton() {
         const job = (store.jobs||[]).find(j=>j.id===store.currentJobId);
         zip.file('export/fe-joint-use.csv', buildFirstEnergyJointUseCSV({ cachedMidspans: store.cachedMidspans, job }));
       }
-    } else if (format === 'geojson') {
+      } else if (format === 'geojson') {
+        const JSZip = (await import('jszip')).default; zip = new JSZip();
       const fc = buildGeoJSON({ poles, spans });
       zip.file('export/data.geojson', JSON.stringify(fc));
-    } else if (format === 'kml') {
+      } else if (format === 'kml') {
+        const JSZip = (await import('jszip')).default; zip = new JSZip();
       const kml = buildKML({ poles, spans });
       zip.file('export/data.kml', kml);
+      } else if (format === 'shapefile') {
+      if (!hasShp) {
+        alert('Shapefile export requires optional dependency "@mapbox/shp-write". Install it to enable.');
+        setFormat('geojson');
+          return;
+      }
+      // Build full FeatureCollection using geodata builder (joins spans to pole coords)
+      const { buildGeoJSON: buildGeo, exportShapefile } = await import('../utils/geodata');
+      const job = (store.jobs||[]).find(j=>j.id===store.currentJobId) || {};
+      const fc = buildGeo({ poles, spans, job });
+      if (!fc.features.length) { alert('No geodata to export'); return; }
+      await exportShapefile(fc, `interop-export-${preset}.zip`);
+      setOpen(false);
+        return;
     }
-    const blob = await zip.generateAsync({ type: 'blob' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = `interop-export-${preset}.zip`; a.click();
-    URL.revokeObjectURL(url);
-    setOpen(false);
+      if (zip) {
+        const blob = await zip.generateAsync({ type: 'blob' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `interop-export-${preset}.zip`; a.click();
+        URL.revokeObjectURL(url);
+        setOpen(false);
+      }
+    } catch (e) {
+      alert(`Export failed: ${e?.message || e}`);
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -1354,7 +1813,7 @@ function InteropExportButton() {
           <div className="bg-white rounded shadow-lg w-[90vw] max-w-lg p-4">
             <div className="flex items-center justify-between mb-2">
               <div className="font-medium">Interop Export</div>
-              <button className="text-sm" onClick={()=>setOpen(false)}>Close</button>
+              <button className="text-sm disabled:opacity-60" onClick={()=>!busy && setOpen(false)} disabled={busy}>Close</button>
             </div>
             <div className="grid gap-2 text-sm">
               <label className="grid gap-1">
@@ -1369,15 +1828,38 @@ function InteropExportButton() {
                   <option value="csv">CSV (ZIP)</option>
                   <option value="geojson">GeoJSON (ZIP)</option>
                   <option value="kml">KML (ZIP)</option>
+                  {hasShp ? (
+                    <option value="shapefile">Shapefile (ZIP)</option>
+                  ) : (
+                    <option value="shapefile" disabled title="Install @mapbox/shp-write to enable">Shapefile (ZIP) — requires @mapbox/shp-write</option>
+                  )}
                 </select>
               </label>
+              {!hasShp ? (
+                <div className="text-xs text-gray-600 flex items-center gap-2">
+                  <span>Shapefile export is optional. Install @mapbox/shp-write to enable.</span>
+                  <button
+                    type="button"
+                    className="px-2 py-0.5 border rounded"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard?.writeText?.('npm i -D @mapbox/shp-write');
+                        alert('Copied: npm i -D @mapbox/shp-write');
+                      } catch {
+                        alert('Run: npm i -D @mapbox/shp-write');
+                      }
+                    }}
+                    title="Copy install command"
+                  >Copy install cmd</button>
+                </div>
+              ) : null}
               <div className="grid grid-cols-3 gap-2 mt-1">
                 <label className="inline-flex items-center gap-1 text-sm"><input type="checkbox" checked={includePoles} onChange={e=>setIncludePoles(e.target.checked)} /> Poles</label>
                 <label className="inline-flex items-center gap-1 text-sm"><input type="checkbox" checked={includeSpans} onChange={e=>setIncludeSpans(e.target.checked)} /> Spans</label>
                 <label className="inline-flex items-center gap-1 text-sm"><input type="checkbox" checked={includeLines} onChange={e=>setIncludeLines(e.target.checked)} /> Existing Lines</label>
               </div>
               <div className="text-xs text-gray-600">Uses current job’s export profile by default. CSV headers align to the chosen preset.</div>
-              <button className="mt-2 px-3 py-1 border rounded" onClick={onExport}>Export</button>
+              <button className="mt-2 px-3 py-1 border rounded disabled:opacity-60" onClick={onExport} disabled={busy}>{busy ? 'Exporting…' : 'Export'}</button>
             </div>
           </div>
         </div>
@@ -1386,7 +1868,7 @@ function InteropExportButton() {
   );
 }
 
-function FieldCollection({ openHelp }) {
+function FieldCollection({ openHelp, showBottomActions = true }) {
   const store = useAppStore();
   const [poleId, setPoleId] = React.useState('');
   const [saving, setSaving] = React.useState(false);
@@ -1897,7 +2379,8 @@ function FieldCollection({ openHelp }) {
         </div>
       </div>
 
-      <div className="mt-3 flex items-center gap-2">
+  {showBottomActions ? (
+  <div className="mt-3 flex items-center gap-2">
         <label className="text-xs inline-flex items-center gap-2 mr-1">
           <input type="checkbox" className="h-4 w-4" checked={includePhotos} onChange={e=>setIncludePhotos(e.target.checked)} />
           <span>Include photos</span>
@@ -1919,6 +2402,7 @@ function FieldCollection({ openHelp }) {
   <button className="px-2 py-1 border rounded text-sm" onClick={exportFailOnly} disabled={!rows.length}>Export FAIL-only</button>
         <button className="px-2 py-1 border rounded text-sm" onClick={()=>store.setCollectedPoles?.([])} disabled={!store.collectedPoles?.length}>Clear</button>
       </div>
+  ) : null}
 
   <div className="mt-3 overflow-auto">
         {/* Midspan Verification */}
@@ -2204,8 +2688,29 @@ function ImportPanel() {
   const [showAutoPreview, setShowAutoPreview] = React.useState(false);
   const [autoPreview, setAutoPreview] = React.useState(null);
   const [attrKeys, setAttrKeys] = React.useState({ pole: [], span: [], line: [] });
+  const [hasShp, setHasShp] = React.useState(null);
+  const shapefileLike = React.useMemo(() => {
+    const n = (file?.name || '').toLowerCase();
+    return n.endsWith('.zip') || n.endsWith('.shp') || n.endsWith('.dbf');
+  }, [file]);
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const ok = await hasShapefileImportSupport();
+        if (!cancelled) setHasShp(ok);
+      } catch {
+        if (!cancelled) setHasShp(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
   const onImport = async () => {
     if (!file) return;
+    if (shapefileLike && hasShp === false) {
+      setStatus('Shapefile import requires optional dependency "shpjs". Copy the install command below.');
+      return;
+    }
     try {
       setStatus('Parsing…');
       const fc = await importGeospatialFile(file);
@@ -2255,8 +2760,25 @@ function ImportPanel() {
         <label className="text-sm text-gray-700 grid gap-1">
           <span className="font-medium">File</span>
           <input type="file" accept=".kml,.kmz,.zip,.shp,.dbf" onChange={e=>setFile(e.target.files?.[0]||null)} />
+          {shapefileLike && hasShp === false ? (
+            <div className="text-xs text-red-700 mt-1 flex items-center gap-2">
+              <span>Shapefile import requires optional dependency "shpjs".</span>
+              <button
+                type="button"
+                className="px-2 py-0.5 border rounded text-xs"
+                onClick={async ()=>{
+                  try {
+                    await navigator.clipboard.writeText('npm i -D shpjs');
+                    setStatus('Copied: npm i -D shpjs');
+                  } catch {
+                    setStatus('npm i -D shpjs');
+                  }
+                }}
+              >Copy install cmd</button>
+            </div>
+          ) : null}
         </label>
-        <button className="self-end h-9 px-3 border rounded" onClick={onImport} disabled={!file}>Import</button>
+        <button className="self-end h-9 px-3 border rounded" onClick={onImport} disabled={!file || (shapefileLike && hasShp === false)}>Import</button>
         <div className="self-end text-sm text-gray-600">{status}</div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
@@ -2571,6 +3093,92 @@ Sample Project 3,45ft,Class 2,35' 6",175,95`;
         </div>
         
         <div className="p-6 space-y-6">
+          {/* Rules & Suggestions (Global + by Area) */}
+          <section>
+            <h3 className="text-lg font-semibold text-blue-800 mb-3">📐 Rules & Suggestions (How to use this tool effectively)</h3>
+            <div className="space-y-4 text-sm">
+              <div className="bg-blue-50 p-3 rounded">
+                <h4 className="font-medium mb-1">Global</h4>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>Data auto‑saves locally as you type. The section “Save” buttons record a timestamp for your reference.</li>
+                  <li>Opening links uses a new tab so you don’t lose work. Downloads are generated in‑browser; no data leaves your device unless you export.</li>
+                  <li>Use the sticky workflow nav to jump between sections; collapsed sections still retain their data.</li>
+                  <li>Height inputs accept tick marks (15' 6") or verbose (15ft 6in). Prefer consistent formatting per job.</li>
+                </ul>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="bg-gray-50 p-3 rounded">
+                  <h4 className="font-medium mb-1">Job Setup</h4>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>Pick a Submission Profile before running reports; FE subsidiaries enable 44" comm‑to‑power rules.</li>
+                    <li>Set power reference (Neutral/Secondary/Drip Loop/Power) to align with field conditions.</li>
+                    <li>Use the Profile Tuner to adjust targets when a permit requires specific values.</li>
+                  </ul>
+                </div>
+                <div className="bg-gray-50 p-3 rounded">
+                  <h4 className="font-medium mb-1">Import & Map</h4>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>Map headers using presets for ArcGIS/ikeGPS/Katapult Pro; save your mapping for reuse.</li>
+                    <li>Spans with endpoints get auto lengths (Haversine). If no field length is present, geometry is used.</li>
+                    <li>KML/KMZ/Shapefile: ensure coordinates are WGS84 (EPSG:4326) for best results.</li>
+                  </ul>
+                </div>
+                <div className="bg-gray-50 p-3 rounded">
+                  <h4 className="font-medium mb-1">Spans Editor</h4>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>Prefer Auto Length uses endpoints first; manual length is a fallback when auto is missing.</li>
+                    <li>Δ (delta) = |manual − auto|. Default big‑Δ threshold is 10 ft (configurable).</li>
+                    <li>Compute/Recompute All refreshes Cached Midspans used by Batch Report and Permit Pack.</li>
+                  </ul>
+                </div>
+                <div className="bg-gray-50 p-3 rounded">
+                  <h4 className="font-medium mb-1">Existing Lines</h4>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>Use Make‑Ready only when vertical moves are intended; enter new heights to estimate costs.</li>
+                    <li>Keep owner/company filled for downstream cost allocation and submission artifacts.</li>
+                  </ul>
+                </div>
+                <div className="bg-gray-50 p-3 rounded">
+                  <h4 className="font-medium mb-1">Field Collection</h4>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>Tap GPS per row to capture fresh coordinates; EXIF from photos augments GPS/time when available.</li>
+                    <li>Mark DONE only after verifying ID, GPS, and key heights; use filters to review Drafts/FAILs.</li>
+                    <li>First 25 export is optimized for utilities like FirstEnergy SPANS.</li>
+                  </ul>
+                </div>
+                <div className="bg-gray-50 p-3 rounded">
+                  <h4 className="font-medium mb-1">Results & Exports</h4>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>PASS/FAIL badges compare midspan or separations to the controlling target (segment‑aware).</li>
+                    <li>Permit Pack requires Cached Midspans for QA/QC summaries; run Recompute All beforehand.</li>
+                    <li>Include Photos option packs images alongside manifests when generating utility ZIPs.</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="bg-amber-50 p-3 rounded">
+                <h4 className="font-medium mb-1">Calculations & Assumptions</h4>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>Sag uses a parabolic approximation with wind/ice factors from your inputs and cable type.</li>
+                  <li>Midspan = average attach − sag. Ground target derives from Submission Profile + segments.</li>
+                  <li>As‑built variance tolerance defaults to 2 in unless overridden by the profile/owner.</li>
+                  <li>Auto length uses Haversine over WGS84; results are rounded to whole feet for readability.</li>
+                  <li>Guy guidance is advisory and based on tension thresholds; confirm with utility standards.</li>
+                </ul>
+              </div>
+
+              <div className="bg-emerald-50 p-3 rounded">
+                <h4 className="font-medium mb-1">Accessibility & Reliability</h4>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>Large touch targets and compact headers keep actions reachable on mobile.</li>
+                  <li>App is a PWA; basic offline caching applies. Very large images can affect memory on older devices.</li>
+                  <li>Use new‑tab links for external resources to avoid accidental navigation away from the app.</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
           {/* Quick Start */}
           <section>
             <h3 className="text-lg font-semibold text-blue-700 mb-3">🚀 Quick Start Guide</h3>

@@ -5,10 +5,10 @@
 ### 1. Build Process
 
 - [x] `npm run build` completes successfully
-- [x] Code splitting optimized (geospatial ~300KB, vendor ~144KB, main ~84KB)
 - [x] All tests pass (`npm test`)
-- [x] No linting errors (`npm run lint`)
+- [x] No linting errors (`npm run lint` and `npm run lint:css`)
 - [x] Production preview works (`npm run preview`)
+- [x] Optional deps do not break builds (shapefile import/export handled at runtime)
 
 ### 2. Configuration Files
 
@@ -16,6 +16,7 @@
 - [x] `vite.config.js` optimized for production build
 - [x] `package.json` has correct build scripts
 - [x] `.env.example` documents environment variables
+- [x] `.nvmrc` pinned to Node 22.12.0 for local parity with CI/Netlify
 
 ### 3. Application Features
 
@@ -37,7 +38,7 @@
 2. **Verify Build Settings**
    - Build command: `npm run build`
    - Publish directory: `dist`
-   - Node.js version: 22
+   - Node.js version: 22 (see `.nvmrc`)
 
 3. **Deploy**
    - Netlify will automatically build and deploy
@@ -68,7 +69,7 @@
 
 - [ ] Input forms accept data correctly
 - [ ] Calculations produce expected results
-- [ ] File import works (test with sample KML/Shapefile)
+- [ ] File import works (test with sample KML/KMZ; Shapefile if `shpjs` is installed)
 - [ ] CSV export downloads properly
 - [ ] Help modal opens and displays content
 - [ ] Format preferences save and apply
@@ -94,8 +95,8 @@
 **Issue**: Buffer polyfill errors
 **Solution**: vite.config.js includes buffer polyfill configuration
 
-**Issue**: proj4 globalThis errors  
-**Solution**: External handling configured in rollup options
+**Issue**: Optional shapefile exporter/importer not installed  
+**Solution**: Not required. The app dynamically detects availability and falls back. To enable locally: `npm i -D @mapbox/shp-write` for export and `npm i -D shpjs` for import.
 
 **Issue**: Large bundle warnings
 **Solution**: Code splitting configured, warnings adjusted to 600KB limit
@@ -106,7 +107,7 @@
 **Solution**: Check browser console for errors, verify all chunks loaded
 
 **Issue**: File import not working
-**Solution**: Verify CSP headers allow blob: and data: URLs
+**Solution**: Verify CSP headers allow blob: and data: URLs. For Shapefile, ensure `shpjs` is installed locally.
 
 **Issue**: State not persisting
 **Solution**: Check localStorage is enabled and working
@@ -130,7 +131,7 @@
 ### Updates
 
 - Keep dependencies updated regularly
-- Test thoroughly after dependency updates
+- Run `npm run check` (lint + tests + build + audit) before deploying
 - Monitor for security vulnerabilities
 
 ### User Support
@@ -177,5 +178,5 @@ Deployment is successful when:
 - [ ] All major features work correctly
 - [ ] No console errors in production
 - [ ] Mobile responsive design works
-- [ ] File import/export functions properly
+- [ ] File import/export functions properly (Shapefile requires optional packages)
 - [ ] Help system is accessible and useful

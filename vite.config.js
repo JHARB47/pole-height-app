@@ -8,18 +8,22 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['vite.svg'],
+      includeAssets: ['vite.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon-180.png'],
       manifest: {
+  id: '/',
         name: 'Pole Plan Wizard',
         short_name: 'PolePlan',
         description: 'Field collection and standards compliance tool',
         theme_color: '#0f172a',
         background_color: '#ffffff',
         display: 'standalone',
+  display_override: ['standalone', 'minimal-ui', 'browser'],
         start_url: '/',
+  scope: '/',
+  orientation: 'any',
         icons: [
-          { src: 'vite.svg', sizes: '192x192', type: 'image/svg+xml' },
-          { src: 'vite.svg', sizes: '512x512', type: 'image/svg+xml' }
+          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
         ]
       }
     })
@@ -38,7 +42,8 @@ export default defineConfig({
     chunkSizeWarningLimit: 600,
     rollupOptions: {
       external: (id) => {
-        // Externalize specific problematic modules
+        // Externalize specific optional/problematic modules so Rollup doesn't try to resolve them
+        if (id === '@mapbox/shp-write' || id.includes('/@mapbox/shp-write')) return true
         if (id.includes('globalThis')) return true
         return false
       },
@@ -47,9 +52,7 @@ export default defineConfig({
           // Separate geospatial libraries into their own chunk for better caching
           geospatial: ['shpjs', '@tmcw/togeojson', 'jszip'],
           // Keep React libraries together
-          vendor: ['react', 'react-dom', 'zustand'],
-          // Lucide icons in separate chunk
-          icons: ['lucide-react']
+          vendor: ['react', 'react-dom', 'zustand']
         }
       }
     }
@@ -63,5 +66,9 @@ export default defineConfig({
       // Provide buffer polyfill for browser
       buffer: 'buffer',
     }
+  },
+  // Prevent pre-bundling the optional shapefile exporter during dev/optimizeDeps
+  optimizeDeps: {
+    exclude: ['@mapbox/shp-write']
   }
 })
