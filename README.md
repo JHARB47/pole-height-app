@@ -143,7 +143,14 @@ Available environment variables:
 - VITE_DEBUG_MODE - Enable debug features
 - VITE_ENABLE_* - Feature flags
 
-## 📋 Configuration
+## � Install as an App (PWA)
+
+- iOS (Safari): Open the site, tap Share, then Add to Home Screen. Launch from the icon for a full-screen experience.
+- Android (Chrome/Edge): Open the site, tap the menu, then Add to Home screen or Install app.
+- Desktop (Chrome/Edge): Click the Install icon in the address bar to install as a standalone app.
+
+
+## �📋 Configuration
 
 ### Netlify Features Enabled
 
