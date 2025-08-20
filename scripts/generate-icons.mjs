@@ -21,7 +21,8 @@ let PNG
 try {
   ({ PNG } = await import('pngjs'))
 } catch (e) {
-  console.log('[icons] pngjs not installed; skipping icon generation')
+  console.error('[icons] Error loading pngjs module:', e.message)
+  console.log('[icons] Skipping icon generation. Run `npm install pngjs` if you need icons.')
   process.exit(0)
 }
 
