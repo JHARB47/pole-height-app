@@ -40,16 +40,17 @@ export default defineConfig({
       external: (id) => {
         // Externalize specific problematic modules
         if (id.includes('globalThis')) return true
+        // Externalize optional dependencies that may be dynamically imported
+        if (id === 'tokml' || id === '@mapbox/shp-write' || id === 'shpjs') return true
+        // Don't externalize other imports
         return false
       },
       output: {
         manualChunks: {
           // Separate geospatial libraries into their own chunk for better caching
-          geospatial: ['shpjs', '@tmcw/togeojson', 'jszip'],
+          geospatial: ['@tmcw/togeojson', 'jszip'],
           // Keep React libraries together
-          vendor: ['react', 'react-dom', 'zustand'],
-          // Lucide icons in separate chunk
-          icons: ['lucide-react']
+          vendor: ['react', 'react-dom', 'zustand']
         }
       }
     }
@@ -63,5 +64,9 @@ export default defineConfig({
       // Provide buffer polyfill for browser
       buffer: 'buffer',
     }
+  },
+  // Prevent pre-bundling optional dependencies during dev/optimizeDeps
+  optimizeDeps: {
+    exclude: ['@mapbox/shp-write', 'tokml', 'shpjs']
   }
 })

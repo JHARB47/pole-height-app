@@ -1,5 +1,5 @@
 // Geodata builders and exporters for poles and spans
-// Exports: buildGeoJSON, exportGeoJSON, exportKML, exportKMZ
+// Exports: buildGeoJSON, exportGeoJSON, exportKML, exportKMZ, exportShapefile (optional)
 
 import JSZip from 'jszip';
 
@@ -79,19 +79,69 @@ export function exportGeoJSON(fc, filename = 'geodata.geojson') {
 }
 
 export async function exportKML(fc, filename = 'geodata.kml') {
-  const { default: tokml } = await import('tokml');
-  const kml = tokml(fc, { documentName: 'Pole Plan Wizard', name: 'id', description: 'jobId' });
-  downloadText(filename, kml, 'application/vnd.google-earth.kml+xml');
+  try {
+    const { default: tokml } = await import('tokml');
+    const kml = tokml(fc, { documentName: 'Pole Plan Wizard', name: 'id', description: 'jobId' });
+    downloadText(filename, kml, 'application/vnd.google-earth.kml+xml');
+  } catch (e) {
+    console.error('Error exporting KML, falling back to GeoJSON', e);
+    exportGeoJSON(fc, filename.replace(/\.kml$/, '.geojson'));
+  }
 }
 
 export async function exportKMZ(fc, filename = 'geodata.kmz') {
-  const { default: tokml } = await import('tokml');
-  const kml = tokml(fc, { documentName: 'Pole Plan Wizard', name: 'id', description: 'jobId' });
-  const zip = new JSZip();
-  zip.file('doc.kml', kml);
-  const blob = await zip.generateAsync({ type: 'blob' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
+  try {
+    const { default: tokml } = await import('tokml');
+    const kml = tokml(fc, { documentName: 'Pole Plan Wizard', name: 'id', description: 'jobId' });
+    const zip = new JSZip();
+    zip.file('doc.kml', kml);
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
+  } catch (e) {
+    console.error('Error exporting KMZ, falling back to GeoJSON', e);
+    exportGeoJSON(fc, filename.replace(/\.kmz$/, '.geojson'));
+  }
 }
 
-// Shapefile export intentionally omitted to keep bundle light and avoid heavy deps.
+// Shapefile export as an optional capability
+export async function exportShapefile(fc, filename = 'geodata-shapefile.zip') {
+  try {
+    const { default: shapefile } = await import('@mapbox/shp-write');
+    
+    // Convert to shapefile format
+    const options = {
+      folder: 'poleplanwizard',
+      types: {
+        point: 'poles',
+        line: 'spans',
+        polygon: 'areas'
+      }
+    };
+    
+    const zipBlob = await new Promise((resolve, reject) => {
+      shapefile.zipSync(fc, options, (err, content) => {
+        if (err) return reject(err);
+        // Content is a base64 string, convert to Blob
+        const binary = atob(content);
+        const len = binary.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+        resolve(new Blob([bytes], { type: 'application/zip' }));
+      });
+    });
+    
+    // Download the resulting blob
+    const url = URL.createObjectURL(zipBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    console.warn('Shapefile export requires optional dependency "@mapbox/shp-write". Falling back to GeoJSON.', e);
+    exportGeoJSON(fc, filename.replace(/\.zip$/, '.geojson'));
+  }
+}

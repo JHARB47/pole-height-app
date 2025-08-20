@@ -76,28 +76,43 @@ export async function importGeospatialFile(file) {
 }
 
 export async function parseKML(text) {
-  const { kml: kmlToGeoJSON } = await import('@tmcw/togeojson');
-  const dom = new DOMParser().parseFromString(text, 'text/xml');
-  const fc = kmlToGeoJSON(dom);
-  return normalizeGeoJSON(fc);
+  try {
+    const { kml: kmlToGeoJSON } = await import('@tmcw/togeojson');
+    const dom = new DOMParser().parseFromString(text, 'text/xml');
+    const fc = kmlToGeoJSON(dom);
+    return normalizeGeoJSON(fc);
+  } catch (e) {
+    console.error('Error parsing KML, dependency may be missing', e);
+    throw new Error('KML parsing requires dependency "@tmcw/togeojson". Error: ' + e.message);
+  }
 }
 
 export async function parseKMZ(file) {
-  const JSZip = (await import('jszip')).default;
-  const zip = await JSZip.loadAsync(file);
-  // Find first .kml in the zip
-  const kmlEntry = Object.values(zip.files).find(f => f.name.toLowerCase().endsWith('.kml'));
-  if (!kmlEntry) throw new Error('KMZ missing KML file');
-  const kmlText = await kmlEntry.async('text');
-  return parseKML(kmlText);
+  try {
+    const JSZip = (await import('jszip')).default;
+    const zip = await JSZip.loadAsync(file);
+    // Find first .kml in the zip
+    const kmlEntry = Object.values(zip.files).find(f => f.name.toLowerCase().endsWith('.kml'));
+    if (!kmlEntry) throw new Error('KMZ missing KML file');
+    const kmlText = await kmlEntry.async('text');
+    return parseKML(kmlText);
+  } catch (e) {
+    console.error('Error parsing KMZ, dependency may be missing', e);
+    throw new Error('KMZ parsing requires dependency "jszip". Error: ' + e.message);
+  }
 }
 
 export async function parseShapefile(file) {
-  // shpjs can handle a zip, ArrayBuffer, or URL; use file arrayBuffer
-  const ab = await file.arrayBuffer();
-  const shp = (await import('shpjs')).default;
-  const geojson = await shp(ab);
-  return normalizeGeoJSON(geojson);
+  try {
+    // shpjs can handle a zip, ArrayBuffer, or URL; use file arrayBuffer
+    const ab = await file.arrayBuffer();
+    const shp = (await import('shpjs')).default;
+    const geojson = await shp(ab);
+    return normalizeGeoJSON(geojson);
+  } catch (e) {
+    console.error('Error parsing shapefile, dependency may be missing', e);
+    throw new Error('Shapefile parsing requires optional dependency "shpjs". Error: ' + e.message);
+  }
 }
 
 function normalizeGeoJSON(geo) {
