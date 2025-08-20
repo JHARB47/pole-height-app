@@ -14,55 +14,63 @@ The repository follows a standard trunk-based development workflow:
 ### 1. Starting a New Feature or Fix
 
 1. Always start from an up-to-date `main` branch:
-   ```bash
-   git checkout main
-   git pull origin main
-   ```
+
+```bash
+git checkout main
+git pull origin main
+```
 
 2. Create a new branch with a descriptive name:
-   ```bash
-   git checkout -b feature/my-new-feature
-   # or
-   git checkout -b fix/issue-description
-   # or
-   git checkout -b chore/maintenance-task
-   ```
+
+```bash
+git checkout -b feature/my-new-feature
+# or
+git checkout -b fix/issue-description
+# or
+git checkout -b chore/maintenance-task
+```
 
 ### 2. Making Changes
 
 1. Make your changes to the codebase.
 2. Run tests regularly to ensure your changes don't break existing functionality:
-   ```bash
-   npm test
-   ```
+
+```bash
+npm test
+```
+
 3. Use the VS Code test explorer or run specific tests as needed.
 4. Check that the build completes successfully:
-   ```bash
-   npm run build
-   ```
+
+```bash
+npm run build
+```
 
 ### 3. Committing Changes
 
 1. Stage your changes:
-   ```bash
-   git add .
-   ```
+
+```bash
+git add .
+```
 
 2. Commit with a descriptive message following conventional commits format:
-   ```bash
-   git commit -m "feat: add new calculation feature"
-   # or
-   git commit -m "fix: resolve issue with geospatial imports"
-   # or
-   git commit -m "chore: update dependencies"
-   ```
+
+```bash
+git commit -m "feat: add new calculation feature"
+# or
+git commit -m "fix: resolve issue with geospatial imports"
+# or
+git commit -m "chore: update dependencies"
+```
 
 ### 4. Creating a Pull Request
 
 1. Push your branch to GitHub:
-   ```bash
-   git push -u origin feature/my-new-feature
-   ```
+
+```bash
+git push -u origin feature/my-new-feature
+```
 
 2. Create a pull request via the GitHub interface.
 3. The PR will automatically trigger CI checks to run tests and verify the build.

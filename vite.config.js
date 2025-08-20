@@ -10,16 +10,20 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['vite.svg'],
       manifest: {
+        id: '/',
         name: 'Pole Plan Wizard',
         short_name: 'PolePlan',
         description: 'Field collection and standards compliance tool',
         theme_color: '#0f172a',
         background_color: '#ffffff',
         display: 'standalone',
+        display_override: ['standalone', 'minimal-ui', 'browser'],
         start_url: '/',
+        scope: '/',
+        orientation: 'any',
         icons: [
-          { src: 'vite.svg', sizes: '192x192', type: 'image/svg+xml' },
-          { src: 'vite.svg', sizes: '512x512', type: 'image/svg+xml' }
+          { src: '/vite.svg', sizes: '192x192', type: 'image/svg+xml', purpose: 'any maskable' },
+          { src: '/vite.svg', sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' }
         ]
       }
     })
