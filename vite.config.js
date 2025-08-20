@@ -10,6 +10,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['vite.svg'],
       manifest: {
+  id: '/',
         name: 'Pole Plan Wizard',
         short_name: 'PolePlan',
         description: 'Field collection and standards compliance tool',
@@ -21,10 +22,8 @@ export default defineConfig({
   scope: '/',
   orientation: 'any',
         icons: [
-          // Note: For best Android installability, provide PNGs (192x192, 512x512).
-          // Using SVG here keeps bundle simple; Android may warn but app remains usable.
-          { src: 'vite.svg', sizes: '192x192', type: 'image/svg+xml', purpose: 'any maskable' },
-          { src: 'vite.svg', sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' }
+          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
         ]
       }
     })
