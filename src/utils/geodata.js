@@ -79,14 +79,14 @@ export function exportGeoJSON(fc, filename = 'geodata.geojson') {
 }
 
 export async function exportKML(fc, filename = 'geodata.kml') {
-  const { default: tokml } = await import('tokml');
-  const kml = tokml(fc, { documentName: 'Pole Plan Wizard', name: 'id', description: 'jobId' });
+  const { toKML } = await import('@placemarkio/tokml');
+  const kml = toKML(fc, { documentName: 'Pole Plan Wizard', name: 'id', description: 'jobId' });
   downloadText(filename, kml, 'application/vnd.google-earth.kml+xml');
 }
 
 export async function exportKMZ(fc, filename = 'geodata.kmz') {
-  const { default: tokml } = await import('tokml');
-  const kml = tokml(fc, { documentName: 'Pole Plan Wizard', name: 'id', description: 'jobId' });
+  const { toKML } = await import('@placemarkio/tokml');
+  const kml = toKML(fc, { documentName: 'Pole Plan Wizard', name: 'id', description: 'jobId' });
   const zip = new JSZip();
   zip.file('doc.kml', kml);
   const blob = await zip.generateAsync({ type: 'blob' });
