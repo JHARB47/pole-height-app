@@ -13,6 +13,7 @@
     <!-- PWA / mobile meta -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="mobile-web-app-capable" content="yes" />
     <meta name="format-detection" content="telephone=no" />
     <meta name="color-scheme" content="light dark" />
     <!-- Theme color (browsers that support it) -->
@@ -21,8 +22,10 @@
 
     <!-- Icons & manifest -->
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <link rel="apple-touch-icon" href="/vite.svg" />
-    <link rel="mask-icon" href="/vite.svg" color="#0f172a" />
+  <!-- Safari/iOS prefers a 180x180 PNG apple-touch-icon; using SVG works as a fallback on modern Safari but consider adding PNG for best results. -->
+  <link rel="apple-touch-icon" href="/vite.svg" />
+  <!-- Pinned tab (Safari) uses mask-icon; ideally provide a monochrome SVG. Reuse vite.svg as fallback. -->
+  <link rel="mask-icon" href="/vite.svg" color="#0f172a" />
     <link rel="manifest" href="/manifest.webmanifest" />
   </head>
   <body>

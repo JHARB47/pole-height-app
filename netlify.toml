@@ -30,5 +30,5 @@
 [[headers]]
   for = "/*"
   [headers.values]
-    # Allow larger file uploads for KML/KMZ/Shapefile imports
-    Content-Security-Policy = "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; worker-src 'self' blob:;"
+    # Allow larger file uploads for KML/KMZ/Shapefile imports; include child-src for Safari fallback
+    Content-Security-Policy = "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; worker-src 'self' blob:; child-src 'self' blob:;"

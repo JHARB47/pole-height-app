@@ -16,10 +16,15 @@ export default defineConfig({
         theme_color: '#0f172a',
         background_color: '#ffffff',
         display: 'standalone',
+  display_override: ['standalone', 'minimal-ui', 'browser'],
         start_url: '/',
+  scope: '/',
+  orientation: 'any',
         icons: [
-          { src: 'vite.svg', sizes: '192x192', type: 'image/svg+xml' },
-          { src: 'vite.svg', sizes: '512x512', type: 'image/svg+xml' }
+          // Note: For best Android installability, provide PNGs (192x192, 512x512).
+          // Using SVG here keeps bundle simple; Android may warn but app remains usable.
+          { src: 'vite.svg', sizes: '192x192', type: 'image/svg+xml', purpose: 'any maskable' },
+          { src: 'vite.svg', sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' }
         ]
       }
     })
