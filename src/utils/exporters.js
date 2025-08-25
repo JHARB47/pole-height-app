@@ -94,10 +94,9 @@ export function buildExistingLinesCSV(lines = [], preset = 'generic') {
 }
 
 export function buildGeoJSON({ poles = [], spans = [] }) {
-  const features = [];
-  for (const p of poles) {
-    if (p.latitude == null || p.longitude == null) continue;
-    features.push({
+  const makePoleFeature = (p) => {
+    if (p.latitude == null || p.longitude == null) return null;
+    return {
       type: 'Feature',
       geometry: { type: 'Point', coordinates: [Number(p.longitude), Number(p.latitude)] },
       properties: {
@@ -107,21 +106,28 @@ export function buildGeoJSON({ poles = [], spans = [] }) {
         PWR_HT: p.powerHeight != null ? Math.round(p.powerHeight) : '',
         XFMR: p.hasTransformer ? 'Y' : 'N',
       },
-    });
-  }
-  for (const s of spans) {
-    if (s.coordinates && Array.isArray(s.coordinates)) {
-      features.push({
-        type: 'Feature',
-        geometry: { type: 'LineString', coordinates: s.coordinates },
-        properties: {
-          SPAN_ID: s.id || '', FROM_ID: s.fromId || '', TO_ID: s.toId || '',
-          SPAN_FT: s.length != null ? Math.round(s.length) : '',
-          ATTACH_FT: s.proposedAttach != null ? Math.round(s.proposedAttach) : '',
-        },
-      });
-    }
-  }
+    };
+  };
+
+  const makeSpanFeature = (s) => {
+    if (!s.coordinates || !Array.isArray(s.coordinates)) return null;
+    return {
+      type: 'Feature',
+      geometry: { type: 'LineString', coordinates: s.coordinates },
+      properties: {
+        SPAN_ID: s.id || '',
+        FROM_ID: s.fromId || '',
+        TO_ID: s.toId || '',
+        SPAN_FT: s.length != null ? Math.round(s.length) : '',
+        ATTACH_FT: s.proposedAttach != null ? Math.round(s.proposedAttach) : '',
+      },
+    };
+  };
+
+  const poleFeatures = poles.map(makePoleFeature).filter(Boolean);
+  const spanFeatures = spans.map(makeSpanFeature).filter(Boolean);
+  const features = [...poleFeatures, ...spanFeatures];
+
   return { type: 'FeatureCollection', features };
 }
 
@@ -131,53 +137,76 @@ export function buildKML({ poles = [], spans = [] }) {
   parts.push('<?xml version="1.0" encoding="UTF-8"?>');
   parts.push('<kml xmlns="http://www.opengis.net/kml/2.2"><Document>');
   parts.push('<name>Pole Plan Wizard Export</name>');
-  for (const p of poles) {
-    if (p.latitude == null || p.longitude == null) continue;
-    parts.push('<Placemark>');
-    parts.push(`<name>${esc(p.id || 'Pole')}</name>`);
-    parts.push('<ExtendedData>');
+
+  const buildExtendedData = (kv) =>
+    Object.entries(kv).map(([k, v]) => `<Data name="${esc(k)}"><value>${esc(v)}</value></Data>`).join('');
+
+  const addPolePlacemark = (p) => {
+    if (p.latitude == null || p.longitude == null) return null;
     const kv = {
       HEIGHT_FT: p.height != null ? Math.round(p.height) : '',
       CLASS: p.class || '',
       PWR_HT: p.powerHeight != null ? Math.round(p.powerHeight) : '',
       XFMR: p.hasTransformer ? 'Y' : 'N',
     };
-    for (const [k, v] of Object.entries(kv)) parts.push(`<Data name="${esc(k)}"><value>${esc(v)}</value></Data>`);
-    parts.push('</ExtendedData>');
-    parts.push(`<Point><coordinates>${p.longitude},${p.latitude},0</coordinates></Point>`);
-    parts.push('</Placemark>');
-  }
-  for (const s of spans) {
-    if (!s.coordinates || !Array.isArray(s.coordinates)) continue;
-    parts.push('<Placemark>');
-    parts.push(`<name>${esc(s.id || 'Span')}</name>`);
-    parts.push('<ExtendedData>');
+    return [
+      '<Placemark>',
+      `<name>${esc(p.id || 'Pole')}</name>`,
+      '<ExtendedData>',
+      buildExtendedData(kv),
+      '</ExtendedData>',
+      `<Point><coordinates>${p.longitude},${p.latitude},0</coordinates></Point>`,
+      '</Placemark>',
+    ].join('');
+  };
+
+  const addSpanPlacemark = (s) => {
+    if (!s.coordinates || !Array.isArray(s.coordinates)) return null;
     const kv = {
       FROM_ID: s.fromId || '',
       TO_ID: s.toId || '',
       SPAN_FT: s.length != null ? Math.round(s.length) : '',
       ATTACH_FT: s.proposedAttach != null ? Math.round(s.proposedAttach) : '',
     };
-    for (const [k, v] of Object.entries(kv)) parts.push(`<Data name="${esc(k)}"><value>${esc(v)}</value></Data>`);
     const coordString = s.coordinates.map(([lon, lat]) => `${lon},${lat},0`).join(' ');
-    parts.push('</ExtendedData>');
-    parts.push(`<LineString><coordinates>${coordString}</coordinates></LineString>`);
-    parts.push('</Placemark>');
+    return [
+      '<Placemark>',
+      `<name>${esc(s.id || 'Span')}</name>`,
+      '<ExtendedData>',
+      buildExtendedData(kv),
+      '</ExtendedData>',
+      `<LineString><coordinates>${coordString}</coordinates></LineString>`,
+      '</Placemark>',
+    ].join('');
+  };
+
+  for (const p of poles) {
+    const pm = addPolePlacemark(p);
+    if (pm) parts.push(pm);
   }
+
+  for (const s of spans) {
+    const pm = addSpanPlacemark(s);
+    if (pm) parts.push(pm);
+  }
+
   parts.push('</Document></kml>');
   return parts.join('');
 }
 
 // Optional FE example export
-export function buildFirstEnergyJointUseCSV({ cachedMidspans = [], job = {} }) {
+export function buildFirstEnergyJointUseCSV({ cachedMidspans = [], job = { name: '' } }) {
   // Example headers; adjust as needed for actual submission portals
   const headers = ['JOB_NAME', 'SPAN_ID', 'FROM_ID', 'TO_ID', 'ENV', 'SPAN_FT', 'ATTACH_FT', 'TARGET_FT', 'MIDSPAN_FT', 'PASS', 'DEFICIT_FT'];
   const rows = [headers.join(',')];
   for (const m of (cachedMidspans || [])) {
+    let passStatus = '';
+    if (m.pass === true) passStatus = 'PASS';
+    else if (m.pass === false) passStatus = 'FAIL';
     const line = [
       job?.name || '', m.spanId || '', m.fromId || '', m.toId || '',
       m.environment || '', m.spanFt ?? '', m.attachFt ?? '', m.targetFt ?? '', m.midspanFt ?? '',
-      m.pass === true ? 'PASS' : (m.pass === false ? 'FAIL' : ''), m.deficitFt ?? ''
+      passStatus, m.deficitFt ?? ''
     ];
     rows.push(line.map(csvEscape).join(','));
   }

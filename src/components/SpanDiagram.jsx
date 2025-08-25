@@ -1,10 +1,12 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { formatFeetInchesTickMarks, formatFeetInchesVerbose } from '../utils/calculations';
 import useAppStore from '../utils/store';
 
 export default function SpanDiagram({ attachFt, midspanFt, spanFt, groundTargetFt }) {
   const { useTickMarkFormat } = useAppStore();
   const fmt = useTickMarkFormat ? formatFeetInchesTickMarks : formatFeetInchesVerbose;
+  const fmtOrDash = (v) => (v == null ? '—' : fmt(v));
   const width = 600;
   const height = 260;
   const margin = { top: 10, right: 20, bottom: 30, left: 40 };
@@ -46,13 +48,27 @@ export default function SpanDiagram({ attachFt, midspanFt, spanFt, groundTargetF
         <circle cx={xScale(0)} cy={yScale(attachFt || 0)} r={3} fill="#2563eb" />
         <circle cx={xScale(spanFt || 0)} cy={yScale(attachFt || 0)} r={3} fill="#2563eb" />
         {/* labels */}
-        <text x={0} y={yScale(attachFt || 0) - 6} fontSize={10} fill="#1f2937">Attach {fmt(attachFt)}</text>
-        <text x={innerW/2} y={yScale(midspanFt || 0) - 6} fontSize={10} textAnchor="middle" fill="#1f2937">Mid {fmt(midspanFt)}</text>
-        <text x={innerW - 2} y={yScale(groundTargetFt || 0) - 4} fontSize={10} textAnchor="end" fill="#16a34a">Ground target {fmt(groundTargetFt)}</text>
+        <text x={0} y={yScale(attachFt || 0) - 6} fontSize={10} fill="#1f2937">Attach {fmtOrDash(attachFt)}</text>
+        <text x={innerW/2} y={yScale(midspanFt || 0) - 6} fontSize={10} textAnchor="middle" fill="#1f2937">Mid {fmtOrDash(midspanFt)}</text>
+        <text x={innerW - 2} y={yScale(groundTargetFt || 0) - 4} fontSize={10} textAnchor="end" fill="#16a34a">Ground target {fmtOrDash(groundTargetFt)}</text>
         {/* axis ticks minimal */}
         <text x={0} y={innerH + 16} fontSize={10} fill="#6b7280">0 ft</text>
-        <text x={innerW - 24} y={innerH + 16} fontSize={10} fill="#6b7280">{spanFt} ft</text>
+        <text x={innerW - 24} y={innerH + 16} fontSize={10} fill="#6b7280">{spanFt != null ? spanFt : '—'} ft</text>
       </g>
     </svg>
   );
 }
+
+SpanDiagram.propTypes = {
+  attachFt: PropTypes.number,
+  midspanFt: PropTypes.number,
+  spanFt: PropTypes.number,
+  groundTargetFt: PropTypes.number,
+};
+
+SpanDiagram.defaultProps = {
+  attachFt: undefined,
+  midspanFt: undefined,
+  spanFt: undefined,
+  groundTargetFt: undefined,
+};

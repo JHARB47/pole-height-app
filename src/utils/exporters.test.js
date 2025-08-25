@@ -2,7 +2,9 @@ import { describe, it, expect } from 'vitest';
 import { buildPolesCSV, buildSpansCSV, buildExistingLinesCSV, buildGeoJSON, buildKML } from './exporters';
 
 describe('exporters', () => {
+
   it('buildPolesCSV generic headers and mapping', () => {
+    /** @type {any[]} */
     const poles = [{ id: 'P1', height: 35, class: '4', powerHeight: 28, hasTransformer: true, longitude: -80.1, latitude: 40.2 }];
     const csv = buildPolesCSV(poles, 'generic');
     const lines = csv.split('\n');
@@ -15,6 +17,7 @@ describe('exporters', () => {
   });
 
   it('buildSpansCSV maps required fields', () => {
+    /** @type {any[]} */
     const spans = [{ id: 'S1', fromId: 'P1', toId: 'P2', length: 150, proposedAttach: 18 }];
     const csv = buildSpansCSV(spans, 'generic');
     const lines = csv.split('\n');
@@ -33,22 +36,27 @@ describe('exporters', () => {
   });
 
   it('buildGeoJSON produces FeatureCollection', () => {
+    /** @type {Array<Object>} */
     const poles = [{ id: 'P1', height: 35, class: '4', powerHeight: 28, hasTransformer: true, longitude: -80.1, latitude: 40.2 }];
+    /** @type {Array<Object>} */
     const spans = [{ id: 'S1', fromId: 'P1', toId: 'P2', length: 150, proposedAttach: 18, coordinates: [[-80.1,40.2],[-80.2,40.3]] }];
     const fc = buildGeoJSON({ poles, spans });
     expect(fc.type).toBe('FeatureCollection');
     expect(fc.features.length).toBe(2);
-    expect(fc.features[0].geometry.type).toBe('Point');
-    expect(fc.features[1].geometry.type).toBe('LineString');
+    expect(fc.features[0]?.geometry?.type).toBe('Point');
+    expect(fc.features[1]?.geometry?.type).toBe('LineString');
   });
 
   it('buildKML emits placemarks for poles and spans', () => {
-    const poles = [{ id: 'P1', height: 35, class: '4', powerHeight: 28, hasTransformer: true, longitude: -80.1, latitude: 40.2 }];
-    const spans = [{ id: 'S1', fromId: 'P1', toId: 'P2', length: 150, proposedAttach: 18, coordinates: [[-80.1,40.2],[-80.2,40.3]] }];
+  /** @type {Array<Object>} */
+  const poles = [{ id: 'P1', height: 35, class: '4', powerHeight: 28, hasTransformer: true, longitude: -80.1, latitude: 40.2 }];
+  /** @type {Array<Object>} */
+  const spans = [{ id: 'S1', fromId: 'P1', toId: 'P2', length: 150, proposedAttach: 18, coordinates: [[-80.1,40.2],[-80.2,40.3]] }];
     const kml = buildKML({ poles, spans });
     expect(kml).toContain('<kml');
     expect(kml).toContain('<Placemark>');
     expect(kml).toContain('<Point>');
     expect(kml).toContain('<LineString>');
   });
+
 });

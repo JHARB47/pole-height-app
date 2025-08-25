@@ -141,7 +141,7 @@ export function splitFeaturesByGeometry(fc) {
 }
 
 export function getAttributeKeys(feature) {
-  return feature && feature.properties ? Object.keys(feature.properties) : [];
+  return Object.keys(feature?.properties || {});
 }
 
 // Map GeoJSON features to app data using a mapping config
@@ -153,6 +153,7 @@ export function getAttributeKeys(feature) {
 // }
 export function mapGeoJSONToAppData(fc, config) {
   const { poles, lines } = splitFeaturesByGeometry(fc);
+  /** @type {{ poleTable: Array<any>, spanTable: Array<any>, existingLines: Array<any> }} */
   const result = { poleTable: [], spanTable: [], existingLines: [] };
 
   // Poles (points)
@@ -202,7 +203,11 @@ export function mapGeoJSONToAppData(fc, config) {
   return result;
 }
 
-function getProp(obj, key) { if (!key) return undefined; return obj?.[key]; }
+function getProp(obj, key) {
+  if (!key) return undefined;
+  // Use safe access without optional chaining to avoid parser/lint issues
+  return obj && Object.hasOwn(obj, key) ? obj[key] : undefined;
+}
 function getNumber(obj, key) {
   if (!key) return undefined;
   const v = obj?.[key];

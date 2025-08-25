@@ -147,6 +147,16 @@ const useAppStore = create(persist((set) => ({
   setGuyAnalysis: (analysis) => set({ guyAnalysis: analysis }),
   costAnalysis: null,
   setCostAnalysis: (cost) => set({ costAnalysis: cost }),
+  // Batch-set analysis output to minimize re-renders and state updates
+  setAnalysis: (payload) => set(() => {
+    const { results, warnings, notes, cost } = payload || {};
+    return {
+      results: results ?? null,
+      warnings: warnings ?? [],
+      engineeringNotes: notes ?? [],
+      costAnalysis: cost ?? null,
+    };
+  }),
   // Scenario snapshots for A/B comparison
   scenarioA: null,
   setScenarioA: (scenario) => set({ scenarioA: scenario }),

@@ -1,76 +1,108 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { VitePWA } from 'vite-plugin-pwa'
 
-// https://vitejs.dev/config/
+/**
+ * Return a chunk name for the given module id.
+ * This small helper keeps the manualChunks hook trivial while preserving
+ * the previous chunking behavior extracted from the original function.
+ */
+function isExternalId(id) {
+  const external = new Set(['tokml', '@mapbox/shp-write', 'shpjs']);
+  return external.has(id);
+}
+
+function chunkForPdfLib(id) {
+  if (!id.includes('pdf-lib')) return undefined;
+  if (id.includes('pdf-lib/es/core')) return 'pdf-core';
+  if (id.includes('pdf-lib/es/api')) return 'pdf-api';
+  return 'pdf-libs';
+}
+
+function chunkForSimple(id) {
+  if (id.includes('@tmcw/togeojson')) return 'geojson-utils';
+  if (id.includes('jszip')) return 'zip-utils';
+  if (id.includes('react-dom')) return 'react-dom';
+  if (id.includes('react') && !id.includes('react-dom')) return 'react';
+  if (id.includes('zustand')) return 'state-vendor';
+  if (['clsx', 'tailwind', 'postcss'].some(s => id.includes(s))) return 'ui-vendor';
+  if (id.includes('moment') || id.includes('date-fns')) return 'date-vendor';
+  return undefined;
+}
+
+function chunkForSrcUtils(id) {
+  if (!id.includes('/src/utils/')) return undefined;
+  if (['calculations.js', 'calculations.new.js'].some(s => id.includes(s))) return 'app-calculations';
+  if (['permits.js', 'permitSummary.js', 'pdfFormFiller.js', 'pdfFieldMapper.js'].some(s => id.includes(s))) return 'app-permits';
+  if (['exporters.js', 'importers.js'].some(s => id.includes(s))) return 'app-io';
+  if (['geodata.js', 'targets.js'].some(s => id.includes(s))) return 'app-geodata';
+  return 'app-utils';
+}
+
+function chunkForSrcComponents(id) {
+  if (!id.includes('/src/components/')) return undefined;
+  if (['SpansEditor', 'ExistingLinesEditor'].some(s => id.includes(s))) return 'app-editors';
+  if (['SpanDiagram', 'PoleSketch'].some(s => id.includes(s))) return 'app-diagrams';
+  if (id.includes('ProposedLineCalculator')) return 'app-calculator';
+  return 'app-components';
+}
+
+/**
+ * @typedef {'polyfills' | 'vendor' | undefined} NodeModulesChunk
+ * @typedef {string | undefined} ChunkName
+ * @typedef {(id: string | undefined) => ChunkName} ChunkFn
+ */
+
+/**
+ * Determine the chunk name for a given module id.
+ * @param {string | undefined} id
+ * @returns {ChunkName}
+ */
+function chunkForId(id) {
+  if (!id) return undefined;
+
+  if (isExternalId(id)) return undefined;
+
+  /** @type {NodeModulesChunk} */
+  let nodeModulesChunk;
+  if (id.includes('node_modules')) {
+    if (['buffer', 'stream', 'util'].some(s => id.includes(s))) {
+      nodeModulesChunk = 'polyfills';
+    } else {
+      nodeModulesChunk = 'vendor';
+    }
+  } else {
+    nodeModulesChunk = undefined;
+  }
+
+  return chunkForPdfLib(id)
+    || chunkForSimple(id)
+    || chunkForSrcUtils(id)
+    || chunkForSrcComponents(id)
+    || nodeModulesChunk;
+}
+
+
+
 export default defineConfig({
   plugins: [
-    react(),
-    VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['vite.svg'],
-      manifest: {
-        id: '/',
-        name: 'Pole Plan Wizard',
-        short_name: 'PolePlan',
-        description: 'Field collection and standards compliance tool',
-        theme_color: '#0f172a',
-        background_color: '#ffffff',
-        display: 'standalone',
-        display_override: ['standalone', 'minimal-ui', 'browser'],
-        start_url: '/',
-        scope: '/',
-        orientation: 'any',
-        icons: [
-          { src: '/vite.svg', sizes: '192x192', type: 'image/svg+xml', purpose: 'any maskable' },
-          { src: '/vite.svg', sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' }
-        ]
-      }
-    })
+    react()
   ],
-  server: {
-    host: true,        // bind to 0.0.0.0 so other devices can connect
-    port: 5173,        // try 5173 first
-    strictPort: false, // pick the next free port if 5173 is taken
-  },
-  preview: {
-    host: true,
-    port: 4173,
-  },
   build: {
-    target: 'es2015',
-    chunkSizeWarningLimit: 600,
     rollupOptions: {
-      external: (id) => {
-        // Externalize specific problematic modules
-        if (id.includes('globalThis')) return true
-        // Externalize optional dependencies that may be dynamically imported
-        if (id === 'tokml' || id === '@mapbox/shp-write' || id === 'shpjs') return true
-        // Don't externalize other imports
-        return false
-      },
       output: {
-        manualChunks: {
-          // Separate geospatial libraries into their own chunk for better caching
-          geospatial: ['@tmcw/togeojson', 'jszip'],
-          // Keep React libraries together
-          vendor: ['react', 'react-dom', 'zustand']
-        }
-      }
+        manualChunks: (id) => chunkForId(id)
+      },
+      external: ['tokml', 'shpjs', '@mapbox/shp-write']
     }
   },
   define: {
     // Provide global for libraries that expect it
     global: 'globalThis',
   },
-  resolve: {
-    alias: {
-      // Provide buffer polyfill for browser
-      buffer: 'buffer',
-    }
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/testSetup.js',
   },
-  // Prevent pre-bundling optional dependencies during dev/optimizeDeps
-  optimizeDeps: {
-    exclude: ['@mapbox/shp-write', 'tokml', 'shpjs']
-  }
 })
+

@@ -6,7 +6,6 @@
 @layer utilities {
 	/* Prevent long tokens from overlapping UI; allow natural breaks */
 	.break-anywhere { 
-		word-break: break-word; 
 		overflow-wrap: anywhere; 
 	}
 
@@ -23,7 +22,6 @@
 		.no-print { display: none !important; }
 
 		.page-break {
-			page-break-before: always;
 			break-before: page;
 		}
 	}
