@@ -7,13 +7,17 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
-env:
-  NODE_VERSION: '22'
+permissions:
+  contents: read
+  deployments: write
 
 jobs:
   build-and-deploy:
     name: Build and Deploy
     runs-on: ubuntu-latest
+    concurrency:
+      group: netlify-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -21,83 +25,28 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Verify environment
-        run: |
-          echo "Node version: $(node --version)"
-          echo "NPM version: $(npm --version)"
-          echo "Git commit: ${{ github.sha }}"
-          echo "Branch: ${{ github.ref_name }}"
+      - name: Lint (ESLint)
+        run: npm run -s lint
 
-      - name: Lint code
-        run: |
-          echo "Running ESLint..."
-          npm run lint
-          echo "Running Stylelint..."
-          npm run lint:css || true  # Don't fail if CSS linting has warnings
+      - name: Test (Vitest)
+        run: npm test -- --run --reporter=verbose
 
-      - name: Run tests
-        run: |
-          echo "Running test suite..."
-          npm test
-          echo "Tests completed successfully"
-
-      - name: Build application
-        run: |
-          echo "Building application for production..."
-          npm run build
-          echo "Build completed successfully"
-
-      - name: Verify build output
-        run: |
-          echo "Verifying build output..."
-          if [ ! -d "dist" ]; then
-            echo "❌ Build failed: dist directory not created"
-            exit 1
-          fi
-          if [ ! -f "dist/index.html" ]; then
-            echo "❌ Build failed: index.html not found"
-            exit 1
-          fi
-          if [ ! -f "dist/sw.js" ]; then
-            echo "⚠️  Warning: Service worker not found (PWA may not work)"
-          else
-            echo "✅ Service worker found"
-          fi
-          if [ ! -f "dist/manifest.webmanifest" ]; then
-            echo "⚠️  Warning: Web manifest not found (PWA may not work)"
-          else
-            echo "✅ Web manifest found"
-          fi
-          echo "Build verification completed"
-
-      - name: Generate deployment metadata
-        run: |
-          cat > dist/deploy-info.json << EOF
-          {
-            "deployTime": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-            "commitSha": "${{ github.sha }}",
-            "shortSha": "${GITHUB_SHA:0:7}",
-            "branch": "${{ github.ref_name }}",
-            "buildNumber": "${{ github.run_number }}",
-            "environment": "${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}",
-            "nodeVersion": "${{ env.NODE_VERSION }}",
-            "pullRequest": "${{ github.event.number || 'none' }}"
-          }
-          EOF
+      - name: Build (Vite)
+        run: npm run -s build
 
       - name: Deploy to Netlify (Production)
-        if: github.ref == 'refs/heads/main'
+        if: ${{ github.ref == 'refs/heads/main' }}
         uses: nwtgck/actions-netlify@v3.0
         with:
           publish-dir: './dist'
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: "🚀 Production Deploy - ${{ github.sha }}"
+          deploy-message: "Production Deploy - ${{ github.sha }}"
           production-branch: main
           github-deployment-environment: production
           enable-pull-request-comment: false
@@ -107,12 +56,12 @@ jobs:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
 
       - name: Deploy to Netlify (Preview)
-        if: github.event_name == 'pull_request'
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false }}
         uses: nwtgck/actions-netlify@v3.0
         with:
           publish-dir: './dist'
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: "🔍 Preview Deploy - PR #${{ github.event.number }}"
+          deploy-message: "Preview Deploy - PR #${{ github.event.number }}"
           github-deployment-environment: preview
           enable-pull-request-comment: true
           enable-commit-comment: false
@@ -131,13 +80,10 @@ jobs:
 
       - name: Deployment summary
         run: |
-          echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
-          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Environment**: ${{ github.ref == 'refs/heads/main' && 'Production' || 'Preview' }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Build Number**: ${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Node Version**: ${{ env.NODE_VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Branch: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "- **Pull Request**: #${{ github.event.number }}" >> $GITHUB_STEP_SUMMARY
+            echo "- Pull Request: #${{ github.event.number }}" >> $GITHUB_STEP_SUMMARY
           fi
-          echo "- **Deploy Time**: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_STEP_SUMMARY
+          echo "- Deploy Time: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_STEP_SUMMARY

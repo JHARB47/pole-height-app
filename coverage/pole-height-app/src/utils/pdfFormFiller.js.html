@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/69</span>
+                <span class='fraction'>0/74</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/69</span>
+                <span class='fraction'>0/74</span>
             </div>
         
             
@@ -140,7 +140,6 @@
 <a name='L75'></a><a href='#L75'>75</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -164,7 +163,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -188,7 +186,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -198,7 +195,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -209,12 +205,16 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >// Lightweight PDF form filler using pdf-lib for text-only fields.<span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" ></span></span></span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >// Lightweight PDF form filler using pdf-lib for text-only fields.</span></span></span>
 <span class="cstat-no" title="statement not covered" >// Note: Official forms often have complex AcroForms or require ePermitting; we</span>
 <span class="cstat-no" title="statement not covered" >// provide a generic text overlay approach to assist transcribing fields.</span>
-&nbsp;
+<span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >// Overlay text values at absolute coordinates.</span>
 <span class="cstat-no" title="statement not covered" >export async function fillPdfWithFields(basePdfBytes, fields, layout) {</span>
 <span class="cstat-no" title="statement not covered" >  // layout: [{ key, x, y, size?, pageIndex?, bold? }]</span>
@@ -238,7 +238,7 @@
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" >  return await doc.save();</span>
 <span class="cstat-no" title="statement not covered" >}</span>
-&nbsp;
+<span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >// Fill AcroForm fields by name using normalized fields and a field name mapper.</span>
 <span class="cstat-no" title="statement not covered" >// This works when the official PDF is a fillable form.</span>
 <span class="cstat-no" title="statement not covered" >export async function fillAcroFormByName(basePdfBytes, env, fields) {</span>
@@ -262,7 +262,7 @@
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" >  return await doc.save();</span>
 <span class="cstat-no" title="statement not covered" >}</span>
-&nbsp;
+<span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >// Lightweight PDF meta reader for layout selection</span>
 <span class="cstat-no" title="statement not covered" >export async function getPdfMeta(basePdfBytes) {</span>
 <span class="cstat-no" title="statement not covered" >  const { PDFDocument } = await import('pdf-lib');</span>
@@ -272,7 +272,7 @@
 <span class="cstat-no" title="statement not covered" >  const size = first ? first.getSize() : { width: 0, height: 0 };</span>
 <span class="cstat-no" title="statement not covered" >  return { pages: pages.length, firstPage: { width: size.width, height: size.height } };</span>
 <span class="cstat-no" title="statement not covered" >}</span>
-&nbsp;
+<span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >// Convenience: auto-pick a layout for an environment if none provided</span>
 <span class="cstat-no" title="statement not covered" >export async function fillPdfAuto(basePdfBytes, env, fields, explicitLayout) {</span>
 <span class="cstat-no" title="statement not covered" >  let layout = explicitLayout;</span>
@@ -283,7 +283,7 @@
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" >  return fillPdfWithFields(basePdfBytes, fields, layout);</span>
 <span class="cstat-no" title="statement not covered" >}</span>
-&nbsp;
+<span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >export default { fillPdfWithFields, fillAcroFormByName, getPdfMeta, fillPdfAuto };</span>
 &nbsp;</pre></td></tr></table></pre>
 
@@ -292,7 +292,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-20T18:46:32.383Z
+                at 2025-08-25T16:11:49.127Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

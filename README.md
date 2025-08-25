@@ -1,7 +1,9 @@
 # Pole Plan Wizard
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/1722a209-219d-4f21-9380-718a78f4372a/deploy-status)](https://app.netlify.com/sites/1722a209-219d-4f21-9380-718a78f4372a/deploys)
+[![Live Site](https://img.shields.io/website?url=https%3A%2F%2Fmrejointuse.netlify.app&label=live%20site&up_message=online&down_message=offline)](https://mrejointuse.netlify.app)
 [![CI](https://github.com/JHARB47/pole-height-app/actions/workflows/ci.yml/badge.svg)](https://github.com/JHARB47/pole-height-app/actions/workflows/ci.yml)
+
+Live URL: <https://mrejointuse.netlify.app>
 
 A comprehensive web application for calculating NESC-compliant pole attachment heights for utility engineering workflows.
 
@@ -25,7 +27,7 @@ A comprehensive web application for calculating NESC-compliant pole attachment h
 - **Frontend**: React 18 + Vite 4.5.14
 - **Styling**: TailwindCSS with responsive design and print optimization
 - **State Management**: Zustand with localStorage persistence
-- **Testing**: Vitest with comprehensive test coverage (52 tests)
+- **Testing**: Vitest with comprehensive test coverage (54 tests)
 - **Geospatial**: shpjs, @tmcw/togeojson for file import
 - **Icons**: Lucide React icon library
 
@@ -76,12 +78,12 @@ npm run preview
 
 # Lint code
 npm run lint
+```
+
 If you see an engines warning locally, switch to Node 22:
 
 ```bash
 nvm use 22
-```bash
-
 ```
 
 ## 🌍 Deployment to Netlify
@@ -91,6 +93,20 @@ nvm use 22
 1. Connect your GitHub repository to Netlify
 2. Netlify will automatically detect the build settings from `netlify.toml`
 3. Deploy will run `npm run build` and publish the `dist` folder
+
+### GitHub Actions → Netlify (CI deploys)
+
+This repository includes a GitHub Actions workflow (`.github/workflows/netlify-deploy.yml`) that builds/tests on every push and deploys to Netlify when secrets are configured:
+
+- Required repository secrets:
+  - `NETLIFY_AUTH_TOKEN` – your Netlify personal access token
+  - `NETLIFY_SITE_ID` – the Site ID for mrejointuse.netlify.app
+- Behavior:
+  - Production deploys on pushes to `main`
+  - Preview deploys on pull requests from the same repository (not forks)
+  - If secrets are missing, the deploy step is skipped (build/test still run)
+
+Add the secrets in GitHub → Settings → Secrets and variables → Actions → New repository secret.
 
 ### Manual Deployment
 

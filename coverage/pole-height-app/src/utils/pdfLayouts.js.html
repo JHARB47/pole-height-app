@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/100</span>
+                <span class='fraction'>0/104</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/100</span>
+                <span class='fraction'>0/104</span>
             </div>
         
             
@@ -171,7 +171,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -182,7 +181,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -263,19 +261,21 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >// Default PDF overlay layouts for common agency forms.<span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" ></span></span></span>
 <span class="cstat-no" title="statement not covered" >// Coordinates are in PDF user space points (origin bottom-left).</span>
 <span class="cstat-no" title="statement not covered" >// These presets aim to be "close" for standard letter-size forms; small tweaks</span>
 <span class="cstat-no" title="statement not covered" >// may be needed for latest versions or scanned variants.</span>
-&nbsp;
+<span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >/**</span>
 <span class="cstat-no" title="statement not covered" > * Build a key for picking a layout based on PDF metadata.</span>
 <span class="cstat-no" title="statement not covered" > * meta example: { pages: 1, firstPage: { width: 612, height: 792 } }</span>
@@ -286,7 +286,7 @@
 <span class="cstat-no" title="statement not covered" >  const h = Math.round(meta.firstPage.height);</span>
 <span class="cstat-no" title="statement not covered" >  return `${meta.pages}:${w}x${h}`; // e.g., '1:612x792'</span>
 <span class="cstat-no" title="statement not covered" >}</span>
-&nbsp;
+<span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >// Layout registry keyed by environment, then optional metaKey</span>
 <span class="cstat-no" title="statement not covered" >// Each layout is an array of { key, pageIndex, x, y, size }</span>
 <span class="cstat-no" title="statement not covered" >const registry = {</span>
@@ -367,13 +367,13 @@
 <span class="cstat-no" title="statement not covered" >    ],</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
 <span class="cstat-no" title="statement not covered" >};</span>
-&nbsp;
+<span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >export function getLayoutFor(env, meta) {</span>
 <span class="cstat-no" title="statement not covered" >  const bucket = registry[env] || {};</span>
 <span class="cstat-no" title="statement not covered" >  const key = metaKey(meta);</span>
 <span class="cstat-no" title="statement not covered" >  return bucket[key] || bucket.default || [];</span>
 <span class="cstat-no" title="statement not covered" >}</span>
-&nbsp;
+<span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >export default { getLayoutFor };</span>
 &nbsp;</pre></td></tr></table></pre>
 
@@ -382,7 +382,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-20T18:46:32.383Z
+                at 2025-08-25T16:11:49.127Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

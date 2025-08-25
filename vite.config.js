@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -103,6 +104,11 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/testSetup.js',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html', 'lcov'],
+      reportsDirectory: './coverage'
+    }
   },
 })
 

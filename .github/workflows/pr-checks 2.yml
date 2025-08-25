@@ -1,8 +1,8 @@
-name: PR Checks
+name: PR Checks (disabled)
 
 on:
-  pull_request:
-    branches: [ main ]
+  # Disabled to avoid duplicate runs; kept for reference.
+  workflow_call:
 
 jobs:
   verify:

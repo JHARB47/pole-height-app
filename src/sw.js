@@ -1,4 +1,4 @@
-/* eslint-env serviceworker */
+/// <reference lib="webworker" />
 // Minimal custom service worker (no-op offline support); keep lint clean
 // Notes:
 // - We intentionally avoid using unused parameters in event listeners.
@@ -14,15 +14,16 @@ self.addEventListener('activate', () => {
 });
 
 // Basic fetch event for offline fallback
-self.addEventListener('fetch', (event) => {
+/** @param {FetchEvent} e */
+self.addEventListener('fetch', (e) => {
   // Polyfill FetchEvent type for compatibility
-  const fetchEvent = event;
+  const req = e.request;
   // @ts-ignore
-  fetchEvent.respondWith(
+  e.respondWith(
     // @ts-ignore
-    caches.match(fetchEvent.request).then((response) => {
+    caches.match(req).then((response) => {
       // @ts-ignore
-      return response || fetch(fetchEvent.request);
+      return response || fetch(req);
     })
   );
 });
