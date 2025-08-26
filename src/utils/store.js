@@ -100,30 +100,38 @@ const useAppStore = create(persist((set) => ({
   setProposedLineHeight: (height) => set({ proposedLineHeight: height }),
   // Submission profiles (utility/region adjustable parameters and manifest targeting)
   submissionProfiles: [
-    { name: 'firstEnergy', label: 'FirstEnergy / Mon Power', commToPowerIn: 44, minTopSpaceFt: 2.0, roadClearanceFt: 18.0,
+    {
+      name: 'firstEnergy', label: 'FirstEnergy / Mon Power', commToPowerIn: 44, minTopSpaceFt: 2.0, roadClearanceFt: 18.0,
       envRoadFt: 18.0, envResidentialFt: 15.5, envPedestrianFt: 15.5, envFieldFt: 15.5,
       envResidentialYardFt: 9.5, envResidentialDrivewayFt: 15.5, envNonResidentialDrivewayFt: 16.0,
       envWaterwayFt: 14.0, envWVHighwayFt: 18.0, envPAHighwayFt: 18.0, envOHHighwayFt: 18.0, envMDHighwayFt: 18.0,
       envInterstateFt: 18.0, envInterstateNewCrossingFt: 21.0,
-      envRailroadFt: 27.0, minCommAttachFt: 14.0, manifestType: 'FE' },
-    { name: 'aep', label: 'AEP (Generic)', commToPowerIn: 40, minTopSpaceFt: 2.0, roadClearanceFt: 18.0,
+      envRailroadFt: 27.0, minCommAttachFt: 14.0, manifestType: 'FE'
+    },
+    {
+      name: 'aep', label: 'AEP (Generic)', commToPowerIn: 40, minTopSpaceFt: 2.0, roadClearanceFt: 18.0,
       envRoadFt: 18.0, envResidentialFt: 15.5, envPedestrianFt: 15.5, envFieldFt: 15.5,
       envResidentialYardFt: 9.5, envResidentialDrivewayFt: 15.5, envNonResidentialDrivewayFt: 16.0,
       envWaterwayFt: 14.0, envWVHighwayFt: 18.0, envPAHighwayFt: 18.0, envOHHighwayFt: 18.0, envMDHighwayFt: 18.0,
       envInterstateFt: 18.0, envInterstateNewCrossingFt: 21.0,
-      envRailroadFt: 27.0, minCommAttachFt: 14.0, manifestType: 'AEP' },
-  { name: 'duke', label: 'Duke Energy', commToPowerIn: 40, minTopSpaceFt: 1.0, roadClearanceFt: 18.0,
+      envRailroadFt: 27.0, minCommAttachFt: 14.0, manifestType: 'AEP'
+    },
+    {
+      name: 'duke', label: 'Duke Energy', commToPowerIn: 40, minTopSpaceFt: 1.0, roadClearanceFt: 18.0,
       envRoadFt: 18.0, envResidentialFt: 15.5, envPedestrianFt: 15.5, envFieldFt: 15.5,
       envResidentialYardFt: 9.5, envResidentialDrivewayFt: 15.5, envNonResidentialDrivewayFt: 16.0,
       envWaterwayFt: 14.0, envWVHighwayFt: 18.0, envPAHighwayFt: 18.0, envOHHighwayFt: 18.0, envMDHighwayFt: 18.0,
       envInterstateFt: 18.0, envInterstateNewCrossingFt: 21.0,
-      envRailroadFt: 27.0, minCommAttachFt: 14.0, manifestType: 'DUKE' },
-    { name: 'generic', label: 'Generic / NESC', commToPowerIn: 40, minTopSpaceFt: 1.0, roadClearanceFt: 18.0,
+      envRailroadFt: 27.0, minCommAttachFt: 14.0, manifestType: 'DUKE'
+    },
+    {
+      name: 'generic', label: 'Generic / NESC', commToPowerIn: 40, minTopSpaceFt: 1.0, roadClearanceFt: 18.0,
       envRoadFt: 18.0, envResidentialFt: 15.5, envPedestrianFt: 15.5, envFieldFt: 15.5,
       envResidentialYardFt: 9.5, envResidentialDrivewayFt: 15.5, envNonResidentialDrivewayFt: 16.0,
       envWaterwayFt: 14.0, envWVHighwayFt: 18.0, envPAHighwayFt: 18.0, envOHHighwayFt: 18.0, envMDHighwayFt: 18.0,
       envInterstateFt: 18.0, envInterstateNewCrossingFt: 21.0,
-      envRailroadFt: 27.0, minCommAttachFt: 14.0, manifestType: 'GEN' },
+      envRailroadFt: 27.0, minCommAttachFt: 14.0, manifestType: 'GEN'
+    },
   ],
   currentSubmissionProfile: 'firstEnergy',
   setCurrentSubmissionProfile: (name) => set({ currentSubmissionProfile: name }),
@@ -165,7 +173,7 @@ const useAppStore = create(persist((set) => ({
   // Batch import support
   mappingPreset: 'generic',
   setMappingPreset: (v) => set({ mappingPreset: v }),
-  mappingProfiles: [], // { name, mapping }
+  mappingProfiles: [],
   addMappingProfile: (name, mapping) => set((s) => {
     const filtered = (s.mappingProfiles || []).filter(p => p.name !== name);
     return { mappingProfiles: [...filtered, { name, mapping }] };
@@ -195,19 +203,19 @@ const useAppStore = create(persist((set) => ({
   currentJobId: '',
   addJob: (job) => set((s) => {
     const id = job?.id || String(Date.now());
-    const newJob = { 
-      id, 
-      name: job?.name || 'Untitled Job', 
-      applicantName: job?.applicantName || '', 
-      jobNumber: job?.jobNumber || '', 
-      presetProfile: job?.presetProfile || '', 
-      jobOwner: job?.jobOwner || '', 
-      notes: job?.notes || '', 
+    const newJob = {
+      id,
+      name: job?.name || 'Untitled Job',
+      applicantName: job?.applicantName || '',
+      jobNumber: job?.jobNumber || '',
+      presetProfile: job?.presetProfile || '',
+      jobOwner: job?.jobOwner || '',
+      notes: job?.notes || '',
       createdAt: job?.createdAt || new Date().toISOString(),
       commCompany: job?.commCompany || '',
       submissionProfileName: job?.submissionProfileName || s.currentSubmissionProfile || 'generic',
       submissionProfileOverrides: job?.submissionProfileOverrides || {},
-  exportProfile: job?.exportProfile || 'generic',
+      exportProfile: job?.exportProfile || 'generic',
     };
     const merged = [...(s.jobs || []), newJob];
     return { jobs: merged, currentJobId: id, projectName: newJob.name, applicantName: newJob.applicantName, jobNumber: newJob.jobNumber, presetProfile: newJob.presetProfile, jobOwner: newJob.jobOwner };
@@ -238,13 +246,16 @@ const useAppStore = create(persist((set) => ({
   setCollectedPoles: (arr) => set({ collectedPoles: arr || [] }),
   addCollectedPole: (pole) => set((s) => {
     const jobId = pole?.jobId || s.currentJobId || '';
-    return { collectedPoles: [...(s.collectedPoles || []), { 
-      // planned vs as-built fields
-      asBuilt: {
-        attachHeight: pole?.asBuilt?.attachHeight || '',
-        powerHeight: pole?.asBuilt?.powerHeight || '',
-      },
-      ...pole, jobId }] };
+    return {
+      collectedPoles: [...(s.collectedPoles || []), {
+        // planned vs as-built fields
+        asBuilt: {
+          attachHeight: pole?.asBuilt?.attachHeight || '',
+          powerHeight: pole?.asBuilt?.powerHeight || '',
+        },
+        ...pole, jobId
+      }]
+    };
   }),
   updateCollectedPole: (index, patch) => set((s) => {
     const arr = (s.collectedPoles || []).slice();
@@ -265,9 +276,9 @@ const useAppStore = create(persist((set) => ({
   }),
   // Cached midspan results (quick-save while working)
   cachedMidspans: [],
-  addCachedMidspan: (item) => set((s) => ({ cachedMidspans: [...(s.cachedMidspans||[]), { id: String(Date.now()), ...item }] })),
-  updateCachedMidspan: (id, patch) => set((s) => ({ cachedMidspans: (s.cachedMidspans||[]).map(m => m.id===id ? { ...m, ...patch } : m) })),
-  removeCachedMidspan: (id) => set((s) => ({ cachedMidspans: (s.cachedMidspans||[]).filter(m => m.id !== id) })),
+  addCachedMidspan: (item) => set((s) => ({ cachedMidspans: [...(s.cachedMidspans || []), { id: String(Date.now()), ...item }] })),
+  updateCachedMidspan: (id, patch) => set((s) => ({ cachedMidspans: (s.cachedMidspans || []).map(m => m.id === id ? { ...m, ...patch } : m) })),
+  removeCachedMidspan: (id) => set((s) => ({ cachedMidspans: (s.cachedMidspans || []).filter(m => m.id !== id) })),
   clearCachedMidspans: () => set({ cachedMidspans: [] }),
   importedExistingLines: [],
   setImportedExistingLines: (arr) => set({ importedExistingLines: arr || [] }),
@@ -300,26 +311,26 @@ const useAppStore = create(persist((set) => ({
   }),
   // Reset all state
   reset: () => set({
-  uiSectionSaved: {},
+    uiSectionSaved: {},
     poleHeight: '',
     poleClass: '',
     presetProfile: '',
-  customMinTopSpace: '',
-  customRoadClearance: '',
-  customCommToPower: '',
-  useTickMarkFormat: false,
-  preferAutoSpanLength: false,
-  spanLenDeltaThresholdFt: 10,
-  tableDensity: 'comfortable',
-  spansColumnSegmentsVisible: true,
-  spansColumnActionsVisible: true,
-  projectName: '',
-  applicantName: '',
-  jobNumber: '',
-  jobOwner: '',
-  logoDataUrl: '',
-  poleLatitude: '',
-  poleLongitude: '',
+    customMinTopSpace: '',
+    customRoadClearance: '',
+    customCommToPower: '',
+    useTickMarkFormat: false,
+    preferAutoSpanLength: false,
+    spanLenDeltaThresholdFt: 10,
+    tableDensity: 'comfortable',
+    spansColumnSegmentsVisible: true,
+    spansColumnActionsVisible: true,
+    projectName: '',
+    applicantName: '',
+    jobNumber: '',
+    jobOwner: '',
+    logoDataUrl: '',
+    poleLatitude: '',
+    poleLongitude: '',
     existingPowerHeight: '',
     existingPowerVoltage: 'distribution',
     spanDistance: '',
@@ -328,39 +339,47 @@ const useAppStore = create(persist((set) => ({
     attachmentType: 'communication',
     cableDiameter: '',
     windSpeed: '90',
-  iceThicknessIn: '0',
+    iceThicknessIn: '0',
     hasTransformer: false,
     hasStreetlight: false,
     requiresGuying: false,
     streetLightHeight: '',
     dripLoopHeight: '',
-  powerReference: 'auto',
+    powerReference: 'auto',
     proposedLineHeight: '',
     submissionProfiles: [
-    { name: 'firstEnergy', label: 'FirstEnergy / Mon Power', commToPowerIn: 44, minTopSpaceFt: 2.0, roadClearanceFt: 18.0,
-      envRoadFt: 18.0, envResidentialFt: 15.5, envPedestrianFt: 15.5, envFieldFt: 15.5,
-      envResidentialYardFt: 9.5, envResidentialDrivewayFt: 15.5, envNonResidentialDrivewayFt: 16.0,
-      envWaterwayFt: 14.0, envWVHighwayFt: 18.0, envPAHighwayFt: 18.0, envOHHighwayFt: 18.0, envMDHighwayFt: 18.0,
-      envInterstateFt: 18.0, envInterstateNewCrossingFt: 21.0,
-      envRailroadFt: 27.0, minCommAttachFt: 14.0, manifestType: 'FE' },
-    { name: 'aep', label: 'AEP (Generic)', commToPowerIn: 40, minTopSpaceFt: 2.0, roadClearanceFt: 18.0,
-      envRoadFt: 18.0, envResidentialFt: 15.5, envPedestrianFt: 15.5, envFieldFt: 15.5,
-      envResidentialYardFt: 9.5, envResidentialDrivewayFt: 15.5, envNonResidentialDrivewayFt: 16.0,
-      envWaterwayFt: 14.0, envWVHighwayFt: 18.0, envPAHighwayFt: 18.0, envOHHighwayFt: 18.0, envMDHighwayFt: 18.0,
-      envInterstateFt: 18.0, envInterstateNewCrossingFt: 21.0,
-      envRailroadFt: 27.0, minCommAttachFt: 14.0, manifestType: 'AEP' },
-  { name: 'duke', label: 'Duke Energy', commToPowerIn: 40, minTopSpaceFt: 1.0, roadClearanceFt: 18.0,
-      envRoadFt: 18.0, envResidentialFt: 15.5, envPedestrianFt: 15.5, envFieldFt: 15.5,
-      envResidentialYardFt: 9.5, envResidentialDrivewayFt: 15.5, envNonResidentialDrivewayFt: 16.0,
-      envWaterwayFt: 14.0, envWVHighwayFt: 18.0, envPAHighwayFt: 18.0, envOHHighwayFt: 18.0, envMDHighwayFt: 18.0,
-      envInterstateFt: 18.0, envInterstateNewCrossingFt: 21.0,
-      envRailroadFt: 27.0, minCommAttachFt: 14.0, manifestType: 'DUKE' },
-    { name: 'generic', label: 'Generic / NESC', commToPowerIn: 40, minTopSpaceFt: 1.0, roadClearanceFt: 18.0,
-      envRoadFt: 18.0, envResidentialFt: 15.5, envPedestrianFt: 15.5, envFieldFt: 15.5,
-      envResidentialYardFt: 9.5, envResidentialDrivewayFt: 15.5, envNonResidentialDrivewayFt: 16.0,
-      envWaterwayFt: 14.0, envWVHighwayFt: 18.0, envPAHighwayFt: 18.0, envOHHighwayFt: 18.0, envMDHighwayFt: 18.0,
-      envInterstateFt: 18.0, envInterstateNewCrossingFt: 21.0,
-      envRailroadFt: 27.0, minCommAttachFt: 14.0, manifestType: 'GEN' },
+      {
+        name: 'firstEnergy', label: 'FirstEnergy / Mon Power', commToPowerIn: 44, minTopSpaceFt: 2.0, roadClearanceFt: 18.0,
+        envRoadFt: 18.0, envResidentialFt: 15.5, envPedestrianFt: 15.5, envFieldFt: 15.5,
+        envResidentialYardFt: 9.5, envResidentialDrivewayFt: 15.5, envNonResidentialDrivewayFt: 16.0,
+        envWaterwayFt: 14.0, envWVHighwayFt: 18.0, envPAHighwayFt: 18.0, envOHHighwayFt: 18.0, envMDHighwayFt: 18.0,
+        envInterstateFt: 18.0, envInterstateNewCrossingFt: 21.0,
+        envRailroadFt: 27.0, minCommAttachFt: 14.0, manifestType: 'FE'
+      },
+      {
+        name: 'aep', label: 'AEP (Generic)', commToPowerIn: 40, minTopSpaceFt: 2.0, roadClearanceFt: 18.0,
+        envRoadFt: 18.0, envResidentialFt: 15.5, envPedestrianFt: 15.5, envFieldFt: 15.5,
+        envResidentialYardFt: 9.5, envResidentialDrivewayFt: 15.5, envNonResidentialDrivewayFt: 16.0,
+        envWaterwayFt: 14.0, envWVHighwayFt: 18.0, envPAHighwayFt: 18.0, envOHHighwayFt: 18.0, envMDHighwayFt: 18.0,
+        envInterstateFt: 18.0, envInterstateNewCrossingFt: 21.0,
+        envRailroadFt: 27.0, minCommAttachFt: 14.0, manifestType: 'AEP'
+      },
+      {
+        name: 'duke', label: 'Duke Energy', commToPowerIn: 40, minTopSpaceFt: 1.0, roadClearanceFt: 18.0,
+        envRoadFt: 18.0, envResidentialFt: 15.5, envPedestrianFt: 15.5, envFieldFt: 15.5,
+        envResidentialYardFt: 9.5, envResidentialDrivewayFt: 15.5, envNonResidentialDrivewayFt: 16.0,
+        envWaterwayFt: 14.0, envWVHighwayFt: 18.0, envPAHighwayFt: 18.0, envOHHighwayFt: 18.0, envMDHighwayFt: 18.0,
+        envInterstateFt: 18.0, envInterstateNewCrossingFt: 21.0,
+        envRailroadFt: 27.0, minCommAttachFt: 14.0, manifestType: 'DUKE'
+      },
+      {
+        name: 'generic', label: 'Generic / NESC', commToPowerIn: 40, minTopSpaceFt: 1.0, roadClearanceFt: 18.0,
+        envRoadFt: 18.0, envResidentialFt: 15.5, envPedestrianFt: 15.5, envFieldFt: 15.5,
+        envResidentialYardFt: 9.5, envResidentialDrivewayFt: 15.5, envNonResidentialDrivewayFt: 16.0,
+        envWaterwayFt: 14.0, envWVHighwayFt: 18.0, envPAHighwayFt: 18.0, envOHHighwayFt: 18.0, envMDHighwayFt: 18.0,
+        envInterstateFt: 18.0, envInterstateNewCrossingFt: 21.0,
+        envRailroadFt: 27.0, minCommAttachFt: 14.0, manifestType: 'GEN'
+      },
     ],
     currentSubmissionProfile: 'firstEnergy',
     adjacentPoleHeight: '',
@@ -373,16 +392,16 @@ const useAppStore = create(persist((set) => ({
     costAnalysis: null,
     scenarioA: null,
     scenarioB: null,
-  mappingPreset: 'generic',
-  mappingProfiles: [],
-  importedPoles: [],
-  collectedPoles: [],
-  importedSpans: [],
-  cachedMidspans: [],
-  importedExistingLines: [],
-  existingLinesCSV: '',
-  csvLineMapping: { type: 'type', company: 'company', height: 'height', makeReady: 'makeReady', makeReadyHeight: 'makeReadyHeight' },
-  pdfLayouts: {},
+    mappingPreset: 'generic',
+    mappingProfiles: [],
+    importedPoles: [],
+    collectedPoles: [],
+    importedSpans: [],
+    cachedMidspans: [],
+    importedExistingLines: [],
+    existingLinesCSV: '',
+    csvLineMapping: { type: 'type', company: 'company', height: 'height', makeReady: 'makeReady', makeReadyHeight: 'makeReadyHeight' },
+    pdfLayouts: {},
   })
 }), { name: 'pole-height-store', storage: createJSONStorage(() => localStorage) }));
 

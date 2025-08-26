@@ -1,5 +1,5 @@
 // Vitest setup: testing-library cleanup and light DOM shims
-import { afterEach } from 'vitest'
+import { afterEach } from 'vitest';
 import { cleanup } from '@testing-library/react'
 
 afterEach(() => cleanup())
@@ -9,10 +9,10 @@ if (typeof window !== 'undefined' && !window.matchMedia) {
   // @ts-ignore
   window.matchMedia = () => ({
     matches: false,
-    addListener: () => {},
-    removeListener: () => {},
-    addEventListener: () => {},
-    removeEventListener: () => {},
+    addListener: () => { },
+    removeListener: () => { },
+    addEventListener: () => { },
+    removeEventListener: () => { },
     dispatchEvent: () => false,
   })
 }

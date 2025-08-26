@@ -1,11 +1,12 @@
 name: PR Checks (disabled)
 
+# Disabled to avoid duplicate runs; kept for reference.
 on:
-  # Disabled to avoid duplicate runs; kept for reference.
   workflow_call:
 
 jobs:
   verify:
+    if: false
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
       cancel-in-progress: true
@@ -32,6 +33,7 @@ jobs:
         run: npm audit --omit=dev --audit-level=moderate || echo "audit reported issues (non-blocking)"
 
   coverage:
+    if: false
     name: Coverage
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}-coverage

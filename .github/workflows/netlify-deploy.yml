@@ -1,89 +1,13 @@
-name: Deploy to Netlify
+name: Netlify Deploy (disabled)
 
+# Disabled; Netlify deploys directly from GitHub. Kept as a placeholder to avoid re-adding.
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    types: [opened, synchronize, reopened]
-
-permissions:
-  contents: read
-  deployments: write
+  workflow_call:
 
 jobs:
-  build-and-deploy:
-    name: Build and Deploy
+  noop:
+    if: false
     runs-on: ubuntu-latest
-    concurrency:
-      group: netlify-${{ github.ref }}
-      cancel-in-progress: true
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - run: echo "disabled"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Lint (ESLint)
-        run: npm run -s lint
-
-      - name: Test (Vitest)
-        run: npm test -- --run --reporter=verbose
-
-      - name: Build (Vite)
-        run: npm run -s build
-
-      - name: Deploy to Netlify (Production)
-        if: ${{ github.ref == 'refs/heads/main' }}
-        uses: nwtgck/actions-netlify@v3.0
-        with:
-          publish-dir: './dist'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: "Production Deploy - ${{ github.sha }}"
-          production-branch: main
-          github-deployment-environment: production
-          enable-pull-request-comment: false
-          enable-commit-comment: true
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-
-      - name: Deploy to Netlify (Preview)
-        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false }}
-        uses: nwtgck/actions-netlify@v3.0
-        with:
-          publish-dir: './dist'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: "Preview Deploy - PR #${{ github.event.number }}"
-          github-deployment-environment: preview
-          enable-pull-request-comment: true
-          enable-commit-comment: false
-          overwrites-pull-request-comment: true
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: dist-${{ github.sha }}
-          path: dist/
-          retention-days: ${{ github.ref == 'refs/heads/main' && '90' || '30' }}
-
-      - name: Deployment summary
-        run: |
-          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
-          echo "- Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Branch: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "- Pull Request: #${{ github.event.number }}" >> $GITHUB_STEP_SUMMARY
-          fi
-          echo "- Deploy Time: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_STEP_SUMMARY
