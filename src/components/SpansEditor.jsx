@@ -387,9 +387,9 @@ export default function SpansEditor() {
     const autoLen = getSpanLengthFt(s);
     // Refactored to reduce cognitive complexity
     const preferAuto = !!store.preferAutoSpanLength;
-  const spanLenSource = determineSpanLenSource(preferAuto, autoLen, s);
-  const spanDistance = preferAuto ? (autoLen || s.lengthFt || s.estimatedLengthFt || 0) : (s.lengthFt || s.estimatedLengthFt || autoLen || 0);
-  const a = computeAnalysis(buildAnalysisInput(s, spanDistance));
+    const spanLenSource = determineSpanLenSource(preferAuto, autoLen, s);
+    const spanDistance = preferAuto ? (autoLen || s.lengthFt || s.estimatedLengthFt || 0) : (s.lengthFt || s.estimatedLengthFt || autoLen || 0);
+    const a = computeAnalysis(buildAnalysisInput(s, spanDistance));
     if (a?.results) {
       const controllingTargetFt = controllingTargetFromSegments(s.segments, s.environment || store.spanEnvironment);
       const coords = inferEndpointsForSpan(s);
@@ -399,11 +399,11 @@ export default function SpansEditor() {
       if ((s.toId == null || s.toId === '') && coords?.to?.id) endpointPatch.toId = coords.to.id;
       if (Object.keys(endpointPatch).length) store.updateImportedSpan(idx, endpointPatch);
       // Compute metadata
-  const mid = a.results.span.midspanFt;
-  const target = controllingTargetFt ?? a.results.clearances.groundClearance;
-  let pass = null;
-  if (mid != null && target != null) pass = Number(mid) >= Number(target);
-  const deficitFt = (pass === false) ? Math.max(0, Number(target) - Number(mid)) : (pass === true ? 0 : null);
+      const mid = a.results.span.midspanFt;
+      const target = controllingTargetFt ?? a.results.clearances.groundClearance;
+      let pass = null;
+      if (mid != null && target != null) pass = Number(mid) >= Number(target);
+      const deficitFt = (pass === false) ? Math.max(0, Number(target) - Number(mid)) : (pass === true ? 0 : null);
       const manualLen = s.lengthFt != null ? Number(s.lengthFt) : null;
       const autoLen2 = getSpanLengthFt(s) ?? null;
       const deltaFt = (manualLen != null && autoLen2 != null) ? Math.abs(manualLen - autoLen2) : null;
@@ -437,7 +437,7 @@ export default function SpansEditor() {
     const coords = inferEndpointsForSpan(s);
     const autoLen = getSpanLengthFt(s);
     const preferAuto = !!store.preferAutoSpanLength;
-  const spanLenSource = determineSpanLenSource(preferAuto, autoLen, s);
+    const spanLenSource = determineSpanLenSource(preferAuto, autoLen, s);
     // Persist inferred endpoints back into the span row for clarity
     const endpointPatch = {};
     if ((s.fromId == null || s.fromId === '') && coords?.from?.id) endpointPatch.fromId = coords.from.id;
