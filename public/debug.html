@@ -35,6 +35,15 @@
             border-radius: 10px;
             margin: 20px;
         }
+
+        .back-link {
+            color: white;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 
@@ -46,7 +55,7 @@
         <p>⚡ Testing asset delivery</p>
         <p id="timestamp"></p>
     </div>
-    <p><a href="/" style="color: white;">← Back to Main App</a></p>
+    <p><a href="/" class="back-link">← Back to Main App</a></p>
 
     <script>
         document.getElementById('timestamp').textContent = 'Generated: ' + new Date().toISOString();
