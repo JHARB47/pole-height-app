@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,16 +18,26 @@
             margin: 0;
             text-align: center;
         }
-        h1 { font-size: 3rem; margin-bottom: 1rem; }
-        p { font-size: 1.2rem; margin-bottom: 0.5rem; }
-        .status { 
-            background: rgba(255,255,255,0.2); 
-            padding: 20px; 
-            border-radius: 10px; 
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .status {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 10px;
             margin: 20px;
         }
     </style>
 </head>
+
 <body>
     <h1>🔧 Debug Page</h1>
     <div class="status">
@@ -36,10 +47,11 @@
         <p id="timestamp"></p>
     </div>
     <p><a href="/" style="color: white;">← Back to Main App</a></p>
-    
+
     <script>
         document.getElementById('timestamp').textContent = 'Generated: ' + new Date().toISOString();
         console.log('Debug page loaded successfully');
     </script>
 </body>
+
 </html>
