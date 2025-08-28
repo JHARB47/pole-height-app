@@ -71,6 +71,13 @@ describe('ProposedLineCalculator', () => {
     expect(btn.textContent?.includes('View Report')).toBe(true);
   });
 
+  it('disables View Report when no results are available', () => {
+    render(<ProposedLineCalculator />);
+    const btn = screen.getByRole('button', { name: /View Report/i });
+    expect(btn).toBeTruthy();
+    expect(btn).toHaveProperty('disabled', true);
+  });
+
   it('should unmount cleanly without errors', () => {
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
     const { unmount } = render(<ProposedLineCalculator />);

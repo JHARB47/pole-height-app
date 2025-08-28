@@ -36,7 +36,7 @@ export function formatFeetInches(feet, { compact = false, tickMarks = false } = 
   let inch = Math.round((abs - ft) * 12);
   if (inch === 12) { ft += 1; inch = 0; }
   const sign = isNeg ? '-' : '';
-  
+
   if (tickMarks) {
     return compact ? `${sign}${ft}' ${inch}"` : `${sign}${ft}' ${inch}"`;
   } else {
@@ -76,15 +76,15 @@ export const DEFAULTS = {
     { label: 'Copper (0.5")', value: 'copper', weight: 0.10, tension: 1400, diameter: 0.5 },
     { label: 'Triplex (1.0")', value: 'triplex', weight: 0.20, tension: 1800, diameter: 1.0 },
     { label: 'Generic Comm (0.6")', value: 'communication', weight: 0.10, tension: 1400, diameter: 0.6 },
-  { label: 'Messenger-lashed Fiber (0.6")', value: 'messenger_fiber', weight: 0.14, tension: 1600, diameter: 0.6 },
-  { label: 'Overlash on Existing Messenger (0.6")', value: 'overlash', weight: 0.18, tension: 1800, diameter: 0.6 },
+    { label: 'Messenger-lashed Fiber (0.6")', value: 'messenger_fiber', weight: 0.14, tension: 1600, diameter: 0.6 },
+    { label: 'Overlash on Existing Messenger (0.6")', value: 'overlash', weight: 0.18, tension: 1800, diameter: 0.6 },
   ],
   presets: {
-    firstEnergy: { label: 'FirstEnergy', value: 'firstEnergy', voltage: 'distribution', minTopSpace: 2.0, roadClearance: 18.0, commToPower: 44/12, asBuiltTolerances: { attachHeightIn: 2 } },
-    firstEnergyMonPower: { label: 'FirstEnergy - Mon Power', value: 'firstEnergyMonPower', voltage: 'distribution', minTopSpace: 2.0, roadClearance: 18.0, commToPower: 44/12, asBuiltTolerances: { attachHeightIn: 2 } },
-    pse: { label: 'PSE', value: 'pse', voltage: 'distribution', minTopSpace: 2.0, roadClearance: 18.0, commToPower: 42/12, asBuiltTolerances: { attachHeightIn: 4 } },
-  duke: { label: 'Duke', value: 'duke', voltage: 'distribution', minTopSpace: 2.0, roadClearance: 18.0, commToPower: 40/12, asBuiltTolerances: { attachHeightIn: 4 } },
-  nationalGrid: { label: 'National Grid', value: 'nationalGrid', voltage: 'distribution', minTopSpace: 2.0, roadClearance: 18.0, commToPower: 40/12, asBuiltTolerances: { attachHeightIn: 4 } },
+    firstEnergy: { label: 'FirstEnergy', value: 'firstEnergy', voltage: 'distribution', minTopSpace: 2.0, roadClearance: 18.0, commToPower: 44 / 12, asBuiltTolerances: { attachHeightIn: 2 } },
+    firstEnergyMonPower: { label: 'FirstEnergy - Mon Power', value: 'firstEnergyMonPower', voltage: 'distribution', minTopSpace: 2.0, roadClearance: 18.0, commToPower: 44 / 12, asBuiltTolerances: { attachHeightIn: 2 } },
+    pse: { label: 'PSE', value: 'pse', voltage: 'distribution', minTopSpace: 2.0, roadClearance: 18.0, commToPower: 42 / 12, asBuiltTolerances: { attachHeightIn: 4 } },
+    duke: { label: 'Duke', value: 'duke', voltage: 'distribution', minTopSpace: 2.0, roadClearance: 18.0, commToPower: 40 / 12, asBuiltTolerances: { attachHeightIn: 4 } },
+    nationalGrid: { label: 'National Grid', value: 'nationalGrid', voltage: 'distribution', minTopSpace: 2.0, roadClearance: 18.0, commToPower: 40 / 12, asBuiltTolerances: { attachHeightIn: 4 } },
   }
 };
 
@@ -150,7 +150,7 @@ export function resultsToCSV(results, warnings = [], makeReadyNotes = '', { useT
   if (!results) return '';
   const lines = [];
   const fmt = useTickMarks ? formatFeetInchesTickMarks : formatFeetInches;
-  
+
   lines.push('Section,Field,Value');
   lines.push(`Pole,Height,${fmt(results.pole.inputHeight)}`);
   lines.push(`Pole,Buried,${fmt(results.pole.buriedFt)}`);
@@ -178,7 +178,7 @@ export function resultsToCSV(results, warnings = [], makeReadyNotes = '', { useT
     lines.push(`Guying,Angle,${Math.round(results.guy.angle || 0)} deg`);
   }
   if (warnings?.length) lines.push(`Warnings,Count,${warnings.length}`);
-  if (makeReadyNotes) lines.push(`Notes,Make-ready,"${makeReadyNotes.replace(/"/g,'""')}"`);
+  if (makeReadyNotes) lines.push(`Notes,Make-ready,"${makeReadyNotes.replace(/"/g, '""')}"`);
   return lines.join('\n');
 }
 
@@ -188,9 +188,9 @@ export function getPoleBurialData(height, poleClass = '') {
   const aboveGround = Math.max(0, h - buried);
   const recommendedClass = h <= 30 ? 'Class 6 typical'
     : h <= 35 ? 'Class 4-5 typical'
-    : h <= 40 ? 'Class 3-4 typical'
-    : h <= 45 ? 'Class 2-3 typical'
-    : 'Class 1-2 typical';
+      : h <= 40 ? 'Class 3-4 typical'
+        : h <= 45 ? 'Class 2-3 typical'
+          : 'Class 1-2 typical';
   const classInfo = poleClass || recommendedClass;
   return { buried, aboveGround, classInfo, recommendedClass };
 }
@@ -298,6 +298,20 @@ export function getFirstEnergyRequirements() {
       'Standard make-ready: $150-300 per attachment point',
       'Complex make-ready: $500-1500 per pole',
       'Timeline: 45-90 days after approval'
+    ],
+    qualityAssurance: [
+      'Field verification of pole class and height',
+      'Photo documentation of existing conditions',
+      'GPS verification within 10 feet of reported coordinates',
+      'Clearance measurements using laser rangefinder',
+      'As-built documentation within 48 hours of completion'
+    ],
+    safetyRequirements: [
+      'Hard hat, safety glasses, and high-visibility vest required',
+      'Traffic control plan for roadway work',
+      'Minimum approach distances to energized equipment',
+      'Lockout/tagout procedures for utility coordination',
+      'Fall protection for work above 6 feet'
     ]
   };
 }
@@ -307,22 +321,22 @@ export function computeAnalysis(inputs) {
   const {
     poleHeight,
     poleClass,
-  poleLatitude,
-  poleLongitude,
-  adjacentPoleLatitude,
-  adjacentPoleLongitude,
+    poleLatitude,
+    poleLongitude,
+    adjacentPoleLatitude,
+    adjacentPoleLongitude,
     existingPowerHeight,
     existingPowerVoltage = 'distribution',
     spanDistance,
     isNewConstruction,
     adjacentPoleHeight,
-  adjacentPowerHeight,
-  adjacentProposedAttachFt,
+    adjacentPowerHeight,
+    adjacentProposedAttachFt,
     attachmentType,
     cableDiameter,
     windSpeed,
     spanEnvironment = 'road',
-  // streetLightHeight,
+    // streetLightHeight,
     dripLoopHeight,
     proposedLineHeight,
     existingLines = [],
@@ -334,7 +348,7 @@ export function computeAnalysis(inputs) {
     customCommToPower,
     powerReference,
     jobOwner,
-  submissionProfile,
+    submissionProfile,
   } = inputs || {};
 
   const errs = {};
@@ -353,8 +367,8 @@ export function computeAnalysis(inputs) {
     const lat2 = Number(adjacentPoleLatitude), lon2 = Number(adjacentPoleLongitude);
     const dLat = toRad(lat2 - lat1);
     const dLon = toRad(lon2 - lon1);
-    const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const meters = Rm * c;
     spanFt = meters * 3.28084;
   }
@@ -377,7 +391,7 @@ export function computeAnalysis(inputs) {
   // Owner-type overrides: if FirstEnergy detected by jobOwner/lines/preset, enforce FE-like parameters
   if (isFirstEnergyOwner) {
     // Ensure comm-to-power separation reflects 44" (unless custom override is supplied later)
-    clearances.powerClearanceDistribution = Math.max(clearances.powerClearanceDistribution || 0, 44/12);
+    clearances.powerClearanceDistribution = Math.max(clearances.powerClearanceDistribution || 0, 44 / 12);
     // Ensure minimum top space at least 2 ft
     clearances.minimumPoleTopSpace = Math.max(clearances.minimumPoleTopSpace || 0, 2.0);
     // Road environments: enforce 18 ft ground target minimum
@@ -398,12 +412,12 @@ export function computeAnalysis(inputs) {
     if (spanEnvironment === 'field' && Number.isFinite(envFieldFt)) clearances.groundClearance = Number(envFieldFt);
     if (spanEnvironment === 'residentialYard' && Number.isFinite(envResidentialYardFt)) clearances.groundClearance = Number(envResidentialYardFt);
     if (spanEnvironment === 'residentialDriveway' && Number.isFinite(envResidentialDrivewayFt)) clearances.groundClearance = Number(envResidentialDrivewayFt);
-  if (spanEnvironment === 'waterway' && Number.isFinite(envWaterwayFt)) clearances.groundClearance = Number(envWaterwayFt);
-  if (spanEnvironment === 'wvHighway' && Number.isFinite(envWVHighwayFt)) clearances.groundClearance = Number(envWVHighwayFt);
-  if (spanEnvironment === 'interstate' && Number.isFinite(envInterstateFt)) clearances.groundClearance = Number(envInterstateFt);
-  if (spanEnvironment === 'interstateNewCrossing' && Number.isFinite(envInterstateNewCrossingFt)) clearances.groundClearance = Number(envInterstateNewCrossingFt);
-  if (spanEnvironment === 'nonResidentialDriveway' && Number.isFinite(envNonResidentialDrivewayFt)) clearances.groundClearance = Number(envNonResidentialDrivewayFt);
-  if (spanEnvironment === 'railroad' && Number.isFinite(envRailroadFt)) clearances.groundClearance = Number(envRailroadFt);
+    if (spanEnvironment === 'waterway' && Number.isFinite(envWaterwayFt)) clearances.groundClearance = Number(envWaterwayFt);
+    if (spanEnvironment === 'wvHighway' && Number.isFinite(envWVHighwayFt)) clearances.groundClearance = Number(envWVHighwayFt);
+    if (spanEnvironment === 'interstate' && Number.isFinite(envInterstateFt)) clearances.groundClearance = Number(envInterstateFt);
+    if (spanEnvironment === 'interstateNewCrossing' && Number.isFinite(envInterstateNewCrossingFt)) clearances.groundClearance = Number(envInterstateNewCrossingFt);
+    if (spanEnvironment === 'nonResidentialDriveway' && Number.isFinite(envNonResidentialDrivewayFt)) clearances.groundClearance = Number(envNonResidentialDrivewayFt);
+    if (spanEnvironment === 'railroad' && Number.isFinite(envRailroadFt)) clearances.groundClearance = Number(envRailroadFt);
     // minCommAttachFt is applied after attach height is computed below
   }
   if (customMinTopSpace) clearances.minimumPoleTopSpace = Number(customMinTopSpace) || clearances.minimumPoleTopSpace;
@@ -426,7 +440,7 @@ export function computeAnalysis(inputs) {
     if (t.includes('neutral')) pushIf(line?.height, 'neutral');
     if (t.includes('secondary')) pushIf(line?.height, 'secondary');
   }
-  heights.sort((a,b)=>a.ft-b.ft);
+  heights.sort((a, b) => a.ft - b.ft);
   // Owner-selected reference override
   let controlling = null;
   const findByName = (n) => heights.find(h => h.name === n) || null;
@@ -438,7 +452,7 @@ export function computeAnalysis(inputs) {
     default: controlling = heights[0] || null; break;
   }
   const powerPresent = !!controlling;
-  const hasCommCompany = (existingLines || []).some(l => String(l?.type||'').toLowerCase().includes('communication') && String(l?.companyName||'').trim().length > 0);
+  const hasCommCompany = (existingLines || []).some(l => String(l?.type || '').toLowerCase().includes('communication') && String(l?.companyName || '').trim().length > 0);
   const commOwnerScenario = !powerPresent && (existingPowerVoltage === 'communication' || hasCommCompany);
 
   // Determine effective separation between comm and controlling power-owned element
@@ -448,7 +462,7 @@ export function computeAnalysis(inputs) {
     : (clearances.powerClearanceDistribution || 0);
   const ownerFloorFt = (existingPowerVoltage === 'transmission')
     ? baseSeparationFt // don't override transmission separation with owner floors
-    : (isFirstEnergyOwner ? (44/12) : (40/12));
+    : (isFirstEnergyOwner ? (44 / 12) : (40 / 12));
   const effectiveSeparationFt = Math.max(baseSeparationFt, ownerFloorFt);
   const effectiveSeparationInches = Math.round(effectiveSeparationFt * 12);
 
@@ -466,7 +480,7 @@ export function computeAnalysis(inputs) {
     calculatedCost += 200;
   } else if (isNewConstruction) {
     proposedAttachFt = poleData.aboveGround - clearances.minimumPoleTopSpace;
-    ownerRecommendation = { basis: 'new-construction', detail: `${Math.round(clearances.minimumPoleTopSpace*12)}" below pole top`, clearanceIn: Math.round(clearances.minimumPoleTopSpace*12), controlling: { name: 'pole top', ft: poleData.aboveGround } };
+    ownerRecommendation = { basis: 'new-construction', detail: `${Math.round(clearances.minimumPoleTopSpace * 12)}" below pole top`, clearanceIn: Math.round(clearances.minimumPoleTopSpace * 12), controlling: { name: 'pole top', ft: poleData.aboveGround } };
     notes.push(`New construction: attach ${formatFeetInches(clearances.minimumPoleTopSpace)} below pole top`);
     calculatedCost += 150;
   } else {
@@ -476,8 +490,8 @@ export function computeAnalysis(inputs) {
       : clearances.powerClearanceDistribution;
     const powerFt = parseFeet(existingPowerHeight);
     proposedAttachFt = (powerFt != null ? powerFt : 0) - pClear;
-    ownerRecommendation = { basis: 'voltage-default', detail: `${Math.round((pClear||0)*12)}" below power conductor`, clearanceIn: Math.round((pClear||0)*12), controlling: { name: 'power conductor', ft: powerFt || 0 } };
-    notes.push(`Default rule: ${Math.round((pClear||0)*12)}" below power conductor`);
+    ownerRecommendation = { basis: 'voltage-default', detail: `${Math.round((pClear || 0) * 12)}" below power conductor`, clearanceIn: Math.round((pClear || 0) * 12), controlling: { name: 'power conductor', ft: powerFt || 0 } };
+    notes.push(`Default rule: ${Math.round((pClear || 0) * 12)}" below power conductor`);
     calculatedCost += 200;
   }
 
@@ -547,7 +561,7 @@ export function computeAnalysis(inputs) {
       if (gapIn < sepToPowerIn) localWarnings.push(`Comm-to-${controlling.name} at pole: ${gapIn.toFixed(1)}" (need ${sepToPowerIn}")`);
     }
     // 30" below transformer bottom if that is lowest power control
-    const transformerBottomFt = (existingLines||[]).find(l => String(l?.type||'').toLowerCase().includes('transformer'))?.height ? parseFeet((existingLines||[]).find(l => String(l?.type||'').toLowerCase().includes('transformer')).height) : null;
+    const transformerBottomFt = (existingLines || []).find(l => String(l?.type || '').toLowerCase().includes('transformer'))?.height ? parseFeet((existingLines || []).find(l => String(l?.type || '').toLowerCase().includes('transformer')).height) : null;
     if (proposedFt != null && transformerBottomFt != null) {
       const gapIn = (transformerBottomFt - proposedFt) * 12;
       if (gapIn < 30) localWarnings.push(`Comm-to-Transformer bottom: ${gapIn.toFixed(1)}" (need 30")`);
@@ -561,7 +575,7 @@ export function computeAnalysis(inputs) {
       if (gapIn < req) localWarnings.push(`Comm-to-Street Light: ${gapIn.toFixed(1)}" (need ${req}")`);
     }
     // 12" street light drip loop (12" if coated)
-    const slDripFt = (existingLines||[]).find(l => String(l?.type||'').toLowerCase().includes('street light drip'))?.height ? parseFeet((existingLines||[]).find(l => String(l?.type||'').toLowerCase().includes('street light drip')).height) : null;
+    const slDripFt = (existingLines || []).find(l => String(l?.type || '').toLowerCase().includes('street light drip'))?.height ? parseFeet((existingLines || []).find(l => String(l?.type || '').toLowerCase().includes('street light drip')).height) : null;
     if (proposedFt != null && slDripFt != null) {
       const gapIn = (slDripFt - proposedFt) * 12;
       if (gapIn < 12) localWarnings.push(`Comm-to-Street Light Drip: ${gapIn.toFixed(1)}" (need 12")`);
@@ -573,15 +587,15 @@ export function computeAnalysis(inputs) {
     }
     // Midspan comm-to-comm: 12" mains/laterals; 4" drops
     if (midspanFt != null) {
-      for (const line of (existingLines||[])) {
-        const t = String(line?.type||'').toLowerCase();
+      for (const line of (existingLines || [])) {
+        const t = String(line?.type || '').toLowerCase();
         if (t.includes('communication')) {
           const otherFt = parseFeet(line?.height);
           if (otherFt != null) {
             const gapIn = Math.abs((midspanFt - otherFt) * 12);
             const isDrop = t.includes('drop');
             const req = isDrop ? 4 : 12;
-            if (gapIn < req) localWarnings.push(`Midspan comm-to-comm (${isDrop?'drop':'main'}): ${gapIn.toFixed(1)}" (need ${req}")`);
+            if (gapIn < req) localWarnings.push(`Midspan comm-to-comm (${isDrop ? 'drop' : 'main'}): ${gapIn.toFixed(1)}" (need ${req}")`);
           }
         }
       }
@@ -616,8 +630,12 @@ export function computeAnalysis(inputs) {
         if (midGap < reqMidIn) localWarnings.push(`Midspan clearance to ${line.type}: ${midGap.toFixed(1)}" (need ${reqMidIn}")`);
       }
       if (line.makeReady && line.makeReadyHeight && line.height) {
-        const diffIn = (parseFeet(line.makeReadyHeight) - parseFeet(line.height)) * 12;
-        makeReadyTotal += Math.abs(Math.round(diffIn)) * 12.5;
+        const oldFt = parseFeet(line.height);
+        const newFt = parseFeet(line.makeReadyHeight);
+        if (oldFt != null && newFt != null) {
+          const diffIn = (newFt - oldFt) * 12;
+          makeReadyTotal += Math.abs(Math.round(diffIn)) * 12.5;
+        }
       }
     });
   }
@@ -643,13 +661,13 @@ export function computeAnalysis(inputs) {
       buriedFt: poleData.buried,
       aboveGroundFt: poleData.aboveGround,
       classInfo: poleData.classInfo,
-  latitude: poleLatitude ?? null,
-  longitude: poleLongitude ?? null,
+      latitude: poleLatitude ?? null,
+      longitude: poleLongitude ?? null,
     },
     attach: {
       proposedAttachFt,
       proposedAttachFmt: formatFeetInches(proposedAttachFt),
-  recommendation: ownerRecommendation,
+      recommendation: ownerRecommendation,
     },
     span: {
       spanFt,
