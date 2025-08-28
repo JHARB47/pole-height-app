@@ -56,10 +56,12 @@ ErrorBoundary.propTypes = {
 };
 
 export default function App() {
+  console.log('App component rendering...');
   return (
     <ErrorBoundary>
       <div className="safe-pt safe-pb">
         <div className="mx-auto max-w-6xl px-3 md:px-6 py-3 md:py-4 break-anywhere">
+          <div style={{background: 'red', color: 'white', padding: '10px'}}>DEBUG: App is rendering</div>
           <JobSetup />
           <div className="h-3" />
           <LazyProposedLineCalculator />
