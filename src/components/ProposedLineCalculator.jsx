@@ -286,7 +286,7 @@ export default function ProposedLineCalculator() {
         <div className="flex items-center gap-2">
           <h1 className="text-lg md:text-xl font-semibold">Pole Plan Wizard</h1>
           <span className="hidden sm:inline text-xs text-gray-600">Job:</span>
-          <select className="hidden sm:inline text-xs border rounded px-1 py-0.5" value={currentJobId || ''} onChange={e => setCurrentJobId(e.target.value)}>
+          <select className="hidden sm:inline text-sm border rounded px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" value={currentJobId || ''} onChange={e => setCurrentJobId(e.target.value)}>
             <option value="">-- None --</option>
             {(jobs || []).map(j => <option key={j.id} value={j.id}>{j.name}</option>)}
           </select>
@@ -301,8 +301,8 @@ export default function ProposedLineCalculator() {
       {/* Invisible anchor for #job and optional collapse */}
       <div id="job" className="anchor-offset" />
       {!showReport && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 no-print app-section">
-          <div className="flex items-start justify-between sm:col-span-2 lg:col-span-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 no-print app-section">
+          <div className="flex items-start justify-between md:col-span-2 xl:col-span-3">
             <div>
               <div className="section-title">Job Setup</div>
               <div className="section-subtitle">Project info, GPS, design parameters, and profiles.</div>
@@ -311,7 +311,7 @@ export default function ProposedLineCalculator() {
               <SectionSaveButton sectionKey="job" align="right" />
               <button
                 type="button"
-                className="ml-2 px-2 py-1 text-xs border rounded"
+                className="ml-2 px-3 py-2 text-sm border rounded bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                 onClick={() => setOpenSections(s => ({ ...s, job: !s.job }))}
                 aria-expanded={!!openSections.job}
               >{openSections.job ? 'Collapse' : 'Expand'}</button>
@@ -324,11 +324,16 @@ export default function ProposedLineCalculator() {
               <Input label="Applicant" value={applicantName} onChange={e => setApplicantName(e.target.value)} />
               <Input label="Job #" value={jobNumber} onChange={e => setJobNumber(e.target.value)} />
               <LogoUpload />
-              <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="md:col-span-2 xl:col-span-3 grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg border">
                 <Input label="Pole Latitude" value={poleLatitude} onChange={e => setPoleLatitude(e.target.value)} placeholder="e.g., 40.123456" />
-                <div className="grid grid-cols-[1fr_auto] gap-2 items-end">
+                <div className="grid grid-cols-[1fr_auto] gap-3 items-end">
                   <Input label="Pole Longitude" value={poleLongitude} onChange={e => setPoleLongitude(e.target.value)} placeholder="e.g., -82.987654" />
-                  <button type="button" className="h-9 px-3 border rounded text-sm" onClick={useDeviceGPS} title="Use device GPS">
+                  <button 
+                    type="button" 
+                    className="h-11 px-4 border rounded text-sm bg-blue-50 hover:bg-blue-100 border-blue-300 text-blue-700 font-medium whitespace-nowrap" 
+                    onClick={useDeviceGPS} 
+                    title="Use device GPS"
+                  >
                     Use GPS
                   </button>
                 </div>
@@ -344,9 +349,15 @@ export default function ProposedLineCalculator() {
               }} options={(submissionProfiles || []).map(p => ({ label: p.label, value: p.name }))} />
               {/* Quick profile tuning */}
               <ProfileTuner />
-              <label className="text-sm text-gray-700 grid gap-1">
-                <span className="font-medium">Owner (utility)</span>
-                <input list="wv-power-companies-inline" className="border rounded px-2 py-1" value={jobOwner} onChange={e => setJobOwner(e.target.value)} placeholder="e.g., Mon Power, Penelec" />
+              <label className="text-sm text-gray-700 grid gap-2">
+                <span className="font-medium whitespace-nowrap text-left">Owner (utility)</span>
+                <input 
+                  list="wv-power-companies-inline" 
+                  className="border rounded px-3 py-2 min-w-0 w-full text-base leading-normal bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                  value={jobOwner} 
+                  onChange={e => setJobOwner(e.target.value)} 
+                  placeholder="e.g., Mon Power, Penelec" 
+                />
                 <datalist id="wv-power-companies-inline">
                   {WV_COMPANIES.power.map(c => <option key={`p-${c.name}`} value={c.short || c.name}>{c.name}</option>)}
                 </datalist>
@@ -860,9 +871,12 @@ AutoMapPreviewModal.propTypes = {
 
 function Input({ label, ...props }) {
   return (
-    <label className="text-sm text-gray-700 grid gap-1">
-      <span className="font-medium">{label}</span>
-      <input className="border rounded px-2 py-1" {...props} />
+    <label className="text-sm text-gray-700 grid gap-2">
+      <span className="font-medium whitespace-nowrap text-left">{label}</span>
+      <input 
+        className="border rounded px-3 py-2 min-w-0 w-full text-base leading-normal bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+        {...props} 
+      />
     </label>
   );
 }
@@ -873,9 +887,12 @@ Input.propTypes = {
 
 function Select({ label, options, ...props }) {
   return (
-    <label className="text-sm text-gray-700 grid gap-1">
-      <span className="font-medium">{label}</span>
-      <select className="border rounded px-2 py-1" {...props}>
+    <label className="text-sm text-gray-700 grid gap-2">
+      <span className="font-medium whitespace-nowrap text-left">{label}</span>
+      <select 
+        className="border rounded px-3 py-2 min-w-0 w-full text-base leading-normal bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+        {...props}
+      >
         {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
     </label>
@@ -892,9 +909,13 @@ Select.propTypes = {
 
 function Checkbox({ label, ...props }) {
   return (
-    <label className="text-sm text-gray-700 inline-flex items-center gap-2 mt-5">
-      <input type="checkbox" className="h-4 w-4" {...props} />
-      <span className="font-medium">{label}</span>
+    <label className="text-sm text-gray-700 inline-flex items-center gap-3 mt-6 cursor-pointer">
+      <input 
+        type="checkbox" 
+        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2" 
+        {...props} 
+      />
+      <span className="font-medium select-none">{label}</span>
     </label>
   );
 }
@@ -928,20 +949,20 @@ function ProfileTuner() {
   };
 
   const Editor = ({ label, field, unit }) => (
-    <label className="text-sm text-gray-700 grid gap-1">
-      <span className="font-medium">{label}</span>
+    <label className="text-sm text-gray-700 grid gap-2">
+      <span className="font-medium whitespace-nowrap text-left">{label}</span>
       <input
-        className="border rounded px-2 py-1"
+        className="border rounded px-3 py-2 min-w-0 w-full text-base leading-normal bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         value={effective[field] ?? ''}
         onChange={e => activeJob ? onChangeJob(field, e.target.value) : onChangeGlobal(field, e.target.value)}
         placeholder={activeJob ? 'override (blank uses profile)' : ''}
       />
-      <span className="text-xs text-gray-500">{unit}</span>
+      <span className="text-xs text-gray-500 -mt-1">{unit}</span>
     </label>
   );
 
   return (
-    <div className="grid grid-cols-3 gap-3">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
       <Editor label="Comm→Power" field="commToPowerIn" unit={'in'} />
       <Editor label="Min Top Space" field="minTopSpaceFt" unit={'ft'} />
       <Editor label="Road Clearance" field="roadClearanceFt" unit={'ft'} />
@@ -962,11 +983,13 @@ function ProfileTuner() {
       <Editor label="Railroad Crossing Target" field="envRailroadFt" unit={'ft'} />
       <Editor label="Min Comm Attach Height" field="minCommAttachFt" unit={'ft'} />
       {activeJob ? (
-        <div className="col-span-3 text-xs text-gray-600">
-          Using job-specific overrides. <button className="underline" onClick={onResetJobOverrides}>Reset overrides</button>
+        <div className="md:col-span-2 xl:col-span-3 text-sm text-blue-700 bg-blue-100 p-3 rounded border border-blue-200">
+          Using job-specific overrides. <button className="underline font-medium hover:no-underline" onClick={onResetJobOverrides}>Reset overrides</button>
         </div>
       ) : (
-        <div className="col-span-3 text-xs text-gray-600">Editing global submission profile defaults.</div>
+        <div className="md:col-span-2 xl:col-span-3 text-sm text-gray-600 bg-gray-100 p-3 rounded border">
+          Editing global submission profile defaults.
+        </div>
       )}
     </div>
   );

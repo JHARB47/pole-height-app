@@ -2,6 +2,7 @@
     "recommendations": [
         "openai.chatgpt",
         "bradlc.vscode-tailwindcss",
-        "stylelint.vscode-stylelint"
+        "stylelint.vscode-stylelint",
+        "ms-python.python"
     ]
 }

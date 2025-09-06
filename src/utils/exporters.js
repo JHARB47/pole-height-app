@@ -137,6 +137,17 @@ export function buildKML({ poles = [], spans = [] }) {
   parts.push('<?xml version="1.0" encoding="UTF-8"?>');
   parts.push('<kml xmlns="http://www.opengis.net/kml/2.2"><Document>');
   parts.push('<name>Pole Plan Wizard Export</name>');
+  // Simple styles for better readability in mapping tools
+  parts.push([
+    '<Style id="poleStyle">',
+    '  <IconStyle><color>ff3366ff</color><scale>1.2</scale>',
+    '    <Icon><href>http://maps.google.com/mapfiles/kml/paddle/blu-circle.png</href></Icon>',
+    '  </IconStyle>',
+    '</Style>',
+    '<Style id="spanStyle">',
+    '  <LineStyle><color>ff0033ff</color><width>2.5</width></LineStyle>',
+    '</Style>'
+  ].join(''));
 
   const buildExtendedData = (kv) =>
     Object.entries(kv).map(([k, v]) => `<Data name="${esc(k)}"><value>${esc(v)}</value></Data>`).join('');
@@ -151,6 +162,7 @@ export function buildKML({ poles = [], spans = [] }) {
     };
     return [
       '<Placemark>',
+      '<styleUrl>#poleStyle</styleUrl>',
       `<name>${esc(p.id || 'Pole')}</name>`,
       '<ExtendedData>',
       buildExtendedData(kv),
@@ -171,6 +183,7 @@ export function buildKML({ poles = [], spans = [] }) {
     const coordString = s.coordinates.map(([lon, lat]) => `${lon},${lat},0`).join(' ');
     return [
       '<Placemark>',
+      '<styleUrl>#spanStyle</styleUrl>',
       `<name>${esc(s.id || 'Span')}</name>`,
       '<ExtendedData>',
       buildExtendedData(kv),
@@ -180,15 +193,19 @@ export function buildKML({ poles = [], spans = [] }) {
     ].join('');
   };
 
+  // Organize into folders
+  parts.push('<Folder><name>Poles</name>');
   for (const p of poles) {
     const pm = addPolePlacemark(p);
     if (pm) parts.push(pm);
   }
-
+  parts.push('</Folder>');
+  parts.push('<Folder><name>Spans</name>');
   for (const s of spans) {
     const pm = addSpanPlacemark(s);
     if (pm) parts.push(pm);
   }
+  parts.push('</Folder>');
 
   parts.push('</Document></kml>');
   return parts.join('');
@@ -211,4 +228,121 @@ export function buildFirstEnergyJointUseCSV({ cachedMidspans = [], job = { name:
     rows.push(line.map(csvEscape).join(','));
   }
   return rows.join('\n');
+}
+
+// ---------------- KMZ and CSV convenience helpers ----------------
+export function sanitizeFilename(s) {
+  return String(s || '').toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 120);
+}
+
+export async function buildKMZ({ poles = [], spans = [], name = 'export' } = {}) {
+  const { default: JSZip } = await import('jszip');
+  const zip = new JSZip();
+  const kml = buildKML({ poles, spans });
+  zip.file('doc.kml', kml);
+  const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
+  // Consumers should save with .kmz extension and mime application/vnd.google-earth.kmz
+  return blob;
+}
+
+export function addBOM(csv) {
+  const UTF8_BOM = '\ufeff';
+  return csv.startsWith(UTF8_BOM) ? csv : UTF8_BOM + csv;
+}
+
+export function csvToBlob(csv, { bom = false } = {}) {
+  const data = bom ? addBOM(csv) : csv;
+  return new Blob([data], { type: 'text/csv;charset=utf-8' });
+}
+
+// -------- Convenience bundle/connector helpers --------
+// Build a ZIP file containing CSV, GeoJSON, and KML for easy sharing with external systems.
+// Returns a Blob (application/zip) ready for download.
+// Build an object map of export filenames to data (strings or Blobs)
+export function buildExportBundle({
+  poles = [],
+  spans = [],
+  existingLines = [],
+  preset = 'generic',
+  job = { name: 'Export', jobNumber: '' },
+  includeBOM = false,
+} = {}) {
+  const files = {};
+  const timestamp = new Date().toISOString().replaceAll(':', '-');
+  const jobPart = [job?.jobNumber, job?.name].filter(Boolean).map(sanitizeFilename).join('-');
+  const base = `pole-plan-${jobPart || 'export'}-${timestamp}`;
+
+  // CSVs (optionally with BOM for Excel)
+  const polesCsv = buildPolesCSV(poles, preset);
+  const spansCsv = buildSpansCSV(spans, preset);
+  const linesCsv = buildExistingLinesCSV(existingLines, preset);
+  files[`${base}/poles.csv`] = includeBOM ? addBOM(polesCsv) : polesCsv;
+  files[`${base}/spans.csv`] = includeBOM ? addBOM(spansCsv) : spansCsv;
+  files[`${base}/existing_lines.csv`] = includeBOM ? addBOM(linesCsv) : linesCsv;
+
+  // GeoJSON & KML/KMZ
+  const geo = buildGeoJSON({ poles, spans });
+  files[`${base}/export.geojson`] = JSON.stringify(geo);
+  const kml = buildKML({ poles, spans });
+  files[`${base}/export.kml`] = kml;
+  // KMZ added separately in buildExportZip (needs async)
+
+  // FE example if present
+  if (Array.isArray(spans) && spans.some(s => 'midspanFt' in (s || {}))) {
+    const feCsv = buildFirstEnergyJointUseCSV({ cachedMidspans: spans, job });
+    files[`${base}/firstenergy_jointuse.csv`] = includeBOM ? addBOM(feCsv) : feCsv;
+  }
+
+  return { base, files };
+}
+
+export async function buildExportZip({
+  poles = [],
+  spans = [],
+  existingLines = [],
+  preset = 'generic',
+  job = { name: 'Export', jobNumber: '' },
+  includeBOM = false,
+  onProgress,
+} = {}) {
+  const { default: JSZip } = await import('jszip');
+  const zip = new JSZip();
+  const { base, files } = buildExportBundle({ poles, spans, existingLines, preset, job, includeBOM });
+
+  // Add prepared files
+  for (const [name, data] of Object.entries(files)) {
+    zip.file(name, data);
+  }
+  // KMZ packaged KML
+  // KMZ packaged KML
+  const kmzBlob = await buildKMZ({ poles, spans, name: job?.name || 'export' });
+  zip.file(`${base}/export.kmz`, kmzBlob);
+  const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' }, (meta) => {
+    if (typeof onProgress === 'function') {
+      try { onProgress(meta.percent || 0); } catch {}
+    }
+  });
+  return blob;
+}
+
+// Trigger a client-side download of a Blob or string
+export function downloadFile(data, filename, mime = 'application/octet-stream') {
+  const blob = data instanceof Blob ? data : new Blob([data], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+    a.remove();
+  }, 0);
+}
+
+// Build and immediately download a full export ZIP
+export async function downloadExportZip(opts = {}) {
+  const blob = await buildExportZip(opts);
+  const name = sanitizeFilename([opts?.job?.jobNumber, opts?.job?.name || 'export'].filter(Boolean).join('-'));
+  downloadFile(blob, `${name}-bundle.zip`, 'application/zip');
 }

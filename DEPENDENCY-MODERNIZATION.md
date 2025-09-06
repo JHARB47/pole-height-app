@@ -89,6 +89,12 @@ Added npm overrides to replace vulnerable packages:
 
 ### Bundle Analysis
 
+✓ 260 modules transformed.
+├── pdf-libs: 178.08 kB (largest chunk, still optimal)
+├── app-calculator: 153.54 kB  
+├── vendor: 142.94 kB (reduced from lodash removal)
+├── react-dom: 129.95 kB
+└── (remaining chunks all < 100 kB)
 ```
 ✓ 260 modules transformed.
 ├── pdf-libs: 178.08 kB (largest chunk, still optimal)

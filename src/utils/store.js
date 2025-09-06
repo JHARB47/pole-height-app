@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { DEFAULTS as CALC_DEFAULTS, getNESCClearances, applyPresetToClearances } from './calculations.js';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
 // Preflight: if persisted state is corrupt JSON, clear it to avoid runtime crash
@@ -58,6 +59,17 @@ const useAppStore = create(persist((set) => ({
   // Default utility Owner context at job level (e.g., Mon Power, Penelec)
   jobOwner: '',
   setJobOwner: (v) => set({ jobOwner: v }),
+  // Auto-select submission profile based on owner name hints
+  setJobOwnerAutoProfile: (owner) => set((s) => {
+    const o = String(owner || '').toLowerCase();
+    let match = s.currentSubmissionProfile || 'generic';
+    if (/first\s*energy|mon\s*power|penelec|potomac|west\s*penn|jcp&l|jersey\s*central|ohio\s*edison|illuminating|toledo/i.test(o)) {
+      match = 'firstEnergy';
+    } else if (/duke/i.test(o)) {
+      match = 'duke';
+    }
+    return { jobOwner: owner || '', currentSubmissionProfile: match };
+  }),
   // GPS coordinates for the current pole/location
   poleLatitude: '',
   setPoleLatitude: (v) => set({ poleLatitude: v }),
@@ -165,6 +177,19 @@ const useAppStore = create(persist((set) => ({
       costAnalysis: cost ?? null,
     };
   }),
+  // UX helper: recommend attach height given min clearances and environment
+  recommendAttachHeight: (proposedFt, env = 'road') => {
+    try {
+      const base = getNESCClearances('communication', env);
+      const profile = (CALC_DEFAULTS?.presets || {})[useAppStore.getState().currentSubmissionProfile] || null;
+      const tuned = applyPresetToClearances(base, useAppStore.getState().currentSubmissionProfile);
+      const target = tuned?.roadClearance || base.roadClearance;
+      const attach = Math.max(Number(proposedFt) || 0, target + 1.0);
+      return { recommendedFt: attach, targetFt: target };
+    } catch {
+      return { recommendedFt: Number(proposedFt) || 0, targetFt: 0 };
+    }
+  },
   // Scenario snapshots for A/B comparison
   scenarioA: null,
   setScenarioA: (scenario) => set({ scenarioA: scenario }),

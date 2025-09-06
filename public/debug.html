@@ -8,7 +8,7 @@
     <style>
         body {
             background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
-            color: white;
+            color: #fff;
             font-family: Arial, sans-serif;
             display: flex;
             flex-direction: column;
@@ -18,31 +18,28 @@
             margin: 0;
             text-align: center;
         }
-
         h1 {
             font-size: 3rem;
             margin-bottom: 1rem;
         }
-
-        p {
+        p, .status p {
             font-size: 1.2rem;
             margin-bottom: 0.5rem;
         }
-
         .status {
             background: rgba(255, 255, 255, 0.2);
             padding: 20px;
             border-radius: 10px;
             margin: 20px;
         }
-
         .back-link {
-            color: white;
+            color: #fff;
             text-decoration: none;
         }
-
-        .back-link:hover {
+        .back-link:focus, .back-link:hover {
             text-decoration: underline;
+            outline: 2px solid #fff;
+            outline-offset: 2px;
         }
     </style>
 </head>

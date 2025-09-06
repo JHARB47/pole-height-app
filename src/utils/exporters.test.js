@@ -1,4 +1,65 @@
 import { describe, it, expect } from 'vitest';
+import { buildPolesCSV, buildSpansCSV, buildExistingLinesCSV, buildGeoJSON, buildKML, sanitizeFilename, addBOM, buildExportBundle } from './exporters.js';
+
+describe('exporters basic', () => {
+  const poles = [{ id: 'P1', height: 35, class: '4', powerHeight: 28, hasTransformer: true, longitude: -80, latitude: 40 }];
+  const spans = [{ id: 'S1', fromId: 'P1', toId: 'P2', length: 150, proposedAttach: 18, coordinates: [[-80,40],[-80.001,40.001]] }];
+  const lines = [{ type: 'communication', height: 16, companyName: 'ISP', makeReady: true, makeReadyHeight: 14 }];
+
+  it('builds poles csv', () => {
+    const csv = buildPolesCSV(poles, 'generic');
+    expect(csv).toContain('POLE_ID');
+    expect(csv.split('\n').length).toBe(2);
+  });
+
+  it('builds spans csv', () => {
+    const csv = buildSpansCSV(spans, 'generic');
+    expect(csv).toContain('SPAN_ID');
+    expect(csv.split('\n').length).toBe(2);
+  });
+
+  it('builds existing lines csv', () => {
+    const csv = buildExistingLinesCSV(lines, 'generic');
+    expect(csv).toContain('TYPE');
+    expect(csv.split('\n').length).toBe(2);
+  });
+
+  it('builds geojson', () => {
+    const gj = buildGeoJSON({ poles, spans });
+    expect(gj.type).toBe('FeatureCollection');
+    expect(Array.isArray(gj.features)).toBe(true);
+    expect(gj.features.length).toBeGreaterThan(0);
+  });
+
+  it('builds kml', () => {
+    const kml = buildKML({ poles, spans });
+    expect(kml).toContain('<kml');
+    expect(kml).toContain('<Placemark>');
+  });
+
+  it('sanitizes filenames', () => {
+    expect(sanitizeFilename(' My Job #123 ')).toBe('my-job-123');
+    expect(sanitizeFilename('A'.repeat(300)).length).toBeLessThanOrEqual(120);
+  });
+
+  it('adds BOM to CSV when requested', () => {
+    const csv = 'A,B\n1,2';
+    const withBom = addBOM(csv);
+    expect(withBom.charCodeAt(0)).toBe(0xfeff);
+  });
+
+  it('buildExportBundle returns expected files', () => {
+    const { base, files } = buildExportBundle({ poles, spans, existingLines: lines, preset: 'generic', job: { name: 'Test', jobNumber: '123' } });
+    const keys = Object.keys(files);
+    expect(keys.some(k => k.endsWith('/poles.csv'))).toBe(true);
+    expect(keys.some(k => k.endsWith('/spans.csv'))).toBe(true);
+    expect(keys.some(k => k.endsWith('/existing_lines.csv'))).toBe(true);
+    expect(keys.some(k => k.endsWith('/export.geojson'))).toBe(true);
+    expect(keys.some(k => k.endsWith('/export.kml'))).toBe(true);
+    expect(base).toMatch(/pole-plan-/);
+  });
+});
+import { describe, it, expect } from 'vitest';
 import { buildPolesCSV, buildSpansCSV, buildExistingLinesCSV, buildGeoJSON, buildKML } from './exporters';
 
 describe('exporters', () => {
