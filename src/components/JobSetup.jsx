@@ -203,32 +203,32 @@ export default function JobSetup() {
         <div className="section-title">Job Setup</div>
         <div className="text-xs text-gray-600">Jobs: {(store.jobs || []).length}</div>
       </div>
-  <div className="section-grid mt-2 sm:grid-cols-2 lg:grid-cols-4">
-        <label className="grid gap-1 text-sm">
-          <span className="font-medium">Select Job</span>
+  <div className="form-row-3 mt-6 gap-6">
+        <label className="grid gap-2 text-sm">
+          <span className="font-medium whitespace-nowrap text-left">Select Job</span>
           <div className="flex gap-2 items-center">
-            <select className="border rounded px-2 py-1" value={store.currentJobId || ''} onChange={e=>store.setCurrentJobId(e.target.value)}>
+            <select className="form-input min-w-32" value={store.currentJobId || ''} onChange={e=>store.setCurrentJobId(e.target.value)}>
               <option value="">-- None --</option>
               {(store.jobs||[]).map(j => <option key={j.id} value={j.id}>{j.name}</option>)}
             </select>
-            <button className="text-xs px-2 py-1 border rounded" onClick={()=>store.setCurrentJobId('')}>Clear</button>
+            <button className="text-xs px-3 py-2 border rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500" onClick={()=>store.setCurrentJobId('')}>Clear</button>
           </div>
         </label>
-        <label className="grid gap-1 text-sm">
-          <span className="font-medium">Job Name</span>
-          <input className="border rounded px-2 py-1" value={name} onChange={e=>setName(e.target.value)} placeholder="Project name" />
+        <label className="grid gap-2 text-sm">
+          <span className="font-medium whitespace-nowrap text-left">Job Name</span>
+          <input className="form-input" value={name} onChange={e=>setName(e.target.value)} placeholder="Project name" />
         </label>
-        <label className="grid gap-1 text-sm">
-          <span className="font-medium">Applicant</span>
-          <input className="border rounded px-2 py-1" value={applicantName} onChange={e=>setApplicantName(e.target.value)} placeholder="Applicant name" />
+        <label className="grid gap-2 text-sm">
+          <span className="font-medium whitespace-nowrap text-left">Applicant</span>
+          <input className="form-input" value={applicantName} onChange={e=>setApplicantName(e.target.value)} placeholder="Applicant name" />
         </label>
-        <label className="grid gap-1 text-sm">
-          <span className="font-medium">Job #</span>
-          <input className="border rounded px-2 py-1" value={jobNumber} onChange={e=>setJobNumber(e.target.value)} placeholder="Job number" />
+        <label className="grid gap-2 text-sm">
+          <span className="font-medium whitespace-nowrap text-left">Job #</span>
+          <input className="form-input" value={jobNumber} onChange={e=>setJobNumber(e.target.value)} placeholder="Job number" />
         </label>
-        <label className="grid gap-1 text-sm">
-          <span className="font-medium">Preset</span>
-          <select className="border rounded px-2 py-1" value={presetProfile} onChange={e=>setPresetProfile(e.target.value)}>
+        <label className="grid gap-2 text-sm">
+          <span className="font-medium whitespace-nowrap text-left">Preset</span>
+          <select className="form-select" value={presetProfile} onChange={e=>setPresetProfile(e.target.value)}>
             <option value="">default</option>
             <option value="firstEnergy">FirstEnergy</option>
             <option value="firstEnergyMonPower">FirstEnergy - Mon Power</option>
@@ -237,71 +237,71 @@ export default function JobSetup() {
             <option value="nationalGrid">National Grid</option>
           </select>
         </label>
-        <label className="grid gap-1 text-sm">
-          <span className="font-medium">Owner (utility)</span>
-          <input list="wv-power-companies" className="border rounded px-2 py-1" value={jobOwner} onChange={e=>setJobOwner(e.target.value)} placeholder="e.g., Mon Power, Penelec" />
+        <label className="grid gap-2 text-sm">
+          <span className="font-medium whitespace-nowrap text-left">Owner (utility)</span>
+          <input list="wv-power-companies" className="form-input" value={jobOwner} onChange={e=>setJobOwner(e.target.value)} placeholder="e.g., Mon Power, Penelec" />
           <datalist id="wv-power-companies">
             {WV_COMPANIES.power.map(c => <option key={c.name} value={c.short || c.name}>{c.name}</option>)}
           </datalist>
           <span className="text-xs text-gray-500">Hint: Typing a FirstEnergy subsidiary (e.g., Mon Power) enables FE 44" rules automatically.</span>
         </label>
-        <label className="grid gap-1 text-sm">
-          <span className="font-medium">Attaching Communications Company</span>
-          <input list="wv-comm-companies" className="border rounded px-2 py-1" value={commCompany} onChange={e=>setCommCompany(e.target.value)} placeholder="e.g., Frontier, Optimum" />
+        <label className="grid gap-2 text-sm">
+          <span className="font-medium whitespace-nowrap text-left">Attaching Communications Company</span>
+          <input list="wv-comm-companies" className="form-input" value={commCompany} onChange={e=>setCommCompany(e.target.value)} placeholder="e.g., Frontier, Optimum" />
           <datalist id="wv-comm-companies">
             {WV_COMPANIES.communication.map(c => <option key={c.name} value={c.short || c.name}>{c.name}</option>)}
           </datalist>
         </label>
 
         {/* Job-level Standards/Profile */}
-        <div className="sm:col-span-2 lg:col-span-4 border rounded p-2 vertical-rhythm">
-          <div className="font-medium text-sm">Job Standards & Export Profile</div>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-            <label className="grid gap-1 text-sm">
-              <span className="font-medium">Submission Profile</span>
-              <select className="border rounded px-2 py-1" value={submissionProfileName} onChange={e=>setSubmissionProfileName(e.target.value)}>
+        <div className="col-span-full form-section">
+          <div className="form-section-title">Job Standards & Export Profile</div>
+          <div className="form-row-3">
+            <label className="grid gap-2 text-sm">
+              <span className="font-medium whitespace-nowrap text-left">Submission Profile</span>
+              <select className="form-select" value={submissionProfileName} onChange={e=>setSubmissionProfileName(e.target.value)}>
                 {(store.submissionProfiles||[]).map(p=> <option key={p.name} value={p.name}>{p.label}</option>)}
               </select>
             </label>
-            <label className="grid gap-1 text-sm">
-              <span className="font-medium">Export Profile</span>
-              <select className="border rounded px-2 py-1" value={exportProfile} onChange={e=>setExportProfile(e.target.value)}>
+            <label className="grid gap-2 text-sm">
+              <span className="font-medium whitespace-nowrap text-left">Export Profile</span>
+              <select className="form-select" value={exportProfile} onChange={e=>setExportProfile(e.target.value)}>
                 {(EXPORT_PRESETS||[]).map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
               </select>
             </label>
-            <label className="grid gap-1 text-sm">
-              <span className="font-medium">Override Comm→Power (in)</span>
-              <input className="border rounded px-2 py-1" value={overrideCommToPowerIn} onChange={e=>setOverrideCommToPowerIn(e.target.value)} placeholder="blank = use profile" />
+            <label className="grid gap-2 text-sm">
+              <span className="font-medium whitespace-nowrap text-left">Override Comm→Power (in)</span>
+              <input className="form-input" value={overrideCommToPowerIn} onChange={e=>setOverrideCommToPowerIn(e.target.value)} placeholder="blank = use profile" />
             </label>
-            <label className="grid gap-1 text-sm">
-              <span className="font-medium">Override Min Top Space (ft)</span>
-              <input className="border rounded px-2 py-1" value={overrideMinTopSpaceFt} onChange={e=>setOverrideMinTopSpaceFt(e.target.value)} placeholder="blank = use profile" />
+            <label className="grid gap-2 text-sm">
+              <span className="font-medium whitespace-nowrap text-left">Override Min Top Space (ft)</span>
+              <input className="form-input" value={overrideMinTopSpaceFt} onChange={e=>setOverrideMinTopSpaceFt(e.target.value)} placeholder="blank = use profile" />
             </label>
-            <label className="grid gap-1 text-sm">
-              <span className="font-medium">Override Road Clearance (ft)</span>
-              <input className="border rounded px-2 py-1" value={overrideRoadClearanceFt} onChange={e=>setOverrideRoadClearanceFt(e.target.value)} placeholder="blank = use profile" />
+            <label className="grid gap-2 text-sm">
+              <span className="font-medium whitespace-nowrap text-left">Override Road Clearance (ft)</span>
+              <input className="form-input" value={overrideRoadClearanceFt} onChange={e=>setOverrideRoadClearanceFt(e.target.value)} placeholder="blank = use profile" />
             </label>
-            <label className="grid gap-1 text-sm">
-              <span className="font-medium">Override Road Midspan Target (ft)</span>
-              <input className="border rounded px-2 py-1" value={overrideEnvRoadFt} onChange={e=>setOverrideEnvRoadFt(e.target.value)} placeholder="blank = use profile" />
+            <label className="grid gap-2 text-sm">
+              <span className="font-medium whitespace-nowrap text-left">Override Road Midspan Target (ft)</span>
+              <input className="form-input" value={overrideEnvRoadFt} onChange={e=>setOverrideEnvRoadFt(e.target.value)} placeholder="blank = use profile" />
             </label>
-            <label className="grid gap-1 text-sm">
-              <span className="font-medium">Override Residential Midspan Target (ft)</span>
-              <input className="border rounded px-2 py-1" value={overrideEnvResidentialFt} onChange={e=>setOverrideEnvResidentialFt(e.target.value)} placeholder="blank = use profile" />
+            <label className="grid gap-2 text-sm">
+              <span className="font-medium whitespace-nowrap text-left">Override Residential Midspan Target (ft)</span>
+              <input className="form-input" value={overrideEnvResidentialFt} onChange={e=>setOverrideEnvResidentialFt(e.target.value)} placeholder="blank = use profile" />
             </label>
-            <label className="grid gap-1 text-sm">
-              <span className="font-medium">Override Pedestrian Midspan Target (ft)</span>
-              <input className="border rounded px-2 py-1" value={overrideEnvPedestrianFt} onChange={e=>setOverrideEnvPedestrianFt(e.target.value)} placeholder="blank = use profile" />
+            <label className="grid gap-2 text-sm">
+              <span className="font-medium whitespace-nowrap text-left">Override Pedestrian Midspan Target (ft)</span>
+              <input className="form-input" value={overrideEnvPedestrianFt} onChange={e=>setOverrideEnvPedestrianFt(e.target.value)} placeholder="blank = use profile" />
             </label>
-            <label className="grid gap-1 text-sm">
-              <span className="font-medium">Min Comm Attach Height (ft)</span>
-              <input className="border rounded px-2 py-1" value={overrideMinCommAttachFt} onChange={e=>setOverrideMinCommAttachFt(e.target.value)} placeholder="blank = use profile" />
+            <label className="grid gap-2 text-sm">
+              <span className="font-medium whitespace-nowrap text-left">Min Comm Attach Height (ft)</span>
+              <input className="form-input" value={overrideMinCommAttachFt} onChange={e=>setOverrideMinCommAttachFt(e.target.value)} placeholder="blank = use profile" />
               <span className="text-xs text-gray-500">Applied after separation; will be clamped to maintain required power separation.</span>
             </label>
-            <label className="grid gap-1 text-sm">
-              <span className="font-medium">Δ Threshold for Span Length (ft)</span>
+            <label className="grid gap-2 text-sm">
+              <span className="font-medium whitespace-nowrap text-left">Δ Threshold for Span Length (ft)</span>
               <input
-                className="border rounded px-2 py-1"
+                className="form-input"
                 type="number" min="0" step="1"
                 value={store.spanLenDeltaThresholdFt ?? 10}
                 onChange={e=>store.setSpanLenDeltaThresholdFt(e.target.value)}
@@ -309,11 +309,11 @@ export default function JobSetup() {
               <span className="text-xs text-gray-500">Used in Spans editor to highlight manual vs auto length differences.</span>
             </label>
           </div>
-      <div className="text-xs text-gray-600">Defaults follow NESC unless the Owner maps to utilities like FirstEnergy (44" separation, 18 ft road). Overrides let you tune job-specific specs.</div>
+          <div className="text-xs text-gray-600 mt-4">Defaults follow NESC unless the Owner maps to utilities like FirstEnergy (44" separation, 18 ft road). Overrides let you tune job-specific specs.</div>
         </div>
-        <label className="grid gap-1 text-sm sm:col-span-2 lg:col-span-4">
-          <span className="font-medium">Notes</span>
-          <textarea className="border rounded px-2 py-1" rows={2} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Optional job notes" />
+        <label className="grid gap-2 text-sm col-span-full">
+          <span className="font-medium whitespace-nowrap text-left">Notes</span>
+          <textarea className="form-input" rows={3} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Optional job notes" />
         </label>
       </div>
     <div className="section-divider" />

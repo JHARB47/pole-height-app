@@ -202,14 +202,14 @@ export default function ExistingLinesEditor() {
             {existingLines.map((row, idx) => (
               <tr key={idx} className="border-t">
                 <td className="p-2">
-                  <select className="border rounded px-2 py-1" value={row.type}
+                  <select className="form-input" value={row.type}
                           onChange={e=>update(idx, 'type', e.target.value)}>
                     <option value="">Select</option>
                     {LINE_TYPES.map(t=> <option key={t.value} value={t.value}>{t.label}</option>)}
                   </select>
                 </td>
                 <td className="p-2">
-                  <input list="wv-companies" className="border rounded px-2 py-1" value={row.companyName || ''}
+                  <input list="wv-companies" className="form-input" value={row.companyName || ''}
                          onChange={e=>update(idx, 'companyName', e.target.value)} placeholder="e.g., Mon Power (Owner)" />
                   <datalist id="wv-companies">
                     {WV_COMPANIES.power.map(c => <option key={`p-${c.name}`} value={c.short || c.name}>{c.name}</option>)}
@@ -292,7 +292,7 @@ function CsvMapModal({ open, onClose, headers, mapping, onChange }) {
           {keys.map(k => (
             <label key={k} className="grid grid-cols-2 items-center gap-2">
               <span className="text-xs uppercase text-gray-500">{k}</span>
-              <select className="border rounded px-2 py-1" value={mapping[k] || ''} onChange={e=>set(k,e.target.value)}>
+              <select className="form-input" value={mapping[k] || ''} onChange={e=>set(k,e.target.value)}>
                 <option value="">—</option>
                 {headers.map(h => <option key={h} value={h}>{h}</option>)}
               </select>

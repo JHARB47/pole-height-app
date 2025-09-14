@@ -353,7 +353,7 @@ export default function ProposedLineCalculator() {
                 <span className="font-medium whitespace-nowrap text-left">Owner (utility)</span>
                 <input 
                   list="wv-power-companies-inline" 
-                  className="border rounded px-3 py-2 min-w-0 w-full text-base leading-normal bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                  className="form-input" 
                   value={jobOwner} 
                   onChange={e => setJobOwner(e.target.value)} 
                   placeholder="e.g., Mon Power, Penelec" 
@@ -417,7 +417,7 @@ export default function ProposedLineCalculator() {
                 <SectionSaveButton sectionKey="map" align="right" />
                 <button
                   type="button"
-                  className="ml-2 px-2 py-1 text-xs border rounded"
+                  className="ml-2 px-3 py-2 text-xs border rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   onClick={() => setOpenSections(s => ({ ...s, map: !s.map }))}
                   aria-expanded={!!openSections.map}
                 >{openSections.map ? 'Collapse' : 'Expand'}</button>
@@ -437,7 +437,7 @@ export default function ProposedLineCalculator() {
                 <SectionSaveButton sectionKey="spans" align="right" />
                 <button
                   type="button"
-                  className="ml-2 px-2 py-1 text-xs border rounded"
+                  className="ml-2 px-3 py-2 text-xs border rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   onClick={() => setOpenSections(s => ({ ...s, spans: !s.spans }))}
                   aria-expanded={!!openSections.spans}
                 >{openSections.spans ? 'Collapse' : 'Expand'}</button>
@@ -457,7 +457,7 @@ export default function ProposedLineCalculator() {
                 <SectionSaveButton sectionKey="existing" align="right" />
                 <button
                   type="button"
-                  className="ml-2 px-2 py-1 text-xs border rounded"
+                  className="ml-2 px-3 py-2 text-xs border rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   onClick={() => setOpenSections(s => ({ ...s, existing: !s.existing }))}
                   aria-expanded={!!openSections.existing}
                 >{openSections.existing ? 'Collapse' : 'Expand'}</button>
@@ -478,7 +478,7 @@ export default function ProposedLineCalculator() {
                 <SectionSaveButton sectionKey="field" align="right" />
                 <button
                   type="button"
-                  className="ml-2 px-2 py-1 text-xs border rounded"
+                  className="ml-2 px-3 py-2 text-xs border rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   onClick={() => setOpenSections(s => ({ ...s, field: !s.field }))}
                   aria-expanded={!!openSections.field}
                 >{openSections.field ? 'Collapse' : 'Expand'}</button>
@@ -495,12 +495,12 @@ export default function ProposedLineCalculator() {
         <ScenarioButtons />
         <ExportButtons />
         <button
-          className="px-2 py-1 border rounded text-sm"
+          className="form-select text-sm"
           onClick={() => { setShowBatchReport(false); setShowReport(r => !r); }}
           disabled={!showReport && !useAppStore.getState().results}
           title={!showReport && !useAppStore.getState().results ? 'Run analysis to view report' : undefined}
         >{showReport ? 'Back to Editor' : 'View Report'}</button>
-        <button className="px-2 py-1 border rounded text-sm" onClick={() => { setShowReport(false); setShowBatchReport(b => !b); }} disabled={!useAppStore.getState().importedSpans.length}>{showBatchReport ? 'Back to Editor' : 'Batch Report'}</button>
+        <button className="form-select text-sm" onClick={() => { setShowReport(false); setShowBatchReport(b => !b); }} disabled={!useAppStore.getState().importedSpans.length}>{showBatchReport ? 'Back to Editor' : 'Batch Report'}</button>
       </div>
 
       <div id="results" className="app-section anchor-offset">
@@ -513,7 +513,7 @@ export default function ProposedLineCalculator() {
             <SectionSaveButton sectionKey="results" align="right" />
             <button
               type="button"
-              className="ml-2 px-2 py-1 text-xs border rounded"
+              className="ml-2 px-3 py-2 text-xs border rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
               onClick={() => setOpenSections(s => ({ ...s, results: !s.results }))}
               aria-expanded={!!openSections.results}
             >{openSections.results ? 'Collapse' : 'Expand'}</button>
@@ -853,8 +853,8 @@ function AutoMapPreviewModal({ open, onClose, current, proposal, onApply }) {
           ))}
         </div>
         <div className="flex items-center gap-2 mt-3">
-          <button className="px-2 py-1 border rounded text-sm" onClick={onApply}>Apply</button>
-          <button className="px-2 py-1 border rounded text-sm" onClick={onClose}>Cancel</button>
+          <button className="form-select text-sm" onClick={onApply}>Apply</button>
+          <button className="form-select text-sm" onClick={onClose}>Cancel</button>
         </div>
       </div>
     </div>
@@ -874,7 +874,7 @@ function Input({ label, ...props }) {
     <label className="text-sm text-gray-700 grid gap-2">
       <span className="font-medium whitespace-nowrap text-left">{label}</span>
       <input 
-        className="border rounded px-3 py-2 min-w-0 w-full text-base leading-normal bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+        className="form-input" 
         {...props} 
       />
     </label>
@@ -890,7 +890,7 @@ function Select({ label, options, ...props }) {
     <label className="text-sm text-gray-700 grid gap-2">
       <span className="font-medium whitespace-nowrap text-left">{label}</span>
       <select 
-        className="border rounded px-3 py-2 min-w-0 w-full text-base leading-normal bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+        className="form-input" 
         {...props}
       >
         {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -952,7 +952,7 @@ function ProfileTuner() {
     <label className="text-sm text-gray-700 grid gap-2">
       <span className="font-medium whitespace-nowrap text-left">{label}</span>
       <input
-        className="border rounded px-3 py-2 min-w-0 w-full text-base leading-normal bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        className="form-input"
         value={effective[field] ?? ''}
         onChange={e => activeJob ? onChangeJob(field, e.target.value) : onChangeGlobal(field, e.target.value)}
         placeholder={activeJob ? 'override (blank uses profile)' : ''}
@@ -1285,24 +1285,24 @@ function FormAutofillPanel() {
       <div className="font-medium mb-2">Form Autofill (Upload Official PDF)</div>
       <div className="text-xs text-gray-600 mb-2">Use this helper to overlay your current job fields onto an official PDF template. Provide a simple layout JSON mapping (key → page/x/y/size). Start with the example and adjust coordinates to your form.</div>
       <div className="grid md:grid-cols-3 gap-2 items-end">
-        <label className="text-sm text-gray-700 grid gap-1">
+        <label className="text-sm text-gray-700 grid gap-2">
           <span className="font-medium">Official PDF</span>
           <input type="file" accept="application/pdf" onChange={e => setBasePdf(e.target.files?.[0] || null)} />
         </label>
         <div className="md:col-span-2">
-          <label className="text-sm text-gray-700 grid gap-1">
+          <label className="text-sm text-gray-700 grid gap-2">
             <span className="font-medium">Layout JSON</span>
             <textarea className="border rounded p-2 text-xs h-28" value={layoutText} onChange={e => setLayoutText(e.target.value)} placeholder='[{"key":"applicant","pageIndex":0,"x":100,"y":700,"size":10}]' />
           </label>
         </div>
       </div>
       <div className="mt-2 grid md:grid-cols-3 gap-2 items-end">
-        <div className="grid gap-1 text-sm text-gray-700">
+        <div className="grid gap-2 text-sm text-gray-700">
           <span className="font-medium">Preset Name</span>
-          <input className="border rounded px-2 py-1" value={presetName} onChange={e => setPresetName(e.target.value)} placeholder="Default" />
+          <input className="form-input" value={presetName} onChange={e => setPresetName(e.target.value)} placeholder="Default" />
         </div>
         <div className="flex items-end gap-2">
-          <button className="px-2 py-1 border rounded text-sm" onClick={onSavePreset} disabled={!layoutText}>Save Preset</button>
+          <button className="form-select text-sm" onClick={onSavePreset} disabled={!layoutText}>Save Preset</button>
           <div className="text-xs text-gray-600">Scope: {store.currentJobId ? 'Job' : 'Global'} | Env: {env}</div>
         </div>
         <div className="flex items-end gap-2">
@@ -1310,13 +1310,13 @@ function FormAutofillPanel() {
             <option value="" disabled>Load preset…</option>
             {presetsForEnv.map(n => <option key={n} value={n}>{n}</option>)}
           </select>
-          <button className="px-2 py-1 border rounded text-sm" onClick={() => presetName && onDeletePreset(presetName)} disabled={!presetName}>Delete</button>
+          <button className="form-select text-sm" onClick={() => presetName && onDeletePreset(presetName)} disabled={!presetName}>Delete</button>
         </div>
       </div>
       <div className="mt-2 flex items-center gap-2 flex-wrap">
-        <button className="px-2 py-1 border rounded text-sm" onClick={onFill} disabled={!basePdf || !fields}>Fill PDF</button>
-        <button className="px-2 py-1 border rounded text-sm" onClick={onAutoLayout} disabled={!basePdf || !fields}>Auto-Layout & Fill</button>
-        <button className="px-2 py-1 border rounded text-sm" onClick={onFillByForm} disabled={!basePdf || !fields}>Fill by Form Fields</button>
+        <button className="form-select text-sm" onClick={onFill} disabled={!basePdf || !fields}>Fill PDF</button>
+        <button className="form-select text-sm" onClick={onAutoLayout} disabled={!basePdf || !fields}>Auto-Layout & Fill</button>
+        <button className="form-select text-sm" onClick={onFillByForm} disabled={!basePdf || !fields}>Fill by Form Fields</button>
         <div className="text-xs text-gray-600">{status}</div>
       </div>
       {autoPreview ? <div className="text-xs text-amber-700 mt-1">{autoPreview}</div> : null}
@@ -1487,7 +1487,7 @@ function PrintableReport() {
       ) : null}
       <div className="font-semibold">Estimated Cost: ${costAnalysis ?? 0}</div>
       <div className="no-print">
-        <button className="px-2 py-1 border rounded text-sm" onClick={() => window.print()}>Print / Save PDF</button>
+        <button className="form-select text-sm" onClick={() => window.print()}>Print / Save PDF</button>
       </div>
     </div>
   );
@@ -1536,10 +1536,10 @@ function ScenarioButtons() {
   };
   return (
     <div className="flex items-center gap-2 my-2">
-      <button className="px-2 py-1 border rounded text-sm" onClick={() => store.setScenarioA(snapshot())}>Save A</button>
-      <button className="px-2 py-1 border rounded text-sm" onClick={() => store.setScenarioB(snapshot())}>Save B</button>
-      <button className="px-2 py-1 border rounded text-sm" onClick={() => load(store.scenarioA)} disabled={!store.scenarioA}>Load A</button>
-      <button className="px-2 py-1 border rounded text-sm" onClick={() => load(store.scenarioB)} disabled={!store.scenarioB}>Load B</button>
+      <button className="form-select text-sm" onClick={() => store.setScenarioA(snapshot())}>Save A</button>
+      <button className="form-select text-sm" onClick={() => store.setScenarioB(snapshot())}>Save B</button>
+      <button className="form-select text-sm" onClick={() => load(store.scenarioA)} disabled={!store.scenarioA}>Load A</button>
+      <button className="form-select text-sm" onClick={() => load(store.scenarioB)} disabled={!store.scenarioB}>Load B</button>
     </div>
   );
 }
@@ -1562,8 +1562,8 @@ function ExportButtons() {
   };
   return (
     <div className="flex items-center gap-2 my-2">
-      <button className="px-2 py-1 border rounded text-sm" onClick={onCSV} disabled={!results}>Export CSV</button>
-      <button className="px-2 py-1 border rounded text-sm" onClick={onPDF} disabled={!results}>Export PDF</button>
+      <button className="form-select text-sm" onClick={onCSV} disabled={!results}>Export CSV</button>
+      <button className="form-select text-sm" onClick={onPDF} disabled={!results}>Export PDF</button>
       <PermitPackButton />
       <InteropExportButton />
     </div>
@@ -1874,7 +1874,7 @@ function PermitPackButton() {
   };
   const isTargetEnv = ['wvHighway', 'paHighway', 'ohHighway', 'mdHighway', 'railroad'].includes(store.spanEnvironment);
   return (
-    <button className="px-2 py-1 border rounded text-sm" onClick={onPermit} disabled={!store.results || !isTargetEnv} title={isTargetEnv ? 'Generate permit package' : 'Select WV Highway or Railroad environment'}>
+    <button className="form-select text-sm" onClick={onPermit} disabled={!store.results || !isTargetEnv} title={isTargetEnv ? 'Generate permit package' : 'Select WV Highway or Railroad environment'}>
       Export Permit Pack
     </button>
   );
@@ -1997,7 +1997,7 @@ function InteropExportButton() {
 
   return (
     <>
-      <button className="px-2 py-1 border rounded text-sm" onClick={() => setOpen(true)}>Interop Export</button>
+      <button className="form-select text-sm" onClick={() => setOpen(true)}>Interop Export</button>
       {open ? (
         <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
           <div className="bg-white rounded shadow-lg w-[90vw] max-w-lg p-4">
@@ -2006,15 +2006,15 @@ function InteropExportButton() {
               <button className="text-sm" onClick={() => setOpen(false)}>Close</button>
             </div>
             <div className="grid gap-2 text-sm">
-              <label className="grid gap-1">
+              <label className="grid gap-2">
                 <span className="font-medium">Preset</span>
-                <select className="border rounded px-2 py-1" value={preset} onChange={e => setPreset(e.target.value)}>
+                <select className="form-input" value={preset} onChange={e => setPreset(e.target.value)}>
                   {(EXPORT_PRESETS || []).map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
                 </select>
               </label>
-              <label className="grid gap-1">
+              <label className="grid gap-2">
                 <span className="font-medium">Format</span>
-                <select className="border rounded px-2 py-1" value={format} onChange={e => setFormat(e.target.value)}>
+                <select className="form-input" value={format} onChange={e => setFormat(e.target.value)}>
                   <option value="csv">CSV (ZIP)</option>
                   <option value="geojson">GeoJSON (ZIP)</option>
                   <option value="kml">KML (ZIP)</option>
@@ -2489,25 +2489,25 @@ function FieldCollection({ openHelp, showBottomActions = true }) {
       </div>
       {/* QA Filters */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
-        <label className="text-sm text-gray-700 grid gap-1">
+        <label className="text-sm text-gray-700 grid gap-2">
           <span className="font-medium">Filter Status</span>
-          <select className="border rounded px-2 py-1" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
+          <select className="form-input" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
             <option value="all">All</option>
             <option value="draft">Draft</option>
             <option value="done">Done</option>
           </select>
         </label>
-        <label className="text-sm text-gray-700 grid gap-1">
+        <label className="text-sm text-gray-700 grid gap-2">
           <span className="font-medium">Filter Photos</span>
-          <select className="border rounded px-2 py-1" value={filterPhoto} onChange={e => setFilterPhoto(e.target.value)}>
+          <select className="form-input" value={filterPhoto} onChange={e => setFilterPhoto(e.target.value)}>
             <option value="all">All</option>
             <option value="with">With Photo</option>
             <option value="without">Without Photo</option>
           </select>
         </label>
-        <label className="text-sm text-gray-700 grid gap-1">
+        <label className="text-sm text-gray-700 grid gap-2">
           <span className="font-medium">Filter FE Variance</span>
-          <select className="border rounded px-2 py-1" value={filterPass} onChange={e => setFilterPass(e.target.value)}>
+          <select className="form-input" value={filterPass} onChange={e => setFilterPass(e.target.value)}>
             <option value="all">All</option>
             <option value="pass">PASS</option>
             <option value="fail">FAIL</option>
@@ -2530,7 +2530,7 @@ function FieldCollection({ openHelp, showBottomActions = true }) {
           }}>GPS</button>
         </div>
         <div className="grid grid-cols-2 gap-2 items-end">
-          <div className="grid gap-1">
+          <div className="grid gap-2">
             <span className="text-sm font-medium text-gray-700">Photo</span>
             <div className="flex items-center gap-2">
               <button className="h-9 px-2 border rounded text-sm" onClick={() => fileInputRefCamera.current?.click()} title="Take photo">Camera</button>
@@ -2554,10 +2554,10 @@ function FieldCollection({ openHelp, showBottomActions = true }) {
             <input type="checkbox" className="h-4 w-4" checked={includePhotos} onChange={e => setIncludePhotos(e.target.checked)} />
             <span>Include photos</span>
           </label>
-          <button className="px-2 py-1 border rounded text-sm" onClick={exportCollected} disabled={!store.collectedPoles?.length}>Export CSV</button>
-          <button className="px-2 py-1 border rounded text-sm" onClick={exportFirst25} disabled={(store.collectedPoles?.length || 0) < 1}>Export First 25</button>
-          <button className="px-2 py-1 border rounded text-sm" onClick={exportSpansZip} disabled={(store.collectedPoles?.length || 0) < 1}>Export FE SPANS ZIP</button>
-          <button className="px-2 py-1 border rounded text-sm" onClick={exportByProfile} disabled={(store.collectedPoles?.length || 0) < 1}>Export Utility ZIP (Profile)</button>
+          <button className="form-select text-sm" onClick={exportCollected} disabled={!store.collectedPoles?.length}>Export CSV</button>
+          <button className="form-select text-sm" onClick={exportFirst25} disabled={(store.collectedPoles?.length || 0) < 1}>Export First 25</button>
+          <button className="form-select text-sm" onClick={exportSpansZip} disabled={(store.collectedPoles?.length || 0) < 1}>Export FE SPANS ZIP</button>
+          <button className="form-select text-sm" onClick={exportByProfile} disabled={(store.collectedPoles?.length || 0) < 1}>Export Utility ZIP (Profile)</button>
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-500">Geospatial:</span>
             <button className="px-2 py-1 border rounded text-xs" onClick={() => exportGeo('geojson')} disabled={(store.collectedPoles?.length || 0) < 1}>GeoJSON</button>
@@ -2565,11 +2565,11 @@ function FieldCollection({ openHelp, showBottomActions = true }) {
             <button className="px-2 py-1 border rounded text-xs" onClick={() => exportGeo('kmz')} disabled={(store.collectedPoles?.length || 0) < 1}>KMZ</button>
             {/* Shapefile export omitted intentionally to avoid heavy deps */}
           </div>
-          <button className="px-2 py-1 border rounded text-sm" onClick={exportAepZip} disabled={(store.collectedPoles?.length || 0) < 1}>Export AEP ZIP</button>
-          <button className="px-2 py-1 border rounded text-sm" onClick={exportFilteredByProfile} disabled={!rows.length}>Export Filtered ZIP</button>
-          <button className="px-2 py-1 border rounded text-sm" onClick={exportDoneOnly} disabled={!rows.length}>Export DONE-only</button>
-          <button className="px-2 py-1 border rounded text-sm" onClick={exportFailOnly} disabled={!rows.length}>Export FAIL-only</button>
-          <button className="px-2 py-1 border rounded text-sm" onClick={() => store.setCollectedPoles?.([])} disabled={!store.collectedPoles?.length}>Clear</button>
+          <button className="form-select text-sm" onClick={exportAepZip} disabled={(store.collectedPoles?.length || 0) < 1}>Export AEP ZIP</button>
+          <button className="form-select text-sm" onClick={exportFilteredByProfile} disabled={!rows.length}>Export Filtered ZIP</button>
+          <button className="form-select text-sm" onClick={exportDoneOnly} disabled={!rows.length}>Export DONE-only</button>
+          <button className="form-select text-sm" onClick={exportFailOnly} disabled={!rows.length}>Export FAIL-only</button>
+          <button className="form-select text-sm" onClick={() => store.setCollectedPoles?.([])} disabled={!store.collectedPoles?.length}>Clear</button>
         </div>
       ) : null}
 
@@ -2649,7 +2649,7 @@ function FieldCollection({ openHelp, showBottomActions = true }) {
                 <td className="p-2"><input className="border rounded px-2 py-1 w-24" value={p.poleClass || ''} onChange={e => store.updateCollectedPole(i, { poleClass: e.target.value })} /></td>
                 <td className="p-2"><input className="border rounded px-2 py-1 w-24" value={p.powerHeight || ''} onChange={e => store.updateCollectedPole(i, { powerHeight: e.target.value })} placeholder="ft/in" /></td>
                 <td className="p-2">
-                  <select className="border rounded px-2 py-1" value={p.voltage || 'distribution'} onChange={e => store.updateCollectedPole(i, { voltage: e.target.value })}>
+                  <select className="form-input" value={p.voltage || 'distribution'} onChange={e => store.updateCollectedPole(i, { voltage: e.target.value })}>
                     <option value="distribution">distribution</option>
                     <option value="transmission">transmission</option>
                     <option value="communication">communication</option>
@@ -2699,7 +2699,7 @@ function FieldCollection({ openHelp, showBottomActions = true }) {
                   </div>
                 </td>
                 <td className="p-2">
-                  <select className="border rounded px-2 py-1" value={p.status || 'draft'} onChange={e => store.updateCollectedPole(i, { status: e.target.value })}>
+                  <select className="form-input" value={p.status || 'draft'} onChange={e => store.updateCollectedPole(i, { status: e.target.value })}>
                     <option value="draft">draft</option>
                     <option value="done">done</option>
                   </select>
@@ -2838,7 +2838,7 @@ function BatchReport() {
         </div>
       ) : null}
       <div className="no-print">
-        <button className="px-2 py-1 border rounded text-sm" onClick={() => window.print()}>Print Batch</button>
+        <button className="form-select text-sm" onClick={() => window.print()}>Print Batch</button>
       </div>
     </div>
   );
@@ -2905,7 +2905,7 @@ function ImportPanel() {
     <div className="rounded border p-3 no-print">
       <div className="font-medium mb-2">Import KML/KMZ/Shapefile</div>
       <div className="grid gap-2 md:grid-cols-3">
-        <label className="text-sm text-gray-700 grid gap-1">
+        <label className="text-sm text-gray-700 grid gap-2">
           <span className="font-medium">File</span>
           <input type="file" accept=".kml,.kmz,.zip,.shp,.dbf" onChange={e => setFile(e.target.files?.[0] || null)} />
         </label>
@@ -2913,9 +2913,9 @@ function ImportPanel() {
         <div className="self-end text-sm text-gray-600">{status}</div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
-        <label className="text-sm text-gray-700 grid gap-1">
+        <label className="text-sm text-gray-700 grid gap-2">
           <span className="font-medium">Mapping Preset</span>
-          <select className="border rounded px-2 py-1" value={store.mappingPreset} onChange={(e) => {
+          <select className="form-input" value={store.mappingPreset} onChange={(e) => {
             store.setMappingPreset(e.target.value);
             const preset = MAPPING_PRESETS.find(p => p.value === e.target.value);
             if (preset) setMapping(preset.mapping);
@@ -2943,9 +2943,9 @@ function ImportPanel() {
         }} disabled={!batchPreview.poles && !batchPreview.spans}>Apply First Record</button>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
-        <label className="text-sm text-gray-700 grid gap-1">
+        <label className="text-sm text-gray-700 grid gap-2">
           <span className="font-medium">Saved Profile</span>
-          <select className="border rounded px-2 py-1" onChange={(e) => {
+          <select className="form-input" onChange={(e) => {
             const prof = (store.mappingProfiles || []).find(p => p.name === e.target.value);
             if (prof) setMapping(prof.mapping);
           }}>
@@ -3030,9 +3030,9 @@ function ImportPanel() {
             <div key={group} className="border rounded p-2">
               <div className="font-medium mb-1">{group}</div>
               {Object.entries(fields).map(([k, v]) => (
-                <label key={k} className="grid gap-1 mb-1">
+                <label key={k} className="grid gap-2 mb-1">
                   <span className="text-xs uppercase text-gray-500">{k}</span>
-                  <input className="border rounded px-2 py-1" value={v} onChange={e => update(group, k, e.target.value)} />
+                  <input className="form-input" value={v} onChange={e => update(group, k, e.target.value)} />
                 </label>
               ))}
             </div>
@@ -3044,7 +3044,7 @@ function ImportPanel() {
         <div className="grid gap-2 mt-2">
           <textarea className="border rounded p-2 text-xs h-28" placeholder="Paste CSV with headers (example): id,height,class,power_ht,xfmr,latitude,longitude" value={csvPolesText} onChange={(e) => setCsvPolesText(e.target.value)} />
           <div className="flex items-center gap-2">
-            <button className="px-2 py-1 border rounded text-sm" onClick={() => {
+            <button className="form-select text-sm" onClick={() => {
               const rows = parsePolesCSV(csvPolesText, mapping.pole);
               if (rows.length) {
                 store.setImportedPoles(rows);
@@ -3060,7 +3060,7 @@ function ImportPanel() {
         <div className="grid gap-2 mt-2">
           <textarea className="border rounded p-2 text-xs h-28" placeholder="Paste CSV with headers (example): id,from_id,to_id,length,attach" value={csvSpansText} onChange={(e) => setCsvSpansText(e.target.value)} />
           <div className="flex items-center gap-2">
-            <button className="px-2 py-1 border rounded text-sm" onClick={() => {
+            <button className="form-select text-sm" onClick={() => {
               const rows = parseSpansCSV(csvSpansText, mapping.span);
               if (rows.length) {
                 store.setImportedSpans(rows);
@@ -3076,7 +3076,7 @@ function ImportPanel() {
         <div className="grid gap-2 mt-2">
           <textarea className="border rounded p-2 text-xs h-28" placeholder="Paste CSV with headers: type,height,company,makeReady,makeReadyHeight" value={csvText} onChange={(e) => setCsvText(e.target.value)} />
           <div className="flex items-center gap-2">
-            <button className="px-2 py-1 border rounded text-sm" onClick={() => {
+            <button className="form-select text-sm" onClick={() => {
               const rows = parseExistingLinesCSV(csvText, mapping.line);
               if (rows.length) store.setExistingLines(rows);
             }}>Use CSV</button>
@@ -3141,7 +3141,7 @@ function MappingConfigModal({ open, onClose, mapping, onChange, attrKeys, onSave
         </div>
         <div className="flex items-center gap-2 mt-3">
           <input className="border rounded px-2 py-1 text-sm" placeholder="Save as profile name" value={name} onChange={e => setName(e.target.value)} />
-          <button className="px-2 py-1 border rounded text-sm" onClick={() => { if (name) onSave(name, mapping); }}>Save Profile</button>
+          <button className="form-select text-sm" onClick={() => { if (name) onSave(name, mapping); }}>Save Profile</button>
         </div>
       </div>
     </div>
@@ -3157,9 +3157,9 @@ function LogoUpload() {
     reader.readAsDataURL(file);
   };
   return (
-    <label className="text-sm text-gray-700 grid gap-1">
+    <label className="text-sm text-gray-700 grid gap-2">
       <span className="font-medium">Logo</span>
-      <input type="file" accept="image/*" className="border rounded px-2 py-1" onChange={onFile} />
+      <input type="file" accept="image/*" className="form-input" onChange={onFile} />
     </label>
   );
 }
