@@ -92,8 +92,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id) => chunkForId(id)
-      },
-      external: ['tokml', 'shpjs', '@mapbox/shp-write']
+  }
     }
   },
   define: {

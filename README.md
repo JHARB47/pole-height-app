@@ -24,7 +24,7 @@ A comprehensive web application for calculating NESC-compliant pole attachment h
 
 ## 🛠 Technology Stack
 
-- **Frontend**: React 18 + Vite 4.5.14
+- **Frontend**: React 18 + Vite 5
 - **Styling**: TailwindCSS with responsive design and print optimization
 - **State Management**: Zustand with localStorage persistence
 - **Testing**: Vitest with comprehensive test coverage (54 tests)
@@ -51,12 +51,7 @@ The application is optimized for Netlify deployment with the following configura
 
 ### Code Splitting
 
-The build automatically splits code into optimized chunks:
-
-- **geospatial**: Geospatial libraries (shpjs, togeojson, jszip) - ~300KB
-- **vendor**: React core libraries (react, react-dom, zustand) - ~144KB  
-- **icons**: Lucide React icons - minimal
-- **main**: Application code - ~84KB
+The build automatically splits code into optimized chunks (React core, geospatial libraries, UI/vendor) using Vite's manualChunks configuration for fast, cacheable loads.
 
 ## 📦 Installation & Development
 
