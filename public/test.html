@@ -4,23 +4,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Page</title>
+    <meta name="description" content="Test page for pole height application deployment">
+    <title>Test Page - Pole Height Application</title>
     <style>
-        body {
+        .test-body {
             background: rgb(136, 8, 8);
             color: white;
             font-size: 24px;
             padding: 20px;
         }
+        
+        .test-heading {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .test-paragraph {
+            margin-bottom: 0.5rem;
+        }
     </style>
 </head>
 
-<body>
-    <h1>Test Page - This should be visible!</h1>
-    <p>If you can see this, the server is working.</p>
+<body class="test-body">
+    <h1 class="test-heading">Test Page - This should be visible!</h1>
+    <p class="test-paragraph">If you can see this, the server is working.</p>
     <script>
         console.log('Test script running');
-        document.body.innerHTML += '<p>JavaScript is working!</p>';
+        const newParagraph = document.createElement('p');
+        newParagraph.className = 'test-paragraph';
+        newParagraph.textContent = 'JavaScript is working!';
+        document.body.appendChild(newParagraph);
     </script>
 </body>
 

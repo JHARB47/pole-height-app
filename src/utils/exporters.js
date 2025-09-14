@@ -235,7 +235,7 @@ export function sanitizeFilename(s) {
   return String(s || '').toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 120);
 }
 
-export async function buildKMZ({ poles = [], spans = [], name = 'export' } = {}) {
+export async function buildKMZ({ poles = [], spans = [] } = {}) {
   const { default: JSZip } = await import('jszip');
   const zip = new JSZip();
   const kml = buildKML({ poles, spans });
@@ -319,7 +319,11 @@ export async function buildExportZip({
   zip.file(`${base}/export.kmz`, kmzBlob);
   const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' }, (meta) => {
     if (typeof onProgress === 'function') {
-      try { onProgress(meta.percent || 0); } catch {}
+      try { 
+        onProgress(meta.percent || 0); 
+      } catch (err) {
+        console.warn('Progress callback error:', err);
+      }
     }
   });
   return blob;

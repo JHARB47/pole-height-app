@@ -45,7 +45,7 @@ function runPerformanceTest() {
     
     // Test computation
     const computeStart = performance.now();
-    const result = computeAnalysis({
+    const _result = computeAnalysis({
       poleHeight: '35',
       poleClass: 'Class 4',
       existingPowerHeight: '25',
@@ -68,27 +68,27 @@ function runPerformanceTest() {
     
     // Test CSV export
     const exportStart = performance.now();
-    const polesCSV = buildPolesCSV(spans.map((span, i) => ({
+    buildPolesCSV(spans.map((span, i) => ({
       id: span.fromPoleId,
       latitude: 40.123 + (i * 0.001),
       longitude: -80.456 + (i * 0.001),
       height: '35',
       class: 'Class 4'
     })));
-    const spansCSV = buildSpansCSV(spans);
-    const existingCSV = buildExistingLinesCSV(existingLines);
+    buildSpansCSV(spans);
+    buildExistingLinesCSV(existingLines);
     const exportTime = performance.now() - exportStart;
     
     console.log(`  Generation: ${generateTime.toFixed(2)}ms`);
     console.log(`  Computation: ${computeTime.toFixed(2)}ms`);
     console.log(`  CSV Export: ${exportTime.toFixed(2)}ms`);
     console.log(`  Total: ${(generateTime + computeTime + exportTime).toFixed(2)}ms`);
-    console.log(`  Memory usage: ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}MB`);
+    console.log(`  Memory usage: ${(globalThis.process?.memoryUsage?.()?.heapUsed / 1024 / 1024).toFixed(2) || 'N/A'}MB`);
   });
 }
 
 // Run the test
-if (process.argv[2] === 'run') {
+if (globalThis.process?.argv?.[2] === 'run') {
   runPerformanceTest();
 }
 

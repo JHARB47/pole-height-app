@@ -59,10 +59,8 @@ describe('exporters basic', () => {
     expect(base).toMatch(/pole-plan-/);
   });
 });
-import { describe, it, expect } from 'vitest';
-import { buildPolesCSV, buildSpansCSV, buildExistingLinesCSV, buildGeoJSON, buildKML } from './exporters';
 
-describe('exporters', () => {
+describe('exporters utility functions', () => {
 
   it('buildPolesCSV generic headers and mapping', () => {
     /** @type {any[]} */
