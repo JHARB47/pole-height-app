@@ -239,7 +239,17 @@ export default function JobSetup() {
         </label>
         <label className="grid gap-2 text-sm">
           <span className="font-medium whitespace-nowrap text-left">Owner (utility)</span>
-          <input list="wv-power-companies" className="form-input" value={jobOwner} onChange={e=>setJobOwner(e.target.value)} placeholder="e.g., Mon Power, Penelec" />
+          <input 
+            list="wv-power-companies" 
+            className="form-input" 
+            value={jobOwner} 
+            onChange={e => {
+              setJobOwner(e.target.value);
+              // Auto-select submission profile based on owner name
+              store.setJobOwnerAutoProfile(e.target.value);
+            }} 
+            placeholder="e.g., Mon Power, Penelec" 
+          />
           <datalist id="wv-power-companies">
             {WV_COMPANIES.power.map(c => <option key={c.name} value={c.short || c.name}>{c.name}</option>)}
           </datalist>

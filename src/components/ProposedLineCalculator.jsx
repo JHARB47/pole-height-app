@@ -12,6 +12,7 @@ import { makePermitSummary } from '../utils/permitSummary';
 import { EXPORT_PRESETS, buildPolesCSV, buildSpansCSV, buildExistingLinesCSV, buildGeoJSON, buildKML, buildFirstEnergyJointUseCSV } from '../utils/exporters';
 // Geodata utilities are imported dynamically in onPermit to keep geospatial libs lazy-loaded
 import SpansEditor from './SpansEditor';
+import QuickExportButtons from './QuickExportButtons';
 
 export default function ProposedLineCalculator() {
   const {
@@ -394,7 +395,34 @@ export default function ProposedLineCalculator() {
                 { label: 'MD Highway', value: 'mdHighway' },
                 { label: 'Railroad Crossing (CSX)', value: 'railroad' },
               ]} />
-              <Input label="Proposed Line (ft/in)" value={proposedLineHeight} onChange={e => setProposedLineHeight(e.target.value)} />
+              <div className="grid gap-2">
+                <label className="text-sm text-gray-700 grid gap-2">
+                  <span className="font-medium whitespace-nowrap text-left">Proposed Line (ft/in)</span>
+                  <div className="flex items-center gap-2">
+                    <input 
+                      className="form-input" 
+                      value={proposedLineHeight} 
+                      onChange={e => setProposedLineHeight(e.target.value)} 
+                      placeholder="e.g., 20' 6&quot;" 
+                    />
+                    <button
+                      type="button"
+                      className="px-2 py-1 text-xs border rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onClick={() => {
+                        const { recommendedFt } = useAppStore.getState().recommendAttachHeight(
+                          parseFeet(proposedLineHeight) || 20, 
+                          spanEnvironment
+                        );
+                        setProposedLineHeight(`${Math.floor(recommendedFt)}' ${Math.round((recommendedFt % 1) * 12)}"`);
+                      }}
+                      title="Get recommended attach height based on NESC clearances"
+                    >
+                      💡 Suggest
+                    </button>
+                  </div>
+                  <span className="text-xs text-gray-500">Tip: Use "💡 Suggest" for NESC-compliant height recommendations</span>
+                </label>
+              </div>
               <Input label="Override Min Top Space (ft)" value={customMinTopSpace} onChange={e => setCustomMinTopSpace(e.target.value)} placeholder="optional" />
               <Input label="Override Road Clearance (ft)" value={customRoadClearance} onChange={e => setCustomRoadClearance(e.target.value)} placeholder="optional" />
               <Input label="Override Comm-Power (ft)" value={customCommToPower} onChange={e => setCustomCommToPower(e.target.value)} placeholder="optional" />
@@ -996,12 +1024,29 @@ function ProfileTuner() {
 }
 
 function ResultsPanel() {
-  const { results, warnings, engineeringNotes, costAnalysis, makeReadyNotes, useTickMarkFormat } = useAppStore();
+  const { results, warnings, engineeringNotes, costAnalysis, makeReadyNotes, useTickMarkFormat, currentJobId, jobs, importedPoles, importedSpans, importedExistingLines } = useAppStore();
   if (!results) return <div className="text-gray-600">Enter inputs to see results.</div>;
+  
+  // Prepare data for export
+  const currentJob = jobs?.find(j => j.id === currentJobId);
+  const exportPreset = currentJob?.exportProfile || 'generic';
+  
   const { clearances } = results;
   const fmt = useTickMarkFormat ? formatFeetInchesTickMarks : formatFeetInchesVerbose;
   return (
     <div className="grid gap-4">
+      {/* Quick Export Section */}
+      <div className="rounded border p-3 bg-blue-50">
+        <div className="font-medium mb-2 text-blue-800">📦 Quick Export</div>
+        <QuickExportButtons 
+          poles={importedPoles || []} 
+          spans={importedSpans || []} 
+          existingLines={importedExistingLines || []} 
+          job={currentJob} 
+          preset={exportPreset}
+        />
+        <div className="text-xs text-gray-600 mt-2">Export all imported data as CSV, GeoJSON, KML, and KMZ bundle</div>
+      </div>
       <div className="rounded border p-3">
         <div className="font-medium mb-2">Pole</div>
         <div className="text-sm text-gray-700">
