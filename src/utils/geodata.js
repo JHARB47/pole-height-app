@@ -29,6 +29,10 @@ export function buildGeoJSON({ poles = [], spans = [], job = /** @type {any} */ 
       attachmentType: p.attachmentType || 'communication',
       timestamp: p.timestamp || '',
       commCompany: job.commCompany || '',
+      // New geometry/autofill fields
+      incomingBearingDeg: p.incomingBearingDeg ?? '',
+      outgoingBearingDeg: p.outgoingBearingDeg ?? '',
+      PULL_ft: p.PULL_ft ?? '',
     };
     if (p.asBuilt?.attachHeight != null) props.asBuiltAttach = p.asBuilt.attachHeight;
     if (p.asBuilt?.powerHeight != null) props.asBuiltPower = p.asBuilt.powerHeight;
@@ -60,6 +64,10 @@ export function buildGeoJSON({ poles = [], spans = [], job = /** @type {any} */ 
       lengthFt: s.length ?? '',
       proposedAttach: s.proposedAttach ?? '',
       environment: s.environment || '',
+      // Optional derived fields if present at span-level
+      incomingBearingDeg: s.incomingBearingDeg ?? '',
+      outgoingBearingDeg: s.outgoingBearingDeg ?? '',
+      PULL_ft: s.PULL_ft ?? '',
     };
     features.push({ type: 'Feature', properties: props, geometry: { type: 'LineString', coordinates: [a, b] } });
   }
