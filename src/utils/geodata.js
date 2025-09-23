@@ -3,18 +3,33 @@
 
 import JSZip from 'jszip';
 
+/**
+ * @typedef {{ type: 'FeatureCollection', features: any[] }} FeatureCollection
+ */
+
+/**
+ * @param {any} v
+ * @returns {number|undefined}
+ */
 function asNumber(v) {
   const n = typeof v === 'number' ? v : Number(v);
   return Number.isFinite(n) ? n : undefined;
 }
 
-export function buildGeoJSON({ poles = [], spans = [], job = /** @type {any} */ ({}) } = {}) {
+/**
+ * @param {{ poles?: any[], spans?: any[], job?: any }} [input]
+ * @returns {FeatureCollection}
+ */
+export function buildGeoJSON(input = {}) {
+  const { poles = [], spans = [], job = {} } = /** @type {{ poles?: any[], spans?: any[], job?: any }} */ (input);
+  /** @type {any[]} */
   const features = [];
   // Poles as points
   for (const p of poles) {
     const lat = asNumber(p.latitude);
     const lon = asNumber(p.longitude);
     if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+    /** @type {Record<string, any>} */
     const props = {
       id: p.id || '',
       jobId: p.jobId || job.id || '',
@@ -75,20 +90,37 @@ export function buildGeoJSON({ poles = [], spans = [], job = /** @type {any} */ 
   return { type: 'FeatureCollection', features };
 }
 
+/**
+ * @param {string} filename
+ * @param {string} text
+ * @param {string} [type]
+ */
 export function downloadText(filename, text, type = 'application/octet-stream') {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    throw new Error('downloadText can only run in a browser environment.');
+  }
   const blob = new Blob([text], { type });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
 }
 
+/**
+ * @param {FeatureCollection} fc
+ * @param {string} [filename]
+ */
 export function exportGeoJSON(fc, filename = 'geodata.geojson') {
   downloadText(filename, JSON.stringify(fc, null, 2), 'application/geo+json');
 }
 
+/**
+ * @param {FeatureCollection} fc
+ * @param {string} [filename]
+ */
 export async function exportKML(fc, filename = 'geodata.kml') {
   try {
-    const { default: tokml } = await import('tokml');
+    const mod = await import('tokml');
+    const tokml = mod.default ?? mod;
     const kml = tokml(fc, { documentName: 'Pole Plan Wizard', name: 'id', description: 'jobId' });
     downloadText(filename, kml, 'application/vnd.google-earth.kml+xml');
   } catch (e) {
@@ -97,9 +129,18 @@ export async function exportKML(fc, filename = 'geodata.kml') {
   }
 }
 
+/**
+ * @param {FeatureCollection} fc
+ * @param {string} [filename]
+ */
 export async function exportKMZ(fc, filename = 'geodata.kmz') {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    console.warn('KMZ export is browser-only; falling back to GeoJSON.');
+    return exportGeoJSON(fc, filename.replace(/\.kmz$/, '.geojson'));
+  }
   try {
-    const { default: tokml } = await import('tokml');
+    const mod = await import('tokml');
+    const tokml = mod.default ?? mod;
     const kml = tokml(fc, { documentName: 'Pole Plan Wizard', name: 'id', description: 'jobId' });
     const zip = new JSZip();
     zip.file('doc.kml', kml);
@@ -113,111 +154,58 @@ export async function exportKMZ(fc, filename = 'geodata.kmz') {
 }
 
 // Shapefile export as an optional capability
+/**
+ * @param {FeatureCollection} fc
+ * @param {string} [filename]
+ * @param {boolean} [autoDownload]
+ */
 export async function exportShapefile(fc, filename = 'geodata-shapefile.zip', autoDownload = true) {
+  const featureCollection = {
+    type: 'FeatureCollection',
+    features: fc.features || []
+  };
+
+  const options = {
+    folder: 'poleplanwizard',
+    types: { point: 'poles', line: 'spans', polygon: 'areas' }
+  };
+
   try {
-    const { default: shapefile } = await import('@mapbox/shp-write');
-    
-    // Convert to shapefile format
-    const options = {
-      folder: 'poleplanwizard',
-      types: {
-        point: 'poles',
-        line: 'spans',
-        polygon: 'areas'
-      }
-    };
-    
-    // Create a standardized GeoJSON feature collection to avoid type issues
-    const featureCollection = {
-      type: "FeatureCollection",
-      features: fc.features || []
-    };
-    
-    // The most reliable approach with current version of shp-write:
-    // Use browser-based download via the built-in download function
+    const shpwrite = await loadShpWriteFromCDN();
+    if (!shpwrite) throw new Error('shpwrite not available');
+
     if (autoDownload) {
-      // @ts-ignore - Bypassing TypeScript checking for this API call
-      shapefile.download(featureCollection, options);
-      
-      // Since we're using the built-in download function and it directly triggers
-      // a browser download, we'll return a dummy blob
+      shpwrite.download(featureCollection, options);
       return new Blob([JSON.stringify(featureCollection)], { type: 'application/json' });
-    } else {
-      // For programmatic use without auto download, we need to access the content
-      // Create an approach that works with either zipSync or zip
-      const zipBlob = await new Promise((resolve, reject) => {
-        try {
-          // Create an inline script to execute the download outside TypeScript constraints
-          // This ensures compatibility across different versions of the library
-          const script = document.createElement('script');
-          script.innerHTML = `
-            (function() {
-              try {
-                // Use the already loaded shpwrite library in the global context
-                const content = shpwrite.zip(${JSON.stringify(featureCollection)}, ${JSON.stringify(options)});
-                
-                // Pass the result back to our promise
-                const binary = atob(content);
-                const len = binary.length;
-                const bytes = new Uint8Array(len);
-                for (let i = 0; i < len; i++) {
-                  bytes[i] = binary.charCodeAt(i);
-                }
-                window.__shapefileResult = new Blob([bytes], { type: 'application/zip' });
-                window.__shapefileReady = true;
-              } catch (e) {
-                console.error('Shapefile generation failed:', e);
-                window.__shapefileError = e.message;
-              }
-            })();
-          `;
-          
-          document.body.appendChild(script);
-          
-          // Poll for the result
-          const checkResult = () => {
-            // @ts-ignore - Access window properties added by our script
-            if (window.__shapefileReady) {
-              // @ts-ignore - Access window properties added by our script
-              const result = window.__shapefileResult;
-              // Cleanup
-              // @ts-ignore
-              delete window.__shapefileReady;
-              // @ts-ignore
-              delete window.__shapefileResult;
-              document.body.removeChild(script);
-              resolve(result);
-            // @ts-ignore - Access window properties added by our script
-            } else if (window.__shapefileError) {
-              // @ts-ignore - Access window properties added by our script
-              const error = window.__shapefileError;
-              // Cleanup
-              // @ts-ignore
-              delete window.__shapefileError;
-              document.body.removeChild(script);
-              reject(new Error(error));
-            } else {
-              // Keep polling
-              setTimeout(checkResult, 50);
-            }
-          };
-          
-          // Start checking for result
-          setTimeout(checkResult, 50);
-        } catch (e) {
-          reject(e);
-        }
-      });
-      
-      return zipBlob;
     }
 
+    const base64 = shpwrite.zip(featureCollection, options);
+    const binary = atob(base64);
+    const len = binary.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
+    return new Blob([bytes], { type: 'application/zip' });
   } catch (e) {
-    console.warn('Shapefile export requires optional dependency "@mapbox/shp-write". Falling back to GeoJSON.', e);
-    if (autoDownload) {
-      exportGeoJSON(fc, filename.replace(/\.zip$/, '.geojson'));
-    }
-    // Return a GeoJSON blob if shapefile export fails
+    console.warn('Shapefile export unavailable; falling back to GeoJSON.', e);
+    if (autoDownload) exportGeoJSON(fc, filename.replace(/\.zip$/, '.geojson'));
     return new Blob([JSON.stringify(fc)], { type: 'application/json' });
   }
+}
+
+async function loadShpWriteFromCDN() {
+  if (typeof window === 'undefined') return undefined;
+  // @ts-ignore
+  if (window.shpwrite) return window.shpwrite;
+  const url = 'https://unpkg.com/@mapbox/shp-write@0.4.3/dist/shpwrite.js';
+  /** @type {Promise<void>} */
+  await new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = url;
+    s.async = true;
+  s.onload = () => resolve(undefined);
+    s.onerror = () => reject(new Error('Failed to load shpwrite from CDN'));
+    document.head.appendChild(s);
+  });
+  // @ts-ignore
+  return window.shpwrite;
 }

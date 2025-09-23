@@ -1919,69 +1919,25 @@ function InteropExportButton() {
       } else if (format === 'kml') {
         const kml = buildKML({ poles, spans });
         zip.file('export/data.kml', kml);
-      } else if (format === 'shapefile') {
-        try {
-          // Create GeoJSON from our data
-          const fc = buildGeoJSON({ poles, spans });
-
-          // Try to import and use the shp-write module for shapefile export
+        } else if (format === 'shapefile') {
           try {
-            // Load the dependency to ensure it's available in the browser
-            await import('@mapbox/shp-write');
-
-            // Direct approach - use JavaScript to do a separate browser download
-            // Bypass TypeScript checking issues by using direct DOM manipulation
-
-            // Store GeoJSON in our zip file as a backup
-            zip.file('export/data.geojson', JSON.stringify(fc));
-
-            // Tell user that shapefile will download separately
-            zip.file('export/README.txt',
-              'A shapefile has been downloaded separately as it requires direct browser download. ' +
-              'This GeoJSON file is included as a compatible alternative format.'
-            );
-
-            // Use vanilla JS approach to trigger download via the shp-write library
-            // This bypasses TypeScript checking issues
-            const script = document.createElement('script');
-            script.innerHTML = `
-              (async function() {
-                try {
-                  const shpWrite = await import('/@mapbox/shp-write');
-                  const fc = ${JSON.stringify(fc)};
-                  shpWrite.default.download(fc, {
-                    folder: 'poleplanwizard',
-                    types: {
-                      point: 'poles',
-                      line: 'spans', 
-                      polygon: 'areas'
-                    }
-                  });
-                } catch (e) {
-                  console.error('Shapefile export failed:', e);
-                }
-              })();
-            `;
-            document.body.appendChild(script);
-            setTimeout(() => document.body.removeChild(script), 2000);
-
-            // Also add GeoJSON to our zip as an alternative format
-            zip.file('export/data.geojson', JSON.stringify(fc));
-            zip.file('export/README.txt', 'Shapefile has been downloaded separately. GeoJSON included in this zip file as an alternative format.');
+            const { buildGeoJSON: buildGeoForShp, exportShapefile } = await import('../utils/geodata');
+            const fc = buildGeoForShp({ poles, spans });
+            const shpBlob = await exportShapefile(fc, 'data-shapefile.zip', false);
+            if (shpBlob) {
+              zip.file('export/data-shapefile.zip', shpBlob);
+              zip.file('export/data.geojson', JSON.stringify(fc));
+              zip.file('export/README.txt', 'Shapefile (ZIP) and GeoJSON provided. Shapefile generated via CDN-loaded shp-write.');
+            } else {
+              zip.file('export/data.geojson', JSON.stringify(fc));
+              zip.file('export/README.txt', 'Shapefile export unavailable; GeoJSON included as an alternative.');
+              setExportError('Shapefile export unavailable; provided GeoJSON instead.');
+            }
           } catch (e) {
-            // If shapefile export fails, just include GeoJSON
-            console.warn('Shapefile export failed, including GeoJSON instead', e);
-            zip.file('export/data.geojson', JSON.stringify(fc));
-            zip.file('export/README.txt', 'Shapefile export failed. Shapefile export requires the optional @mapbox/shp-write dependency. GeoJSON included as an alternative.');
-
-            // Show an error message to the user
-            setExportError('Shapefile export failed. GeoJSON included as an alternative.');
+            console.warn('Shapefile export failed completely', e);
+            setExportError(`Export failed: ${e.message}`);
           }
-        } catch (e) {
-          console.warn('Shapefile export failed completely', e);
-          setExportError(`Export failed: ${e.message}`);
         }
-      }
 
       const blob = await zip.generateAsync({ type: 'blob' });
       const url = URL.createObjectURL(blob);

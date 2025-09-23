@@ -12,14 +12,14 @@
   },
   "homepage": "https://mrejointuse.netlify.app/",
   "scripts": {
-  "audit:fix:prod": "npm audit fix --omit dev --audit-level=high || true",
-  "audit:report": "npm audit --omit dev --audit-level=high || true",
+    "audit:fix:prod": "npm audit fix --omit dev --audit-level=high || true",
+    "audit:report": "npm audit --omit dev --audit-level=high || true",
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-  "test:watch": "vitest --watch",
+    "test:watch": "vitest --watch",
     "test:coverage": "vitest run --run --coverage",
     "lint:css": "stylelint \"src/**/*.css\" --allow-empty-input",
     "lint:css:fix": "stylelint \"src/**/*.css\" --allow-empty-input --fix",
@@ -49,7 +49,6 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
-    "@mapbox/shp-write": "^0.4.3",
     "@stackbit/cms-git": "^1.0.35",
     "@stackbit/types": "^2.1.14",
     "@testing-library/react": "^16.3.0",
@@ -76,7 +75,7 @@
     "stylelint-config-tailwindcss": "^1.0.0",
     "tailwindcss": "^3.4.10",
     "typescript": "^5.9.2",
-  "vite": "^5.4.10",
+    "vite": "^5.4.10",
     "vitest": "^1.6.0"
   },
   "overrides": {
@@ -102,7 +101,7 @@
     ]
   },
   "engines": {
-  "node": ">=20 <23",
+    "node": ">=20 <23",
     "npm": ">=10"
   }
 }
