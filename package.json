@@ -103,5 +103,8 @@
   "engines": {
     "node": ">=20 <23",
     "npm": ">=10"
+  },
+  "optionalDependencies": {
+    "zod": "^3.25.76"
   }
 }

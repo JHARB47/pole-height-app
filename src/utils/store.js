@@ -181,7 +181,7 @@ const useAppStore = create(persist((set) => ({
   recommendAttachHeight: (proposedFt, env = 'road') => {
     try {
       const base = getNESCClearances('communication', env);
-      const profile = (CALC_DEFAULTS?.presets || {})[useAppStore.getState().currentSubmissionProfile] || null;
+
       const tuned = applyPresetToClearances(base, useAppStore.getState().currentSubmissionProfile);
       const target = tuned?.roadClearance || base.roadClearance;
       const attach = Math.max(Number(proposedFt) || 0, target + 1.0);
