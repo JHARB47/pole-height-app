@@ -27,8 +27,19 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-/** @param {FetchEvent} e */
-self.addEventListener('fetch', (e) => {
+// Allow clients to request immediate activation
+self.addEventListener('message', (event) => {
+  // @ts-ignore
+  if (event && event.data === 'SKIP_WAITING' && typeof self.skipWaiting === 'function') {
+    // @ts-ignore
+    self.skipWaiting();
+  }
+});
+
+self.addEventListener('fetch', (event) => {
+  /** @type {FetchEvent} */
+  // @ts-ignore - JSDoc cast for proper type in JS file
+  const e = event;
   const req = e.request;
   const url = req.url;
   if (PRECACHE_URLS.some(u => url.startsWith(u))) {
@@ -39,7 +50,7 @@ self.addEventListener('fetch', (e) => {
         const fetchPromise = fetch(req).then(res => {
           if (res && res.status === 200) cache.put(url, res.clone());
           return res;
-        }).catch(() => cached);
+        }).catch(() => cached || new Response('', { status: 504 }));
         return cached || fetchPromise;
       })
     );

@@ -1,6 +1,7 @@
-import { Component } from 'react'
+// @ts-nocheck
+import React, { Component } from 'react'
 
-export class ErrorBoundary extends Component {
+class ErrorBoundary extends Component {
   constructor(props) {
     super(props)
     this.state = { hasError: false, error: null }
@@ -9,7 +10,7 @@ export class ErrorBoundary extends Component {
     return { hasError: true, error }
   }
   componentDidCatch(error, info) {
-    // eslint-disable-next-line no-console
+     
     console.error('ErrorBoundary caught:', error, info)
   }
   render() {
@@ -22,7 +23,7 @@ export class ErrorBoundary extends Component {
         </div>
       )
     }
-    // eslint-disable-next-line react/prop-types
+     
     return this.props.children
   }
 }
