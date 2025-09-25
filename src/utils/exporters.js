@@ -131,12 +131,12 @@ export function buildGeoJSON({ poles = [], spans = [] }) {
   return { type: 'FeatureCollection', features };
 }
 
-export function buildKML({ poles = [], spans = [] }) {
+export function buildKML({ poles = [], spans = [], name = 'Pole Plan Wizard Export' }) {
   const esc = (s) => String(s ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
   const parts = [];
   parts.push('<?xml version="1.0" encoding="UTF-8"?>');
   parts.push('<kml xmlns="http://www.opengis.net/kml/2.2"><Document>');
-  parts.push('<name>Pole Plan Wizard Export</name>');
+  parts.push(`<name>${esc(name)}</name>`);
   // Simple styles for better readability in mapping tools
   parts.push([
     '<Style id="poleStyle">',
@@ -235,10 +235,10 @@ export function sanitizeFilename(s) {
   return String(s || '').toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 120);
 }
 
-export async function buildKMZ({ poles = [], spans = [] } = {}) {
+export async function buildKMZ({ poles = [], spans = [], name = 'Export' } = {}) {
   const { default: JSZip } = await import('jszip');
   const zip = new JSZip();
-  const kml = buildKML({ poles, spans });
+  const kml = buildKML({ poles, spans, name });
   zip.file('doc.kml', kml);
   const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
   // Consumers should save with .kmz extension and mime application/vnd.google-earth.kmz
