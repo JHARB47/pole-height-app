@@ -1,7 +1,7 @@
 {
   "name": "pole-height-app",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "repository": {
     "type": "git",
@@ -10,7 +10,7 @@
   "bugs": {
     "url": "https://github.com/JHARB47/pole-height-app/issues"
   },
-  "homepage": "https://mrejointuse.netlify.app/",
+  "homepage": "https://poleplanpro.com/",
   "scripts": {
     "audit:fix:prod": "npm audit fix --omit dev --audit-level=high || true",
     "audit:report": "npm audit --omit dev --audit-level=high || true",
@@ -23,7 +23,8 @@
     "test:coverage": "vitest run --run --coverage",
     "lint:css": "stylelint \"src/**/*.css\" --allow-empty-input",
     "lint:css:fix": "stylelint \"src/**/*.css\" --allow-empty-input --fix",
-    "verify": "npm ci --no-audit --progress=false && npm run -s lint && npm test -- --run --reporter=verbose && npm run -s build",
+    "verify": "npm ci --no-audit --progress=false && npm run -s lint && npm test -- --run --reporter=verbose && npm run -s build && node scripts/ci/check-bundle-size.mjs",
+    "bundle:check": "node scripts/ci/check-bundle-size.mjs",
     "perf": "node ./scripts/perf/profile.mjs",
     "perf:quick": "PERF_MODE=quick node ./scripts/perf/profile.mjs",
     "prepare": "husky",
@@ -78,6 +79,9 @@
     "vite": "^5.4.10",
     "vitest": "^1.6.0"
   },
+  "optionalDependencies": {
+    "zod": "^3.23.8"
+  },
   "overrides": {
     "object-inspect": "^1.13.2",
     "minimist": "^1.2.8",
@@ -103,8 +107,5 @@
   "engines": {
     "node": ">=20 <23",
     "npm": ">=10"
-  },
-  "optionalDependencies": {
-    "zod": "^3.25.76"
   }
 }

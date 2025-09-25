@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parsePolesCSV, parseSpansCSV, parseExistingLinesCSV } from './importers';
+import { parsePolesCSV, parseSpansCSV, parseExistingLinesCSV, parsePolesCSVValidated, parseSpansCSVValidated } from './importers';
 
 describe('CSV parsers', () => {
   it('parses poles CSV with defaults and mapping', () => {
@@ -39,5 +39,17 @@ describe('CSV parsers', () => {
     expect(out).toHaveLength(2);
     expect(out[0]).toMatchObject({ type: 'communication', height: '14', companyName: 'ISP', makeReady: true, makeReadyHeight: '15' });
     expect(out[1]).toMatchObject({ type: 'neutral', height: '22', companyName: 'Utility', makeReady: false, makeReadyHeight: '' });
+  });
+  it('validated wrappers return {data, errors}', async () => {
+    const polesCsv = 'id,height\nP1,35\nP2,notnum';
+    const spansCsv = 'id,from_id,to_id,length,attach\nS1,P1,P2,150,18\nS2,P2,P3,notnum,16';
+    const poleRes = await parsePolesCSVValidated(polesCsv, { id: 'id', height: 'height' });
+    const spanRes = await parseSpansCSVValidated(spansCsv, { id: 'id', fromId: 'from_id', toId: 'to_id', length: 'length', proposedAttach: 'attach' });
+    expect(poleRes).toHaveProperty('data');
+    expect(poleRes).toHaveProperty('errors');
+    expect(spanRes).toHaveProperty('data');
+    expect(spanRes).toHaveProperty('errors');
+    expect(Array.isArray(poleRes.data)).toBe(true);
+    expect(Array.isArray(spanRes.data)).toBe(true);
   });
 });

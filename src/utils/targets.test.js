@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { getEnvTarget, controllingGroundTarget, maxTargetFromCached } from './targets';
+import { parsePolesCSVValidated, parseSpansCSVValidated } from './importers';
+import { parsePolesCSVValidated, parseSpansCSVValidated } from './importers';
 
 const profile = {
   envRoadFt: 15,
@@ -46,5 +48,27 @@ describe('targets utils', () => {
       { environment: 'road', targetFt: 17 },
     ];
     expect(maxTargetFromCached(cached, 'wvHighway', profile)).toBe(19);
+  });
+  
+  it('validation helpers provide structure (poles/spans) - extended', async () => {
+    const POLES_CSV = `id,height,class,xfmr,latitude,longitude\nP1,40,3,yes,40.1,-80.1`;
+    const SPANS_CSV = `id,from_id,to_id,length,attach\nS1,P1,P2,150,18`;
+    const poles = await parsePolesCSVValidated(POLES_CSV, { id: 'id', height: 'height', class: 'class', hasTransformer: 'xfmr', latitude: 'latitude', longitude: 'longitude' });
+    const spans = await parseSpansCSVValidated(SPANS_CSV, { id: 'id', fromId: 'from_id', toId: 'to_id', length: 'length', proposedAttach: 'attach' });
+    expect(Array.isArray(poles.data)).toBe(true);
+    expect(Array.isArray(spans.data)).toBe(true);
+    expect(poles).toHaveProperty('errors');
+    expect(spans).toHaveProperty('errors');
+  });
+
+  it('validation helpers return structure (poles/spans)', async () => {
+    const POLES_CSV = `id,height,class,xfmr,latitude,longitude\nP1,40,3,yes,40.1,-80.1`;
+    const SPANS_CSV = `id,from_id,to_id,length,attach\nS1,P1,P2,150,18`;
+    const poles = await parsePolesCSVValidated(POLES_CSV, { id: 'id', height: 'height', class: 'class', hasTransformer: 'xfmr', latitude: 'latitude', longitude: 'longitude' });
+    const spans = await parseSpansCSVValidated(SPANS_CSV, { id: 'id', fromId: 'from_id', toId: 'to_id', length: 'length', proposedAttach: 'attach' });
+    expect(Array.isArray(poles.data)).toBe(true);
+    expect(Array.isArray(spans.data)).toBe(true);
+    expect(poles).toHaveProperty('errors');
+    expect(spans).toHaveProperty('errors');
   });
 });

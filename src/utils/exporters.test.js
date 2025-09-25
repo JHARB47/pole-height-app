@@ -40,8 +40,8 @@ describe('exporters', () => {
     expect(keys.some(k => k.endsWith('/poles.csv'))).toBe(true);
     expect(keys.some(k => k.endsWith('/spans.csv'))).toBe(true);
     expect(keys.some(k => k.endsWith('/existing_lines.csv'))).toBe(true);
-    expect(keys.some(k => k.endsWith('/export.geojson'))).toBe(true);
-    expect(keys.some(k => k.endsWith('/export.kml'))).toBe(true);
-    expect(base).toMatch(/pole-plan-/);
+    expect(keys.some(k => k.endsWith('/data.geojson'))).toBe(true);
+    expect(keys.some(k => k.endsWith('/data.kml'))).toBe(true);
+    expect(base).toMatch(/123-test-/);
   });
 });

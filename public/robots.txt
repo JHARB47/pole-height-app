@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://poleplanpro.com/sitemap.xml

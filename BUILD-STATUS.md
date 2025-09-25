@@ -3,12 +3,13 @@
 [![Netlify Status](https://api.netlify.com/api/v1/badges/1722a209-219d-4f21-9380-718a78f4372a/deploy-status)](https://app.netlify.com/sites/1722a209-219d-4f21-9380-718a78f4372a/deploys)
 [![CI](https://github.com/JHARB47/pole-height-app/actions/workflows/ci.yml/badge.svg)](https://github.com/JHARB47/pole-height-app/actions/workflows/ci.yml)
 
-## 🎯 Current Status: **STABLE** (December 2024)
+## 🎯 Current Status: **STABLE** (September 2025)
 
-**Build System**: Vite 5.4.19 (stable), Vite 7.1.2 (incompatible)  
-**Test Suite**: 57 tests passing across 15 test files  
+**Build System**: Vite 5.x (pinned with explicit manual chunks); migration path to Vite 6/7 under evaluation  
+**Runtime Node Version**: 22.12.0 (single source: `.nvmrc`, CI, Netlify)  
+**Test Suite**: 76 tests passing across 17 files (post-validation integration)  
 **PWA Generation**: ✅ Working (service worker + manifest)  
-**Dependencies**: All core deps stable, optional deps properly externalized
+**Dependencies**: Core deps stable; optional GIS deps dynamically loaded. CSP tightened (removed `unsafe-eval`).
 
 ## 🔧 Version Compatibility Matrix
 
@@ -21,31 +22,24 @@
 
 ### Test Suite Performance
 
-```
+```text
 ✓ 57 tests passing consistently
 ✓ 15 test files executed  
 ✓ Coverage: calculations, exports, imports, permits, geodata
 ✓ Optional dependency graceful degradation tested
 ✓ Execution time: ~800ms average
-```
+```text
 
-### Latest Build Output
+### Latest Build Output (Snapshot 2025-09-24)
 
-```
-dist/registerSW.js                         0.13 kB
-dist/manifest.webmanifest                  0.36 kB
-dist/index.html                            0.85 kB │ gzip:   0.42 kB
-dist/assets/index-C8gPrRUz.css            19.10 kB │ gzip:   4.31 kB
-dist/assets/vendor-BxK7pNTt.js           144.67 kB │ gzip:  46.73 kB
-dist/assets/geospatial-Bs12HSpc.js        97.63 kB │ gzip:  30.10 kB
-dist/assets/index-CB1IpBtm.js            279.80 kB │ gzip:  72.58 kB
-dist/assets/index-DMzg9ePK.js            435.44 kB │ gzip: 180.24 kB
-
-PWA v0.20.5
-precache  22 entries (1199.25 KiB)
-Service worker: ✅ Generated
-Web manifest: ✅ Generated
-```
+```text
+index.html                        ~0.42 kB gzip
+assets/vendor                     ~240.28 kB gzip
+assets/app-calculator (utils)     ~154.98 kB gzip
+assets/react-dom                  ~129.78 kB gzip
+assets/pdf-libs                   ~314.91 kB gzip  (largest)
+precache entries                  22
+```text
 
 ### Optional Dependencies Status
 
@@ -71,7 +65,7 @@ export default defineConfig({
     if (id.includes('src/utils')) return 'utils';
   }
 });
-```
+```text
 
 ### PWA Configuration
 
@@ -86,10 +80,10 @@ export default defineConfig({
 
 **Problem**: External module resolution fails in Vite 7.1.2
 
-```
+```text
 Error: Rollup failed to resolve import "tokml" from geodata.js
 Error: "shpjs" cannot be included in manualChunks because it is resolved as external
-```
+```javascript
 
 **Root Cause**: Vite 7.x has stricter external module detection that conflicts with current configuration
 
@@ -136,12 +130,11 @@ try {
 - **Test Execution**: ~800ms
 - **Total CI Pipeline**: ~3-4 minutes
 
-### Bundle Analysis
+### Bundle Analysis (Historical vs Current)
 
-- **Main Bundle**: 435KB (gzipped: 180KB)
-- **Vendor Chunk**: 145KB (gzipped: 47KB)
-- **Utils Chunk**: 280KB (gzipped: 73KB)
-- **Geospatial Chunk**: 98KB (gzipped: 30KB)
+- Historic main bundle previously 435KB gzip 180KB; refactoring + chunk adjustments split out pdf-libs.
+- Current largest gzip: pdf-libs (~315 kB) – lazy-loaded with hover prefetch.
+- Vendor now ~240 kB gzip; calculator/utils ~155 kB gzip.
 
 ## 🚀 Deployment Configuration
 
@@ -168,7 +161,7 @@ try {
 npm ci && npm run lint && npm run lint:css && npm test && npm run build
 
 # Individual checks
-npm test          # Run test suite (57 tests)
+npm test          # Run test suite (76 tests)
 npm run lint      # ESLint checks  
 npm run lint:css  # Stylelint checks
 npm run build     # Production build
@@ -177,7 +170,7 @@ npm run dev       # Development server
 
 ### Quality Gates
 
-1. ✅ All tests must pass (57/57)
+1. ✅ All tests must pass (76/76)
 2. ✅ Linting must pass (ESLint + Stylelint)
 3. ✅ Build must complete successfully
 4. ✅ PWA assets must generate correctly
@@ -196,6 +189,9 @@ npm run dev       # Development server
 - Evaluate tree-shaking opportunities
 - Consider lazy loading for large utilities
 - Monitor bundle size growth over time
+Introduced `pdfAsync.js` dynamic loader boundary for pdf-lib (defer large PDF code until first use)
+Hover prefetch added on Permit Pack button to warm `pdf-lib` chunk.
+Numeric coercion added to CSV/GeoJSON parsing to handle thousands separators, locale decimal commas, units, degrees, and feet–inches.
 
 ### PWA Enhancements
 
@@ -255,4 +251,4 @@ npm run dev       # Development server
 
 All issues have been resolved and the application is ready for continued development and production deployment. The build system is stable, tested, and optimized with comprehensive CI/CD pipeline support.
 
-Node 22.x is the target runtime (Netlify and CI). A `.nvmrc` is included for local development.
+Node 22.12.0 is the enforced runtime (Netlify, CI, local via `.nvmrc`). No Java toolchain present—prior Java upgrade request resolved by standardizing Node environment.

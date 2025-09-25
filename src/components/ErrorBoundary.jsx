@@ -1,6 +1,5 @@
 // @ts-nocheck
 import React, { Component } from 'react'
-
 class ErrorBoundary extends Component {
   constructor(props) {
     super(props)
@@ -10,7 +9,7 @@ class ErrorBoundary extends Component {
     return { hasError: true, error }
   }
   componentDidCatch(error, info) {
-     
+    // eslint-disable-next-line no-console
     console.error('ErrorBoundary caught:', error, info)
   }
   render() {
@@ -23,7 +22,6 @@ class ErrorBoundary extends Component {
         </div>
       )
     }
-     
     return this.props.children
   }
 }

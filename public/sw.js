@@ -3,7 +3,6 @@ const PRECACHE = 'ph-precache-v2';
 const PRECACHE_URLS = [
   'https://unpkg.com/@mapbox/shp-write@0.4.3/dist/shpwrite.js'
 ];
-
 self.addEventListener('install', (event) => {
   // @ts-ignore
   if (typeof self.skipWaiting === 'function') self.skipWaiting();

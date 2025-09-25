@@ -2,33 +2,39 @@
 
 [![Live Site](https://img.shields.io/website?url=https%3A%2F%2Fmrejointuse.netlify.app&label=live%20site&up_message=online&down_message=offline)](https://mrejointuse.netlify.app)
 [![CI](https://github.com/JHARB47/pole-height-app/actions/workflows/ci.yml/badge.svg)](https://github.com/JHARB47/pole-height-app/actions/workflows/ci.yml)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/1722a209-219d-4f21-9380-718a78f4372a/deploy-status)](https://app.netlify.com/projects/poleplanpro/deploys)
 
 Live URL: <https://mrejointuse.netlify.app>
 
-A comprehensive web application for calculating NESC-compliant pole attachment heights for utility engineering workflows.
+A comprehensive web application for calculating NESC-compliant pole attachment heights and span-level pull (tension surrogate) using bearing-derived geometry, optimized for lightweight builds and resilient geospatial export.
 
 ## 🚀 Features
 
 - **NESC Compliance**: Automatic validation against National Electrical Safety Code standards
 - **Advanced Calculations**: Sag calculations, clearance validation, and cost estimation
-- **Geospatial Import**: Support for KML/KMZ/Shapefile data import with configurable mapping
+- **Geospatial Import/Export**: Support for KML/KMZ/Shapefile (import), and export of CSV, GeoJSON, KML, KMZ, Shapefile (runtime CDN) with configurable mapping
 - **CSV Import (Poles/Spans/Existing Lines)**: Robust, header-based CSV parser with mapping presets (ArcGIS, ikeGPS, Katapult Pro) and per-job export profile
+  - Now includes optional inline data validation ("Load + Validate") buttons that surface field-level issues before data is committed.
+  - Numeric coercion for messy inputs: handles thousands separators, locale decimal commas, units (ft/m), degree symbols, and feet–inches (e.g., `12'6"`).
 - **Format Preferences**: Choose between verbose (15ft 6in) and tick mark (15' 6") formatting
 - **Comprehensive Help**: Built-in help system with detailed documentation and examples
-- **Professional Reports**: Export calculations to CSV with print-optimized layouts
+- **Professional Reports**: Export calculations to CSV with print-optimized layouts; permit pack PDFs
+  - PDF generation now behind a dynamic loader boundary to defer `pdf-lib` download until first use.
+  - Hover prefetch: mouses over the Permit Pack button preloads the `pdf-lib` chunk to minimize click latency.
+- **Autofill PULL_ft**: Bearing-based automatic pull computation between poles
 - **State Persistence**: User preferences and data saved locally between sessions
-- Mobile-friendly layout tweaks (responsive inputs/buttons)
-- GPS autofill: Use device location to populate pole latitude/longitude
-- Permit Pack export: WV Highway (MM109) and Railroad (CSX)
-- Spans Editor
+- **Mobile Friendly**: Responsive inputs/buttons
+- **GPS Autofill**: Use device location to populate pole latitude/longitude
+- **Permit Pack Export**: WV Highway (MM109) and Railroad (CSX)
+- **Spans Editor**: Interactive span and attachment management
 
 ## 🛠 Technology Stack
 
 - **Frontend**: React 18 + Vite 5
 - **Styling**: TailwindCSS with responsive design and print optimization
 - **State Management**: Zustand with localStorage persistence
-- **Testing**: Vitest with comprehensive test coverage (54 tests)
-- **Geospatial**: shpjs, @tmcw/togeojson for file import
+- **Testing**: Vitest with comprehensive test coverage
+- **Geospatial**: shpjs, @tmcw/togeojson for file import; CDN-loaded @mapbox/shp-write only at export time
 - **Icons**: Lucide React icon library
 
 ## 🏗 Build Configuration
@@ -41,7 +47,9 @@ The application is optimized for Netlify deployment with the following configura
 
 - **Build Command**: `npm run build`
 - **Publish Directory**: `dist`
-- **Node Version**: 22 (pinned in `netlify.toml` and CI). Add a local `.nvmrc` to align your environment.
+- **Node Version**: 22.12.0 (pinned via `.nvmrc`, `netlify.toml`, and CI). Use `nvm use` or asdf to ensure consistency locally.
+  - If you previously used Node 20, upgrade before contributing to avoid subtle polyfill differences.
+  - CI now reads the version from `.nvmrc` to enforce a single source of truth.
 
 #### Key Files
 
@@ -49,9 +57,9 @@ The application is optimized for Netlify deployment with the following configura
 - `vite.config.js` - Optimized Vite build with code splitting
 - `package.json` - Dependencies and build scripts
 
-### Code Splitting
+### Code Splitting & Runtime GIS Strategy
 
-The build automatically splits code into optimized chunks (React core, geospatial libraries, UI/vendor) using Vite's manualChunks configuration for fast, cacheable loads.
+The build avoids bundling heavy shapefile generation libraries. `@mapbox/shp-write` is fetched via CDN only when a Shapefile export is explicitly requested. This removed prior `proj4` transitive dependency issues and shrinks the main bundle. Manual chunk logic in `vite.config.js` groups calculation engine, geodata utilities, and vendor code for optimal caching.
 
 ## 📦 Installation & Development
 
@@ -75,10 +83,11 @@ npm run preview
 npm run lint
 ```
 
-If you see an engines warning locally, switch to Node 22:
+If you see an engines warning locally, switch to Node 22.12.0:
 
 ```bash
-nvm use 22
+nvm install 22.12.0 # if not already installed
+nvm use 22.12.0
 ```
 
 ## 🌍 Deployment to Netlify
@@ -89,19 +98,9 @@ nvm use 22
 2. Netlify will automatically detect the build settings from `netlify.toml`
 3. Deploy will run `npm run build` and publish the `dist` folder
 
-### GitHub Actions → Netlify (CI deploys)
+### GitHub Actions
 
-This repository includes a GitHub Actions workflow (`.github/workflows/netlify-deploy.yml`) that builds/tests on every push and deploys to Netlify when secrets are configured:
-
-- Required repository secrets:
-  - `NETLIFY_AUTH_TOKEN` – your Netlify personal access token
-  - `NETLIFY_SITE_ID` – the Site ID for mrejointuse.netlify.app
-- Behavior:
-  - Production deploys on pushes to `main`
-  - Preview deploys on pull requests from the same repository (not forks)
-  - If secrets are missing, the deploy step is skipped (build/test still run)
-
-Add the secrets in GitHub → Settings → Secrets and variables → Actions → New repository secret.
+CI focuses on build, lint, and tests. Netlify performs deploys directly from `main`; disabled reference workflow files remain for historical context. If re-enabling automated Netlify deployments via Actions, restore secrets (`NETLIFY_AUTH_TOKEN`, `NETLIFY_SITE_ID`) and activate the workflow.
 
 ### Manual Deployment
 
@@ -133,17 +132,17 @@ Available environment variables:
 ### Netlify Features Enabled
 
 - **SPA Routing**: All routes redirect to `index.html` for client-side routing
-- **Security Headers**: X-Frame-Options, CSP, and other security headers
+- **Security Headers**: X-Frame-Options, CSP, and other security headers (CSP tightened 2025-09-24 by removing `unsafe-eval`; revert if a dependency requires eval in prod).
 - **Static Asset Caching**: Optimized caching for `/assets/*` files
 - **File Upload Support**: CSP configured for geospatial file imports
 
 ### Vite Configuration Highlights
 
-- **Buffer Polyfill**: Included for browser compatibility with geospatial libraries
-- **Code Splitting**: Automatic chunking for optimal loading performance
-- **Build Optimization**: Target ES2015 with CommonJS support
-- **CSV Parser**: Uses `papaparse` via ESM import
-- **Development Server**: Hot reload with network access enabled
+- **Chunking**: Manual grouping for calculation engine, geodata utilities, vendor
+- **No Shapefile Bundle**: Shapefile export uses CDN runtime load (no `proj4` in graph)
+- **Polyfills**: Buffer/stream/util as needed for packaging logic
+- **CSV Parser**: Uses robust parser for embedded commas/quotes
+- **Dev Server**: Hot reload with network access
 
 ## 🧪 Testing
 
@@ -178,11 +177,35 @@ npm run test:watch
 - **Make-Ready Analysis**: Calculate costs for existing utility modifications
 - **Professional Reports**: Export with company branding and detailed calculations
 
-### File Import Support
+### File Import/Export Support
 
-- **KML/KMZ**: Google Earth files with configurable attribute mapping
-- **Shapefiles**: Industry-standard GIS format (.shp, .dbf, .shx)
-- **CSV**: Poles, Spans, and Existing Lines CSV. Mapping presets for ArcGIS/ikeGPS/Katapult Pro; save custom profiles per job.
+- **Import**: KML, KMZ, Shapefiles, CSV (poles, spans, existing lines)
+- **Export**: CSV, GeoJSON, KML, KMZ, Shapefile (CDN `@mapbox/shp-write`), PDF
+- **Fallback**: If CDN shapefile script fails, GeoJSON ZIP still provided
+
+#### Shapefile Export Flow
+
+1. User selects Shapefile export.
+2. App injects `<script src="https://unpkg.com/@mapbox/shp-write@latest/shpwrite.js">` (UMD global).
+3. On load success, Shapefile component files + GeoJSON packaged via JSZip.
+4. On failure, fallback ZIP with GeoJSON only (user notified).
+
+Advantages: Smaller bundle, build stability, graceful offline behavior.
+
+Offline enhancement implemented: Service worker now pre-caches the Shapefile CDN script for improved offline readiness and faster first export.
+
+### Validation Layer
+
+- Lightweight `zod` schemas validate imported Pole / Span rows via new "Load + Validate" buttons.
+- Validation is additive and non-breaking: legacy "Load (Raw)" remains for maximum tolerance.
+- Errors are summarized (first few with overflow count) and do not block valid rows.
+- Future: Promote numeric coercion failures to actionable inline guidance.
+
+### Deferred PDF Loading
+
+- `pdf-lib` code isolated via `src/utils/pdfAsync.js`.
+- Reduces initial bundle weight; network fetch for PDF code occurs only on first permit PDF action.
+- Future optimization: split `pdf-lib` core/api further if growth continues.
 
 ## 🔧 Troubleshooting
 
@@ -195,15 +218,30 @@ npm run test:watch
 
 **Large Bundle Warnings**:
 
-- Code splitting is configured to keep chunks under 600KB
-- Geospatial features are in a separate chunk for optional loading
+- Heavy shapefile libraries excluded from bundle; verify no regressions reintroduce them.
 
 **Netlify Deployment Issues**:
 
-- Ensure Node.js version is set to 22 in build settings (matches `netlify.toml` and CI)
-- Check that `netlify.toml` is in the repository root
-- Verify build command is set to `npm run build`
-- If local `npm ci` fails due to lock mismatch, run `npm install` to refresh `package-lock.json`.
+- Ensure Node.js version is 22 (matches `netlify.toml`)
+- Confirm canonical redirects working (`poleplanpro.com`)
+- Verify service worker updates after deployment (hard refresh if stale)
+- If `npm ci` fails locally, run `npm install` then commit updated lockfile only if intentional updates
+
+## Visual Editor (Netlify Create) Readiness
+
+Content pages reside in `content/pages/*.json` and model definitions are in `stackbit.config.ts`.
+
+Enable Steps:
+
+1. Enable Visual Editor in Netlify site settings.
+2. Verify content source path: `content/pages`.
+3. Open the editor; ensure Page entries (slug/title) are editable.
+4. Save changes; confirm commit and subsequent deploy.
+
+Best Practices:
+
+- Keep model schema changes synchronized with the config file.
+- For rich text or additional fields, extend the Page model and update render components.
 
 ### Development Issues
 

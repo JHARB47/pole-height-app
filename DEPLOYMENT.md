@@ -94,8 +94,8 @@
 **Issue**: Buffer polyfill errors
 **Solution**: vite.config.js includes buffer polyfill configuration
 
-**Issue**: proj4 globalThis errors  
-**Solution**: External handling configured in rollup options
+**Issue**: (Historical) proj4 globalThis errors  
+**Resolution**: Eliminated by removing build-time Shapefile bundling; shapefile export now loads `@mapbox/shp-write` from a CDN at runtime (no `proj4` in bundle).
 
 **Issue**: Large bundle warnings
 **Solution**: Code splitting configured, warnings adjusted to 600KB limit
@@ -106,7 +106,7 @@
 **Solution**: Check browser console for errors, verify all chunks loaded
 
 **Issue**: File import not working
-**Solution**: Verify CSP headers allow blob: and data: URLs
+**Solution**: Verify CSP headers allow `blob:` and `data:` URLs; ensure offline mode still has fallback (GeoJSON) for shapefile export if CDN blocked.
 
 **Issue**: State not persisting
 **Solution**: Check localStorage is enabled and working
@@ -179,3 +179,36 @@ Deployment is successful when:
 - [ ] Mobile responsive design works
 - [ ] File import/export functions properly
 - [ ] Help system is accessible and useful
+
+## 🧩 Shapefile Export Strategy
+
+The production build omits `@mapbox/shp-write` and related heavy GIS dependencies to avoid historical bundling issues (notably the `proj4` globalThis import path). When a user requests a Shapefile export:
+
+1. A script tag is injected pointing to the UMD build on a public CDN.
+2. If the script loads, a ZIP containing the Shapefile components plus GeoJSON is produced.
+3. If the script fails (offline, blocked, CSP), the app gracefully falls back to providing a ZIP with the GeoJSON only (user is notified).
+
+Operational Notes:
+
+- No offline caching of the CDN script is currently performed; consider adding a service-worker prefetch if offline shapefile generation becomes a requirement.
+- Fallback ensures workflows are never entirely blocked by network policies.
+
+## ✨ Visual Editor / Netlify Create Readiness
+
+The repository is prepared for Netlify Create (Visual Editor) integration:
+
+- Content Source: JSON files under `content/pages/*.json`.
+- `stackbit.config.ts`: Defines the Page model and Git content source mapping slugs to URLs.
+
+Enable Steps:
+
+1. In Netlify, enable the Visual Editor (Create) for the connected site.
+2. Confirm the content directory: `content/pages`.
+3. Regenerate preview; verify pages appear in the editor with editable title/slug fields.
+4. Commit changes through the Visual Editor; confirm Netlify build triggers.
+
+Best Practices:
+
+- Keep content schema changes synchronized with `stackbit.config.ts`.
+- Add validation scripts if adding new models.
+- If adding rich text in future, extend the model with a `body` field and update the renderer component.

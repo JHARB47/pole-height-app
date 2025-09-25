@@ -211,7 +211,7 @@ function getProp(obj, key) {
 function getNumber(obj, key) {
   if (!key) return undefined;
   const v = obj?.[key];
-  const n = typeof v === 'number' ? v : Number(v);
+  const n = coerceNumber(v);
   return Number.isFinite(n) ? n : undefined;
 }
 function numberOrEmpty(obj, key) {
@@ -262,6 +262,46 @@ function estimateLengthFromGeometry(f) {
   }
 }
 
+// Robust numeric coercion for messy inputs like "1,234.56 ft", "12'6\"", "40.1°", "(12.5)"
+export function coerceNumber(raw) {
+  if (raw == null) return undefined;
+  if (typeof raw === 'number') return Number.isFinite(raw) ? raw : undefined;
+  let s = String(raw).trim();
+  if (!s) return undefined;
+  let negative = false;
+  if (s.startsWith('(') && s.endsWith(')')) {
+    negative = true;
+    s = s.slice(1, -1).trim();
+  }
+  // Normalize quotes and remove degree symbol
+  s = s.replace(/[’′]/g, "'").replace(/[“”″]/g, '"').replace(/°/g, '');
+  // Strip common units
+  s = s.replace(/\b(ft|feet|m|meter|meters)\b/gi, '');
+  // Remove whitespace
+  s = s.replace(/\s+/g, '');
+  // Feet-inches pattern like 12'6" -> 12.5
+  const fi = s.match(/^(-?\d+)'(\d+(?:\.\d+)?)"?$/);
+  if (fi) {
+    const feet = parseFloat(fi[1]);
+    const inches = parseFloat(fi[2]);
+    const val = feet + inches / 12;
+    return negative ? -Math.abs(val) : val;
+  }
+  // Handle thousand separators and locale decimal comma
+  if (/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(s)) {
+    s = s.replace(/,/g, '');
+  } else if (/^\d+,\d+$/.test(s)) {
+    s = s.replace(',', '.');
+  } else {
+    s = s.replace(/,/g, '');
+  }
+  // Strip stray quotes
+  s = s.replace(/["']/g, '');
+  const n = parseFloat(s);
+  if (!Number.isFinite(n)) return undefined;
+  return negative ? -Math.abs(n) : n;
+}
+
 // Simple CSV parser for existing lines: expects headers including fields matching mapping.line
 export function parseExistingLinesCSV(csvText, lineMapping) {
   const parsed = Papa.parse(csvText || '', { header: true, skipEmptyLines: 'greedy', dynamicTyping: false });
@@ -273,7 +313,7 @@ export function parseExistingLinesCSV(csvText, lineMapping) {
       return typeof v === 'string' ? v.trim() : v;
     };
     const heightRaw = get(lineMapping?.height, 'height');
-    const heightNum = Number(heightRaw);
+    const heightNum = coerceNumber(heightRaw);
     return {
       type: get(lineMapping?.type, 'type') || 'communication',
       height: Number.isFinite(heightNum) ? String(heightNum) : String(heightRaw || ''),
@@ -297,7 +337,7 @@ export function parsePolesCSV(csvText, poleMapping) {
     const num = (key, fallback) => {
       const raw = get(key, fallback);
       if (raw === '' || raw == null) return undefined;
-      const n = Number(raw);
+      const n = coerceNumber(raw);
       return Number.isFinite(n) ? n : undefined;
     };
     return {
@@ -325,7 +365,7 @@ export function parseSpansCSV(csvText, spanMapping) {
     const num = (key, fallback) => {
       const raw = get(key, fallback);
       if (raw === '' || raw == null) return undefined;
-      const n = Number(raw);
+      const n = coerceNumber(raw);
       return Number.isFinite(n) ? n : undefined;
     };
     return {
@@ -336,6 +376,37 @@ export function parseSpansCSV(csvText, spanMapping) {
       proposedAttach: num(spanMapping?.proposedAttach, 'attach'),
     };
   });
+}
+
+// Validation enhanced helpers (non-breaking additive API). They return
+// { data, errors } where data is the validated list (may be subset if invalid rows filtered).
+// zod is optional; if not installed these simply wrap the original parse results.
+export async function parsePolesCSVValidated(csvText, poleMapping) {
+  const rows = parsePolesCSV(csvText, poleMapping);
+  try {
+    const mod = await import('./validation.js');
+    if (mod && typeof mod.validatePoles === 'function') {
+      const { errors, data } = mod.validatePoles(rows);
+      return { data, errors };
+    }
+  } catch {
+    // optional dependency missing; fall through
+  }
+  return { data: rows, errors: [] };
+}
+
+export async function parseSpansCSVValidated(csvText, spanMapping) {
+  const rows = parseSpansCSV(csvText, spanMapping);
+  try {
+    const mod = await import('./validation.js');
+    if (mod && typeof mod.validateSpans === 'function') {
+      const { errors, data } = mod.validateSpans(rows);
+      return { data, errors };
+    }
+  } catch {
+    // optional dependency missing
+  }
+  return { data: rows, errors: [] };
 }
 
 // (No helper needed; ESM import above)

@@ -16,3 +16,15 @@ if (typeof window !== 'undefined' && !window.matchMedia) {
     dispatchEvent: () => false,
   })
 }
+
+// Polyfill Blob.prototype.text if missing (jsdom older versions)
+if (typeof Blob !== 'undefined' && !Blob.prototype.text) {
+  // @ts-ignore
+  Blob.prototype.text = function () {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.readAsText(this);
+    });
+  };
+}

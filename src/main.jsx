@@ -36,7 +36,7 @@ if (import.meta.env && import.meta.env.PROD && 'serviceWorker' in navigator) {
       </div>`;
     document.body.appendChild(container);
 
-  const cleanup = () => { try { container.remove(); } catch (e) { if (import.meta?.env?.DEV) console.warn('Cleanup toast failed', e); } };
+    const cleanup = () => { try { container.remove(); } catch (e) { if (import.meta?.env?.DEV) console.warn('Cleanup toast failed', e); } };
     const updateBtn = container.querySelector('#ph-update-now');
     const dismissBtn = container.querySelector('#ph-update-dismiss');
 
@@ -45,7 +45,7 @@ if (import.meta.env && import.meta.env.PROD && 'serviceWorker' in navigator) {
       // Disable buttons to prevent double clicks
       updateBtn.setAttribute('disabled', 'true');
       dismissBtn.setAttribute('disabled', 'true');
-  try { reg.waiting.postMessage('SKIP_WAITING'); } catch (e) { if (import.meta?.env?.DEV) console.warn('Failed to postMessage to SW', e); }
+      try { reg.waiting.postMessage('SKIP_WAITING'); } catch (e) { if (import.meta?.env?.DEV) console.warn('Failed to postMessage to SW', e); }
       const onControllerChange = () => { window.location.reload(); };
       navigator.serviceWorker.addEventListener('controllerchange', onControllerChange, { once: true });
       // Safety fallback: reload after short delay if controllerchange didn’t fire

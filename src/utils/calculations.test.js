@@ -57,7 +57,6 @@ describe('geometry + PULL utilities', () => {
     expect(examples.oneEighty).toBeCloseTo(100, 6);
   });
 });
-import { describe, it, expect } from 'vitest';
 import {
   parseFeet,
   formatFeetInches,

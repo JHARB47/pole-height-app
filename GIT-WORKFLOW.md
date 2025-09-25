@@ -125,10 +125,11 @@ npm test -- geodata           # Test geospatial features
 ### Geospatial Features
 
 - **Location**: `src/utils/geodata.js`
-- **Dynamic Imports**: All GIS libraries must use dynamic imports
-- **Fallbacks**: Provide alternatives when optional dependencies missing
-- **Coordinate Systems**: Handle different projection systems properly
-- **Validation**: Verify geospatial data integrity
+- **Shapefile Export Strategy**: Uses a lightweight runtime CDN load of `@mapbox/shp-write` (UMD global) instead of bundling to avoid pulling in `proj4` and related heavy dependencies that previously broke production builds.
+- **Fallbacks**: If CDN load fails (offline or blocked), export automatically falls back to GeoJSON inside the ZIP so users still receive usable geodata.
+- **Dynamic Loading**: Only the CDN script tag is injected on-demand when a shapefile export is requested; no dynamic ESM import remains for `@mapbox/shp-write`.
+- **Format Coverage**: GeoJSON, KML, KMZ, Shapefile (CDN), CSV, PDF.
+- **Validation**: Basic feature geometry integrity checks before packaging.
 
 ### PDF Generation and Permits
 
@@ -146,27 +147,14 @@ npm test -- geodata           # Test geospatial features
 
 ### Optional Dependency Management
 
-- `tokml`: KML/KMZ export functionality
-- `shpjs`: Shapefile import functionality
-- `@mapbox/shp-write`: Shapefile export functionality
-- Dynamically imported when needed, graceful degradation when unavailable
+- `tokml`: KML/KMZ export functionality (dynamic import)
+- `shpjs`: Shapefile import functionality (dynamic import)
+- `@mapbox/shp-write`: Now excluded from the bundle; loaded via CDN only at export time.
+- Graceful degradation: If an optional dependency or CDN script fails, user is informed and a fallback (usually GeoJSON) is provided.
 
 ### Vite Configuration
 
-```javascript
-// External dependencies for optional libraries
-external: (id) => optionalDeps.includes(id),
-
-// Function-based manual chunks for Vite compatibility
-manualChunks: (id) => {
-  if (id.includes('node_modules')) {
-    return 'vendor';
-  }
-  if (id.includes('src/utils')) {
-    return 'utils';
-  }
-}
-```
+The build no longer externalizes `proj4` or `@mapbox/shp-write`; shapefile export avoids introducing them into the graph. Manual chunking is implemented in `vite.config.js` via a `chunkForId` helper to keep vendor and calculation/geodata logic separated for performance.
 
 ## Error Handling Standards
 
@@ -251,19 +239,22 @@ npm test -- --verbose
 ### Build Failures
 
 1. **External Module Errors**:
-   - Check vite.config.js external configuration
-   - Verify function-based manualChunks setup
-   - Ensure optional dependencies use dynamic imports
 
-2. **Import Errors**:
-   - Verify dynamic imports for optional dependencies
-   - Check that static imports aren't used for external modules
-   - Validate import paths and module names
+- Confirm no reintroduction of heavy GIS dependencies into bundle
+- Verify manual chunk logic in `vite.config.js`
+- Ensure optional dependencies remain dynamically (or CDN) loaded
 
-3. **Test Failures**:
-   - Run tests locally before pushing
-   - Check for environment-specific issues
-   - Verify mock implementations for dynamic imports
+1. **Import Errors**:
+
+- Verify dynamic imports for optional dependencies
+- Check that static imports aren't used for optional modules
+- Validate import paths and module names
+
+1. **Test Failures**:
+
+- Run tests locally before pushing
+- Check for environment-specific issues
+- Verify mock implementations for dynamic or CDN-loaded dependencies
 
 ### CI/CD Issues
 

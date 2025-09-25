@@ -2,11 +2,12 @@ import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import useAppStore from '../utils/store';
 import { useShallow } from 'zustand/react/shallow';
-import { DEFAULTS, parseFeet, formatFeetInches, formatFeetInchesTickMarks, formatFeetInchesVerbose, resultsToCSV, computeAnalysis } from '../utils/calculations';
+import { DEFAULTS, parseFeet, formatFeetInches, formatFeetInchesTickMarks, formatFeetInchesVerbose, resultsToCSV, computeAnalysis, computePullAutofill } from '../utils/calculations';
 import ExistingLinesEditor from './ExistingLinesEditor';
 import { WV_COMPANIES } from '../utils/constants';
 import SpanDiagram from './SpanDiagram';
-import { importGeospatialFile, mapGeoJSONToAppData, MAPPING_PRESETS, parseExistingLinesCSV, getAttributeKeys, splitFeaturesByGeometry, parsePolesCSV, parseSpansCSV } from '../utils/importers';
+import { importGeospatialFile, mapGeoJSONToAppData, MAPPING_PRESETS, parseExistingLinesCSV, getAttributeKeys, splitFeaturesByGeometry, parsePolesCSV, parseSpansCSV, parsePolesCSVValidated, parseSpansCSVValidated } from '../utils/importers';
+import { downloadErrorsCSV } from '../utils/validationExport';
 import { buildManifest, csvFrom } from '../utils/manifests';
 import { makePermitSummary } from '../utils/permitSummary';
 import { EXPORT_PRESETS, buildPolesCSV, buildSpansCSV, buildExistingLinesCSV, buildGeoJSON, buildKML, buildFirstEnergyJointUseCSV } from '../utils/exporters';
@@ -157,6 +158,9 @@ export default function ProposedLineCalculator() {
   const [showBatchReport, setShowBatchReport] = React.useState(false);
   const [showHelp, setShowHelp] = React.useState(false);
   const [helpSection, setHelpSection] = React.useState(null);
+  // Validation import states
+  const [poleImportErrors, setPoleImportErrors] = React.useState([]);
+  const [spanImportErrors, setSpanImportErrors] = React.useState([]);
   // Scrollspy + collapsible sections state
   const [activeSection, setActiveSection] = React.useState('job');
   const [openSections, setOpenSections] = React.useState(() => {
@@ -677,9 +681,9 @@ function FieldActionsCompact() {
   };
   const exportCollected = () => {
     const activeJob = (store.jobs || []).find(j => j.id === store.currentJobId);
-    const header = ['id', 'latitude', 'longitude', 'height', 'class', 'powerHeight', 'voltage', 'hasTransformer', 'spanDistance', 'adjacentPoleHeight', 'attachmentType', 'status', 'hasPhoto', 'timestamp', 'asBuiltAttachHeight', 'asBuiltPowerHeight', 'varianceIn', 'variancePass', 'commCompany'];
+    const header = ['id', 'latitude', 'longitude', 'height', 'class', 'powerHeight', 'voltage', 'hasTransformer', 'spanDistance', 'incomingBearingDeg', 'outgoingBearingDeg', 'PULL_ft', 'adjacentPoleHeight', 'attachmentType', 'status', 'hasPhoto', 'timestamp', 'asBuiltAttachHeight', 'asBuiltPowerHeight', 'varianceIn', 'variancePass', 'commCompany'];
     const rows = (store.collectedPoles || []).filter(p => !store.currentJobId || p.jobId === store.currentJobId).map(p => [
-      p.id || '', p.latitude || '', p.longitude || '', p.height || '', p.poleClass || '', p.powerHeight || '', p.voltage || '', p.hasTransformer ? 'Y' : 'N', p.spanDistance || '', p.adjacentPoleHeight || '', p.attachmentType || '', (p.status || 'draft'), (p.photoDataUrl ? 'Y' : 'N'), p.timestamp || '',
+      p.id || '', p.latitude || '', p.longitude || '', p.height || '', p.poleClass || '', p.powerHeight || '', p.voltage || '', p.hasTransformer ? 'Y' : 'N', p.spanDistance || '', p.incomingBearingDeg ?? '', p.outgoingBearingDeg ?? '', p.PULL_ft ?? '', p.adjacentPoleHeight || '', p.attachmentType || '', (p.status || 'draft'), (p.photoDataUrl ? 'Y' : 'N'), p.timestamp || '',
       p.asBuilt?.attachHeight || '', p.asBuilt?.powerHeight || '',
       computeVarianceIn(p.asBuilt?.attachHeight, p.height), evaluateVariancePass(p.asBuilt?.attachHeight, p.height, store.presetProfile),
       activeJob?.commCompany || ''
@@ -690,9 +694,9 @@ function FieldActionsCompact() {
   };
   const exportFirst25 = () => {
     const subset = (store.collectedPoles || []).filter(p => !store.currentJobId || p.jobId === store.currentJobId).slice(0, 25);
-    const header = ['id', 'latitude', 'longitude', 'height', 'class', 'powerHeight', 'voltage', 'hasTransformer', 'spanDistance', 'adjacentPoleHeight', 'attachmentType', 'status', 'hasPhoto', 'timestamp', 'asBuiltAttachHeight', 'asBuiltPowerHeight', 'varianceIn', 'variancePass'];
+    const header = ['id', 'latitude', 'longitude', 'height', 'class', 'powerHeight', 'voltage', 'hasTransformer', 'spanDistance', 'incomingBearingDeg', 'outgoingBearingDeg', 'PULL_ft', 'adjacentPoleHeight', 'attachmentType', 'status', 'hasPhoto', 'timestamp', 'asBuiltAttachHeight', 'asBuiltPowerHeight', 'varianceIn', 'variancePass'];
     const rows = subset.map(p => [
-      p.id || '', p.latitude || '', p.longitude || '', p.height || '', p.poleClass || '', p.powerHeight || '', p.voltage || '', p.hasTransformer ? 'Y' : 'N', p.spanDistance || '', p.adjacentPoleHeight || '', p.attachmentType || '', (p.status || 'draft'), (p.photoDataUrl ? 'Y' : 'N'), p.timestamp || '',
+      p.id || '', p.latitude || '', p.longitude || '', p.height || '', p.poleClass || '', p.powerHeight || '', p.voltage || '', p.hasTransformer ? 'Y' : 'N', p.spanDistance || '', p.incomingBearingDeg ?? '', p.outgoingBearingDeg ?? '', p.PULL_ft ?? '', p.adjacentPoleHeight || '', p.attachmentType || '', (p.status || 'draft'), (p.photoDataUrl ? 'Y' : 'N'), p.timestamp || '',
       p.asBuilt?.attachHeight || '', p.asBuilt?.powerHeight || '',
       computeVarianceIn(p.asBuilt?.attachHeight, p.height), evaluateVariancePass(p.asBuilt?.attachHeight, p.height, store.presetProfile)
     ]);
@@ -1546,6 +1550,9 @@ function ScenarioButtons() {
 
 function ExportButtons() {
   const { results, warnings, makeReadyNotes, useTickMarkFormat } = useAppStore();
+  const prefetchPdfLib = React.useCallback(() => {
+    import('../utils/pdfAsync').then(m => m.loadPdfLib?.()).catch(() => {});
+  }, []);
   const onCSV = () => {
     const csv = resultsToCSV(results, warnings, makeReadyNotes, { useTickMarks: useTickMarkFormat });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -1564,14 +1571,34 @@ function ExportButtons() {
     <div className="flex items-center gap-2 my-2">
       <button className="px-2 py-1 border rounded text-sm" onClick={onCSV} disabled={!results}>Export CSV</button>
       <button className="px-2 py-1 border rounded text-sm" onClick={onPDF} disabled={!results}>Export PDF</button>
-      <PermitPackButton />
+      <PermitPackButton onPrefetchPdf={prefetchPdfLib} />
       <InteropExportButton />
     </div>
   );
 }
 
-function PermitPackButton() {
+function PermitPackButton({ onPrefetchPdf }) {
   const store = useAppStore();
+  const [pdfReady, setPdfReady] = React.useState(false);
+  const [hovering, setHovering] = React.useState(false);
+  const hoverTimerRef = React.useRef(/** @type {any} */(null));
+  const handleMouseEnter = React.useCallback(() => {
+    setHovering(true);
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    hoverTimerRef.current = setTimeout(() => {
+      import('../utils/pdfAsync')
+        .then(m => m.loadPdfLib?.())
+        .then(() => setPdfReady(true))
+        .catch(() => {});
+    }, 150);
+  }, []);
+  const handleMouseLeave = React.useCallback(() => {
+    setHovering(false);
+    if (hoverTimerRef.current) {
+      clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
+    }
+  }, []);
   const onPermit = async () => {
     try {
       const JSZip = (await import('jszip')).default;
@@ -1586,7 +1613,7 @@ function PermitPackButton() {
       const effectiveProfile = { ...baseProfile, ...(job?.submissionProfileOverrides || {}), name: baseProfile?.name };
       const env = store.spanEnvironment;
       const results = store.results;
-      if (!results) { alert('Run analysis first.'); return; }
+  if (!results) { alert('Run analysis first.'); return; }
       // Build standardized summary
       const summary = makePermitSummary({ env, results, job, effectiveProfile, cachedMidspans: store.cachedMidspans, store });
       zip.file('permit/summary.json', JSON.stringify(summary, null, 2));
@@ -1611,7 +1638,7 @@ function PermitPackButton() {
       if (templatesTxt) zip.file('permit/templates.txt', templatesTxt);
       // Detect pre-submission issues and include a simple report
       const issues = detectPermitIssues(summary);
-      const issuesText = issues.length ? ['# Issues detected', '', ...issues.map(x => `- ${x}`)].join('\n') : '# Issues detected\n\nNone';
+  const issuesText = issues.length ? ['# Issues detected', '', ...issues.map(x => `- ${x}`)].join('\n') : '# Issues detected\n\nNone';
       zip.file('permit/issues.txt', issuesText);
       // PCI (Post Construction Inspection) summary from collected poles (scoped to current job)
       try {
@@ -1874,9 +1901,21 @@ function PermitPackButton() {
   };
   const isTargetEnv = ['wvHighway', 'paHighway', 'ohHighway', 'mdHighway', 'railroad'].includes(store.spanEnvironment);
   return (
-    <button className="px-2 py-1 border rounded text-sm" onClick={onPermit} disabled={!store.results || !isTargetEnv} title={isTargetEnv ? 'Generate permit package' : 'Select WV Highway or Railroad environment'}>
-      Export Permit Pack
-    </button>
+    <span className="inline-flex items-center">
+      <button
+        className="px-2 py-1 border rounded text-sm"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onClick={onPermit}
+        disabled={!store.results || !isTargetEnv}
+        title={isTargetEnv ? 'Generate permit package' : 'Select WV Highway or Railroad environment'}
+      >
+        Export Permit Pack
+      </button>
+      {hovering && !pdfReady ? (
+        <span className="ml-2 text-xs text-gray-500">Warming up PDF tools…</span>
+      ) : null}
+    </span>
   );
 }
 
@@ -1919,30 +1958,36 @@ function InteropExportButton() {
       } else if (format === 'kml') {
         const kml = buildKML({ poles, spans });
         zip.file('export/data.kml', kml);
-        } else if (format === 'shapefile') {
-          try {
-            const { buildGeoJSON: buildGeoForShp, exportShapefile } = await import('../utils/geodata');
-            const fc = buildGeoForShp({ poles, spans });
-            const shpBlob = await exportShapefile(fc, 'data-shapefile.zip', false);
-            if (shpBlob) {
-              zip.file('export/data-shapefile.zip', shpBlob);
-              zip.file('export/data.geojson', JSON.stringify(fc));
-              zip.file('export/README.txt', 'Shapefile (ZIP) and GeoJSON provided. Shapefile generated via CDN-loaded shp-write.');
-            } else {
-              zip.file('export/data.geojson', JSON.stringify(fc));
-              zip.file('export/README.txt', 'Shapefile export unavailable; GeoJSON included as an alternative.');
-              setExportError('Shapefile export unavailable; provided GeoJSON instead.');
-            }
-          } catch (e) {
-            console.warn('Shapefile export failed completely', e);
-            setExportError(`Export failed: ${e.message}`);
+      } else if (format === 'shapefile') {
+        try {
+          // Use CDN-backed shp-write via geodata utils (no bundler dependency)
+          const { buildGeoJSON: buildGeoForShp, exportShapefile } = await import('../utils/geodata');
+          const fc = buildGeoForShp({ poles, spans });
+          // Request a Blob without auto-download so we can include it in our ZIP
+          const shpBlob = await exportShapefile(fc, 'data-shapefile.zip', false);
+          if (shpBlob) {
+            zip.file('export/data-shapefile.zip', shpBlob);
+            // Include GeoJSON alongside for interoperability
+            zip.file('export/data.geojson', JSON.stringify(fc));
+            zip.file('export/README.txt', 'Shapefile (ZIP) and GeoJSON provided. Shapefile generated via CDN-loaded shp-write.');
+          } else {
+            // Fallback to GeoJSON only
+            zip.file('export/data.geojson', JSON.stringify(fc));
+            zip.file('export/README.txt', 'Shapefile export unavailable; GeoJSON included as an alternative.');
+            setExportError('Shapefile export unavailable; provided GeoJSON instead.');
           }
+        } catch (e) {
+          console.warn('Shapefile export failed completely', e);
+          setExportError(`Export failed: ${e.message}`);
         }
+      }
 
       const blob = await zip.generateAsync({ type: 'blob' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url; a.download = `interop-export-${preset}.zip`; a.click();
+      a.href = url;
+      a.download = `interop-export-${preset}.zip`;
+      a.click();
       URL.revokeObjectURL(url);
       setOpen(false);
     } catch (error) {
@@ -2581,6 +2626,10 @@ function FieldCollection({ openHelp, showBottomActions = true }) {
               <th className="p-2">Voltage</th>
               <th className="p-2">XFMR</th>
               <th className="p-2">Span</th>
+              <th className="p-2">In°</th>
+              <th className="p-2">Out°</th>
+              <th className="p-2">PULL (ft)</th>
+              <th className="p-2">Autofill</th>
               <th className="p-2">As-built Attach</th>
               <th className="p-2">As-built Power</th>
               <th className="p-2">Δ (in)</th>
@@ -2615,6 +2664,18 @@ function FieldCollection({ openHelp, showBottomActions = true }) {
                   <input type="checkbox" className="h-4 w-4" checked={!!p.hasTransformer} onChange={e => store.updateCollectedPole(i, { hasTransformer: e.target.checked })} />
                 </td>
                 <td className="p-2"><input className="border rounded px-2 py-1 w-20" value={p.spanDistance || ''} onChange={e => store.updateCollectedPole(i, { spanDistance: e.target.value })} /></td>
+                <td className="p-2"><input className="border rounded px-2 py-1 w-20" placeholder="In°" value={p.incomingBearingDeg ?? ''} onChange={e => store.updateCollectedPole(i, { incomingBearingDeg: e.target.value === '' ? '' : Number(e.target.value) })} /></td>
+                <td className="p-2"><input className="border rounded px-2 py-1 w-20" placeholder="Out°" value={p.outgoingBearingDeg ?? ''} onChange={e => store.updateCollectedPole(i, { outgoingBearingDeg: e.target.value === '' ? '' : Number(e.target.value) })} /></td>
+                <td className="p-2"><input className="border rounded px-2 py-1 w-24" placeholder="PULL ft" value={p.PULL_ft ?? ''} onChange={e => store.updateCollectedPole(i, { PULL_ft: e.target.value })} /></td>
+                <td className="p-2"><button className="px-2 py-1 border rounded text-xs" onClick={() => {
+                  const incoming = Number(p.incomingBearingDeg);
+                  const outgoing = Number(p.outgoingBearingDeg);
+                  const spanBase = Number(p.spanDistance) || Number(store.spanDistance) || 100;
+                  if (Number.isFinite(incoming) && Number.isFinite(outgoing)) {
+                    const { pullFt } = computePullAutofill({ incomingBearingDeg: incoming, outgoingBearingDeg: outgoing, baseSpanFt: spanBase });
+                    store.updateCollectedPole(i, { PULL_ft: Math.round(pullFt * 100) / 100 });
+                  }
+                }}>Autofill</button></td>
                 <td className="p-2"><input className="border rounded px-2 py-1 w-28" value={p.asBuilt?.attachHeight || ''} onChange={e => store.updateCollectedPole(i, { asBuilt: { ...(p.asBuilt || {}), attachHeight: e.target.value } })} placeholder="ft/in" /></td>
                 <td className="p-2"><input className="border rounded px-2 py-1 w-28" value={p.asBuilt?.powerHeight || ''} onChange={e => store.updateCollectedPole(i, { asBuilt: { ...(p.asBuilt || {}), powerHeight: e.target.value } })} placeholder="ft/in" /></td>
                 <td className="p-2 w-20">{computeVarianceIn(p.asBuilt?.attachHeight, p.height)}</td>
@@ -3005,10 +3066,34 @@ function ImportPanel() {
               if (rows.length) {
                 store.setImportedPoles(rows);
                 setBatchPreview(prev => ({ ...prev, poles: rows.length }));
+                setPoleImportErrors([]);
               }
-            }}>Load Poles CSV</button>
+            }}>Load (Raw)</button>
+            <button className="px-2 py-1 border rounded text-sm bg-blue-50 hover:bg-blue-100" onClick={async () => {
+              const { data, errors } = await parsePolesCSVValidated(csvPolesText, mapping.pole);
+              if (data.length) {
+                store.setImportedPoles(data);
+                setBatchPreview(prev => ({ ...prev, poles: data.length }));
+              }
+              setPoleImportErrors(errors || []);
+            }}>Load + Validate</button>
             <div className="text-xs text-gray-600">Populates the Imported Poles table used by batch/exports</div>
           </div>
+          {!!poleImportErrors.length && (
+            <div className="text-xs text-red-600 border border-red-200 rounded p-2 bg-red-50 max-h-40 flex flex-col gap-1" aria-live="polite">
+              <div className="flex items-center justify-between">
+                <div className="font-semibold">Pole Validation Issues ({poleImportErrors.length})</div>
+                <div className="flex items-center gap-2">
+                  <button type="button" className="px-2 py-0.5 border rounded bg-white text-red-700 hover:bg-red-100" onClick={() => downloadErrorsCSV(poleImportErrors, 'pole_validation_errors.csv')}>Export</button>
+                  <button type="button" className="px-2 py-0.5 border rounded bg-white text-gray-600 hover:bg-gray-100" onClick={() => setPoleImportErrors([])}>Clear</button>
+                </div>
+              </div>
+              <ul className="list-disc pl-4 space-y-0.5 overflow-auto">
+                {poleImportErrors.slice(0, 8).map((e, i) => <li key={i}>{e}</li>)}
+                {poleImportErrors.length > 8 && <li>… {poleImportErrors.length - 8} more</li>}
+              </ul>
+            </div>
+          )}
         </div>
       </details>
       <details className="mt-3">
@@ -3021,10 +3106,34 @@ function ImportPanel() {
               if (rows.length) {
                 store.setImportedSpans(rows);
                 setBatchPreview(prev => ({ ...prev, spans: rows.length }));
+                setSpanImportErrors([]);
               }
-            }}>Load Spans CSV</button>
+            }}>Load (Raw)</button>
+            <button className="px-2 py-1 border rounded text-sm bg-blue-50 hover:bg-blue-100" onClick={async () => {
+              const { data, errors } = await parseSpansCSVValidated(csvSpansText, mapping.span);
+              if (data.length) {
+                store.setImportedSpans(data);
+                setBatchPreview(prev => ({ ...prev, spans: data.length }));
+              }
+              setSpanImportErrors(errors || []);
+            }}>Load + Validate</button>
             <div className="text-xs text-gray-600">Populates the Imported Spans table used by batch/exports</div>
           </div>
+          {!!spanImportErrors.length && (
+            <div className="text-xs text-red-600 border border-red-200 rounded p-2 bg-red-50 max-h-40 flex flex-col gap-1" aria-live="polite">
+              <div className="flex items-center justify-between">
+                <div className="font-semibold">Span Validation Issues ({spanImportErrors.length})</div>
+                <div className="flex items-center gap-2">
+                  <button type="button" className="px-2 py-0.5 border rounded bg-white text-red-700 hover:bg-red-100" onClick={() => downloadErrorsCSV(spanImportErrors, 'span_validation_errors.csv')}>Export</button>
+                  <button type="button" className="px-2 py-0.5 border rounded bg-white text-gray-600 hover:bg-gray-100" onClick={() => setSpanImportErrors([])}>Clear</button>
+                </div>
+              </div>
+              <ul className="list-disc pl-4 space-y-0.5 overflow-auto">
+                {spanImportErrors.slice(0, 8).map((e, i) => <li key={i}>{e}</li>)}
+                {spanImportErrors.length > 8 && <li>… {spanImportErrors.length - 8} more</li>}
+              </ul>
+            </div>
+          )}
         </div>
       </details>
       <details className="mt-3">

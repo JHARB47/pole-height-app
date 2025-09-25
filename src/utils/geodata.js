@@ -202,7 +202,7 @@ async function loadShpWriteFromCDN() {
     const s = document.createElement('script');
     s.src = url;
     s.async = true;
-  s.onload = () => resolve(undefined);
+    s.onload = () => resolve(undefined);
     s.onerror = () => reject(new Error('Failed to load shpwrite from CDN'));
     document.head.appendChild(s);
   });

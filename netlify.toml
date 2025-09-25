@@ -4,3 +4,22 @@
 
 [build.environment]
   NODE_VERSION = "22.12.0"
+
+# Canonical domain redirects and HTTP->HTTPS
+[[redirects]]
+  from = "http://poleplanpro.com/*"
+  to = "https://poleplanpro.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "http://www.poleplanpro.com/*"
+  to = "https://poleplanpro.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://www.poleplanpro.com/*"
+  to = "https://poleplanpro.com/:splat"
+  status = 301
+  force = true

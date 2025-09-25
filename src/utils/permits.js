@@ -4,8 +4,10 @@
 // Note: We avoid embedding agency-owned form templates. These drafts help populate data
 // and can be transcribed to official forms.
 
+import { loadPdfLib } from './pdfAsync.js';
+
 export async function buildMM109PDF(summary) {
-  const { PDFDocument, StandardFonts, rgb } = await import('pdf-lib');
+  const { PDFDocument, StandardFonts, rgb } = await loadPdfLib();
   const pdfDoc = await PDFDocument.create();
   const page = pdfDoc.addPage([612, 792]); // Letter
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -75,7 +77,7 @@ export async function buildMM109PDF(summary) {
 }
 
 export async function buildCSXPDF(summary) {
-  const { PDFDocument, StandardFonts, rgb } = await import('pdf-lib');
+  const { PDFDocument, StandardFonts, rgb } = await loadPdfLib();
   const pdfDoc = await PDFDocument.create();
   const page = pdfDoc.addPage([612, 792]); // Letter
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
