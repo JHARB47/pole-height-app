@@ -1,3 +1,25 @@
+// Core math helpers (deduplicated)
+export function clamp(value, min, max) {
+  if (Number.isNaN(value)) return min;
+  return Math.min(max, Math.max(min, value));
+}
+export function degToRad(deg) { return (deg * Math.PI) / 180; }
+export function radToDeg(rad) { return (rad * 180) / Math.PI; }
+export function normalizeBearingDeg(bearing) { let b = bearing % 360; if (b < 0) b += 360; return b; }
+
+export function normalizeIncludedAngleDeg(bearingA, bearingB) {
+  // θ = min(|Δbearing|, 360 - |Δbearing|), clamped [0, 180]
+  const a = normalizeBearingDeg(bearingA);
+  const b = normalizeBearingDeg(bearingB);
+  const delta = Math.abs(a - b);
+  const theta = Math.min(delta, 360 - delta);
+  return clamp(theta, 0, 180);
+}
+
+export function pullFromAngleDeg(thetaDeg, baseSpanFt = 100) { const theta = clamp(thetaDeg, 0, 180); const pull = baseSpanFt * Math.sin(degToRad(theta / 2)); return clamp(pull, 0, baseSpanFt); }
+export function angleDegFromPull(pullFt, baseSpanFt = 100) { const p = clamp(pullFt, 0, baseSpanFt); const ratio = p / baseSpanFt; const thetaRad = 2 * Math.asin(ratio); return clamp(radToDeg(thetaRad), 0, 180); }
+export function computePullAutofill({ incomingBearingDeg, outgoingBearingDeg, baseSpanFt = 100 }) { const theta = normalizeIncludedAngleDeg(incomingBearingDeg, outgoingBearingDeg); const pullFt = pullFromAngleDeg(theta, baseSpanFt); return { thetaDeg: theta, pullFt }; }
+export const examples = { zero: pullFromAngleDeg(0), sixty: pullFromAngleDeg(60), oneTwenty: pullFromAngleDeg(120), oneEighty: pullFromAngleDeg(180) };
 // Unified calculations utility (ES module) with ft/in parsing & formatting
 
 // ---------- formatting helpers ----------

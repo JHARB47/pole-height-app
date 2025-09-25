@@ -8,7 +8,7 @@ import react from '@vitejs/plugin-react'
  * the previous chunking behavior extracted from the original function.
  */
 function isExternalId(id) {
-  const external = new Set(['tokml', '@mapbox/shp-write', 'shpjs']);
+  const external = new Set(['tokml', 'shpjs']);
   return external.has(id);
 }
 
@@ -32,7 +32,7 @@ function chunkForSimple(id) {
 
 function chunkForSrcUtils(id) {
   if (!id.includes('/src/utils/')) return undefined;
-  if (['calculations.js', 'calculations.new.js'].some(s => id.includes(s))) return 'app-calculations';
+  if (['calculations.js'].some(s => id.includes(s))) return 'app-calculations';
   if (['permits.js', 'permitSummary.js', 'pdfFormFiller.js', 'pdfFieldMapper.js'].some(s => id.includes(s))) return 'app-permits';
   if (['exporters.js', 'importers.js'].some(s => id.includes(s))) return 'app-io';
   if (['geodata.js', 'targets.js'].some(s => id.includes(s))) return 'app-geodata';
@@ -88,13 +88,22 @@ export default defineConfig({
   plugins: [
     react()
   ],
+  resolve: {
+    alias: [
+      { find: '@', replacement: '/src' },
+    ],
+  },
   build: {
+    target: 'es2022', // Align with modern evergreen browsers & Node 22 toolchain
+    treeshake: true,
     rollupOptions: {
+      external: [],
       output: {
         manualChunks: (id) => chunkForId(id)
   }
     }
   },
+  // Avoid forcing prebundling of unused deps; keep defaults
   define: {
     // Provide global for libraries that expect it
     global: 'globalThis',

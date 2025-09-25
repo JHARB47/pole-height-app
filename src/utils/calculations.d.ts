@@ -1,3 +1,17 @@
+export declare function clamp(value: number, min: number, max: number): number;
+export declare function degToRad(deg: number): number;
+export declare function radToDeg(rad: number): number;
+export declare function normalizeBearingDeg(bearing: number): number;
+export declare function normalizeIncludedAngleDeg(bearingA: number, bearingB: number): number;
+export declare function pullFromAngleDeg(thetaDeg: number, baseSpanFt?: number): number;
+export declare function angleDegFromPull(pullFt: number, baseSpanFt?: number): number;
+export declare function computePullAutofill(args: { incomingBearingDeg: number; outgoingBearingDeg: number; baseSpanFt?: number; }): { thetaDeg: number; pullFt: number };
+export declare const examples: {
+  zero: number;
+  sixty: number;
+  oneTwenty: number;
+  oneEighty: number;
+};
 export function parseFeet(value: any): number;
 export function formatFeetInches(feet: any, { compact, tickMarks }?: {
     compact?: boolean;

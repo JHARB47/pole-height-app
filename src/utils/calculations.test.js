@@ -1,5 +1,64 @@
 import { describe, it, expect } from 'vitest';
 import {
+  clamp,
+  degToRad,
+  radToDeg,
+  normalizeBearingDeg,
+  normalizeIncludedAngleDeg,
+  pullFromAngleDeg,
+  angleDegFromPull,
+  computePullAutofill,
+  examples
+} from './calculations.js';
+
+describe('geometry + PULL utilities', () => {
+  it('normalizes bearing to [0,360)', () => {
+    expect(normalizeBearingDeg(370)).toBe(10);
+    expect(normalizeBearingDeg(-10)).toBe(350);
+    expect(normalizeBearingDeg(720)).toBe(0);
+  });
+
+  it('computes included angle θ in [0,180]', () => {
+    expect(normalizeIncludedAngleDeg(0, 0)).toBe(0);
+    expect(normalizeIncludedAngleDeg(0, 60)).toBe(60);
+    expect(normalizeIncludedAngleDeg(30, 210)).toBe(180);
+    expect(normalizeIncludedAngleDeg(350, 10)).toBe(20);
+  });
+
+  it('forward mapping angle → PULL (S=100)', () => {
+    expect(pullFromAngleDeg(0)).toBeCloseTo(0, 6);
+    expect(pullFromAngleDeg(60)).toBeCloseTo(50, 3);
+    expect(pullFromAngleDeg(120)).toBeCloseTo(86.6025, 3);
+    expect(pullFromAngleDeg(180)).toBeCloseTo(100, 6);
+  });
+
+  it('inverse mapping PULL → angle (S=100)', () => {
+    expect(angleDegFromPull(0)).toBeCloseTo(0, 6);
+    expect(angleDegFromPull(50)).toBeCloseTo(60, 3);
+    expect(angleDegFromPull(86.6025)).toBeCloseTo(120, 2);
+    expect(angleDegFromPull(100)).toBeCloseTo(180, 6);
+  });
+
+  it('scales with alternate base span S', () => {
+    expect(pullFromAngleDeg(60, 150)).toBeCloseTo(75, 3);
+    expect(angleDegFromPull(75, 150)).toBeCloseTo(60, 3);
+  });
+
+  it('autofill computes θ and PULL from two bearings', () => {
+    const r = computePullAutofill({ incomingBearingDeg: 350, outgoingBearingDeg: 10 });
+    expect(r.thetaDeg).toBe(20);
+    expect(r.pullFt).toBeCloseTo(100 * Math.sin((Math.PI / 180) * (20 / 2)), 6);
+  });
+
+  it('sanity examples match expectations', () => {
+    expect(examples.zero).toBeCloseTo(0, 6);
+    expect(examples.sixty).toBeCloseTo(50, 3);
+    expect(examples.oneTwenty).toBeCloseTo(86.6025, 3);
+    expect(examples.oneEighty).toBeCloseTo(100, 6);
+  });
+});
+import { describe, it, expect } from 'vitest';
+import {
   parseFeet,
   formatFeetInches,
   formatFeetInchesTickMarks,
