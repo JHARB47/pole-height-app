@@ -177,7 +177,7 @@ export async function buildKMZ({ poles = [], spans = [], name = 'Export' } = {})
   return zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
 }
 
-function buildFirstEnergyJointUseCSV({ cachedMidspans = [], job = {} }) {
+export function buildFirstEnergyJointUseCSV({ cachedMidspans = [], job = {} }) {
   const headers = ['job_name', 'span_id', 'length_ft', 'sag_ft', 'midspan_height_ft'];
   const rows = cachedMidspans.map(s => ({
     job_name: job.name || '',
