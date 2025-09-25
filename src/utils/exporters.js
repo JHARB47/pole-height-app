@@ -9,21 +9,27 @@ export const EXPORT_PRESETS = [
   { label: 'FirstEnergy Joint-Use (example)', value: 'firstEnergy' }
 ];
 
-function sanitizeFilename(name) {
-  return String(name || '')
-    .replace(/[\\/:*?"<>|]+/g, '_')
-    .replace(/\s+/g, '_')
-    .replace(/_+/g, '_')
-    .replace(/^_+|_+$/g, '')
-    .slice(0, 120) || 'export';
+export function sanitizeFilename(name) {
+  // Convert to lower-kebab-case and strip illegal characters
+  const cleaned = String(name || '')
+    .toLowerCase()
+    .replace(/[\\/:*?"<>|]+/g, ' ') // illegal -> space
+    .replace(/[^a-z0-9\s-]+/g, '') // drop other punctuation
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 120);
+  return cleaned || 'export';
 }
 
 function formatNumber(n) {
   return Number.isFinite(n) ? Number(n.toFixed(3)) : '';
 }
 
-function addBOM(str) {
-  return new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), str], { type: 'text/csv;charset=utf-8;' });
+export function addBOM(str) {
+  // Tests expect a string with a leading BOM character
+  return '\uFEFF' + String(str ?? '');
 }
 
 function buildCSV({ rows, headers }) {
@@ -54,6 +60,11 @@ function polesToCSV(poles = []) {
   return buildCSV({ rows, headers });
 }
 
+// Named export aliases expected by tests
+export function buildPolesCSV(poles = []) {
+  return polesToCSV(poles);
+}
+
 function spansToCSV(spans = []) {
   const headers = [
     'id', 'from_pole_id', 'to_pole_id', 'length_ft', 'sag_ft', 'midspan_height_ft'
@@ -69,6 +80,10 @@ function spansToCSV(spans = []) {
   return buildCSV({ rows, headers });
 }
 
+export function buildSpansCSV(spans = []) {
+  return spansToCSV(spans);
+}
+
 function existingLinesToCSV(lines = []) {
   const headers = [ 'id', 'type', 'latitude', 'longitude', 'height_ft', 'notes' ];
   const rows = lines.map(l => ({
@@ -80,6 +95,10 @@ function existingLinesToCSV(lines = []) {
     notes: l.notes || ''
   }));
   return buildCSV({ rows, headers });
+}
+
+export function buildExistingLinesCSV(lines = []) {
+  return existingLinesToCSV(lines);
 }
 
 function toGeoJSON({ poles = [], spans = [], existingLines = [] }) {
@@ -117,7 +136,11 @@ function toGeoJSON({ poles = [], spans = [], existingLines = [] }) {
   return { type: 'FeatureCollection', features };
 }
 
-async function buildKML({ poles = [], spans = [], name = 'Export' }) {
+export function buildGeoJSON(input = {}) {
+  return toGeoJSON(input);
+}
+
+export function buildKML({ poles = [], spans = [], name = 'Export' }) {
   const esc = v => String(v ?? '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
   const lines = [
     '<?xml version="1.0" encoding="UTF-8"?>',
@@ -149,7 +172,7 @@ async function buildKML({ poles = [], spans = [], name = 'Export' }) {
 export async function buildKMZ({ poles = [], spans = [], name = 'Export' } = {}) {
   const { default: JSZip } = await import('jszip');
   const zip = new JSZip();
-  const kml = await buildKML({ poles, spans, name });
+  const kml = buildKML({ poles, spans, name });
   zip.file('doc.kml', kml);
   return zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
 }
@@ -170,15 +193,15 @@ export function buildExportBundle({ poles = [], spans = [], existingLines = [], 
   const ts = new Date().toISOString().replace(/[:T]/g, '-').replace(/\..+/, '');
   const base = sanitizeFilename([job.jobNumber, job.name, ts].filter(Boolean).join('-'));
 
-  const polesCSV = polesToCSV(poles);
-  const spansCSV = spansToCSV(spans);
-  const existingCSV = existingLinesToCSV(existingLines);
+  const polesCSV = buildPolesCSV(poles);
+  const spansCSV = buildSpansCSV(spans);
+  const existingCSV = buildExistingLinesCSV(existingLines);
 
   const files = {
     [`${base}/poles.csv`]: includeBOM ? addBOM(polesCSV) : polesCSV,
     [`${base}/spans.csv`]: includeBOM ? addBOM(spansCSV) : spansCSV,
     [`${base}/existing_lines.csv`]: includeBOM ? addBOM(existingCSV) : existingCSV,
-    [`${base}/data.geojson`]: new Blob([JSON.stringify(toGeoJSON({ poles, spans, existingLines }), null, 2)], { type: 'application/geo+json' }),
+    [`${base}/data.geojson`]: new Blob([JSON.stringify(buildGeoJSON({ poles, spans, existingLines }), null, 2)], { type: 'application/geo+json' }),
     [`${base}/data.kml`]: new Blob([], { type: 'application/vnd.google-earth.kml+xml' }) // placeholder; real KML in KMZ
   };
 

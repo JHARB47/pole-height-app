@@ -5,6 +5,7 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+  workflow_dispatch:
 
 env:
   # Primary runtime version; kept for reference but setup-node now reads from .nvmrc

@@ -34,6 +34,19 @@ export default [
   },
   // Node contexts: scripts and build/config files
   {
+    files: ['**/*.{test,spec}.{js,jsx}', '**/__tests__/**/*.{js,jsx}'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.jest, // provide describe/it/expect globals for tests
+      }
+    },
+    rules: {
+      // tests often have dev-only helpers
+      'react-refresh/only-export-components': 'off'
+    }
+  },
+  {
     files: [
       'scripts/**/*.{js,mjs,cjs}',
       '*.config.{js,cjs,mjs,ts}',

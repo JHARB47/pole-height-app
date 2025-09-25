@@ -158,9 +158,7 @@ export default function ProposedLineCalculator() {
   const [showBatchReport, setShowBatchReport] = React.useState(false);
   const [showHelp, setShowHelp] = React.useState(false);
   const [helpSection, setHelpSection] = React.useState(null);
-  // Validation import states
-  const [poleImportErrors, setPoleImportErrors] = React.useState([]);
-  const [spanImportErrors, setSpanImportErrors] = React.useState([]);
+  // Validation import states are managed within ImportPanel to avoid leaking scoped state here
   // Scrollspy + collapsible sections state
   const [activeSection, setActiveSection] = React.useState('job');
   const [openSections, setOpenSections] = React.useState(() => {
@@ -1550,9 +1548,6 @@ function ScenarioButtons() {
 
 function ExportButtons() {
   const { results, warnings, makeReadyNotes, useTickMarkFormat } = useAppStore();
-  const prefetchPdfLib = React.useCallback(() => {
-    import('../utils/pdfAsync').then(m => m.loadPdfLib?.()).catch(() => {});
-  }, []);
   const onCSV = () => {
     const csv = resultsToCSV(results, warnings, makeReadyNotes, { useTickMarks: useTickMarkFormat });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -1571,13 +1566,13 @@ function ExportButtons() {
     <div className="flex items-center gap-2 my-2">
       <button className="px-2 py-1 border rounded text-sm" onClick={onCSV} disabled={!results}>Export CSV</button>
       <button className="px-2 py-1 border rounded text-sm" onClick={onPDF} disabled={!results}>Export PDF</button>
-      <PermitPackButton onPrefetchPdf={prefetchPdfLib} />
+      <PermitPackButton />
       <InteropExportButton />
     </div>
   );
 }
 
-function PermitPackButton({ onPrefetchPdf }) {
+function PermitPackButton() {
   const store = useAppStore();
   const [pdfReady, setPdfReady] = React.useState(false);
   const [hovering, setHovering] = React.useState(false);
@@ -2870,6 +2865,8 @@ function ImportPanel() {
   const [csvText, setCsvText] = React.useState('');
   const [csvPolesText, setCsvPolesText] = React.useState('');
   const [csvSpansText, setCsvSpansText] = React.useState('');
+  const [poleImportErrors, setPoleImportErrors] = React.useState([]);
+  const [spanImportErrors, setSpanImportErrors] = React.useState([]);
   const [showConfig, setShowConfig] = React.useState(false);
   const [showAutoPreview, setShowAutoPreview] = React.useState(false);
   const [autoPreview, setAutoPreview] = React.useState(/** @type {any} */(null));

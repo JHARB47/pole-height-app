@@ -287,13 +287,25 @@ export function coerceNumber(raw) {
     const val = feet + inches / 12;
     return negative ? -Math.abs(val) : val;
   }
-  // Handle thousand separators and locale decimal comma
+  // Handle thousands separators and decimal marks
+  // Cases:
+  //  - 1,234.56 (US): remove commas
+  //  - 1.234,56 (EU): remove dots, replace comma with dot
+  //  - 1234,56 (EU): replace comma with dot
+  //  - 1 234,56 or 1 234.56: spaces already removed above
   if (/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(s)) {
+    // US style with thousands commas
     s = s.replace(/,/g, '');
+  } else if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) {
+    // EU style with thousands dots
+    s = s.replace(/\./g, '');
+    if (/,\d+$/.test(s)) s = s.replace(',', '.');
   } else if (/^\d+,\d+$/.test(s)) {
+    // No thousands, decimal comma
     s = s.replace(',', '.');
   } else {
-    s = s.replace(/,/g, '');
+    // Remove stray thousands commas; leave dot as decimal
+    s = s.replace(/,(?=\d{3}(\D|$))/g, '');
   }
   // Strip stray quotes
   s = s.replace(/["']/g, '');
