@@ -57,7 +57,8 @@ if (import.meta.env && import.meta.env.PROD && 'serviceWorker' in navigator) {
   };
 
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').then(reg => {
+    // Ensure we register at root scope to control the entire app
+    navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(reg => {
       if (reg.waiting) {
         showUpdateToast(reg);
       }

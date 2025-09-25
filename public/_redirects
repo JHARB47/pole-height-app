@@ -1,7 +1,0 @@
-# Redirects
-
-<https://www.poleplanpro.com/*>  <https://poleplanpro.com/:splat>  301!
-<http://poleplanpro.com/*>        <https://poleplanpro.com/:splat>  301!
-<http://www.poleplanpro.com/*>    <https://poleplanpro.com/:splat>  301!
-
-/*    /index.html   200

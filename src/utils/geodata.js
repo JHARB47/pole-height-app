@@ -196,16 +196,30 @@ async function loadShpWriteFromCDN() {
   if (typeof window === 'undefined') return undefined;
   // @ts-ignore
   if (window.shpwrite) return window.shpwrite;
-  const url = 'https://unpkg.com/@mapbox/shp-write@0.4.3/dist/shpwrite.js';
-  /** @type {Promise<void>} */
-  await new Promise((resolve, reject) => {
-    const s = document.createElement('script');
-    s.src = url;
-    s.async = true;
-    s.onload = () => resolve(undefined);
-    s.onerror = () => reject(new Error('Failed to load shpwrite from CDN'));
-    document.head.appendChild(s);
-  });
-  // @ts-ignore
-  return window.shpwrite;
+  const cdns = [
+    'https://unpkg.com/@mapbox/shp-write@0.4.3/dist/shpwrite.js',
+    'https://cdn.jsdelivr.net/npm/@mapbox/shp-write@0.4.3/dist/shpwrite.js'
+  ];
+  let lastError;
+  for (const url of cdns) {
+    try {
+      // Load with safer attributes; integrity omitted because upstream doesn't publish SRI
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = url;
+        s.async = true;
+        s.referrerPolicy = 'no-referrer';
+        s.crossOrigin = 'anonymous';
+        s.onload = () => resolve(undefined);
+        s.onerror = () => reject(new Error('Failed to load shpwrite from CDN: ' + url));
+        document.head.appendChild(s);
+      });
+      // @ts-ignore
+      if (window.shpwrite) return window.shpwrite;
+    } catch (e) {
+      lastError = e;
+    }
+  }
+  throw lastError || new Error('Failed to load shpwrite from all CDNs');
 }

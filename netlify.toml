@@ -1,4 +1,6 @@
 [build]
+  # Ensure Netlify uses the repo root (monorepo-safe)
+  base = "."
   publish = "dist"
   command = "npm run build"
 
@@ -23,3 +25,14 @@
   to = "https://poleplanpro.com/:splat"
   status = 301
   force = true
+
+# SPA fallback for client-side routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+  external_node_modules = ["pg"]

@@ -1,7 +1,8 @@
 /// <reference lib="webworker" />
 const PRECACHE = 'ph-precache-v2';
 const PRECACHE_URLS = [
-  'https://unpkg.com/@mapbox/shp-write@0.4.3/dist/shpwrite.js'
+  'https://unpkg.com/@mapbox/shp-write@0.4.3/dist/shpwrite.js',
+  'https://cdn.jsdelivr.net/npm/@mapbox/shp-write@0.4.3/dist/shpwrite.js'
 ];
 self.addEventListener('install', (event) => {
   // @ts-ignore
@@ -41,6 +42,8 @@ self.addEventListener('fetch', (event) => {
   const e = event;
   const req = e.request;
   const url = req.url;
+  // Only handle GET requests; let the browser handle others
+  if (req.method && req.method !== 'GET') return;
   if (PRECACHE_URLS.some(u => url.startsWith(u))) {
     // @ts-ignore
     e.respondWith(
@@ -55,6 +58,16 @@ self.addEventListener('fetch', (event) => {
     );
     return;
   }
-  // @ts-ignore
-  e.respondWith(caches.match(req).then(r => r || fetch(req)));
+  // For same-origin requests, provide a simple cache-first fallback
+  try {
+    const reqUrl = new URL(url);
+    const selfOrigin = self.location.origin;
+    if (reqUrl.origin === selfOrigin) {
+      // @ts-ignore
+      e.respondWith(caches.match(req).then(r => r || fetch(req)));
+    }
+    // else: allow cross-origin requests to proceed normally
+  } catch (_) {
+    // If URL parsing fails, don't intercept
+  }
 });
