@@ -2,7 +2,9 @@ import { Client } from 'pg';
 
 export async function handler(event, context) {
   const headers = { 'content-type': 'application/json' };
-  const connectionString = process.env.DATABASE_URL;
+  const connectionString = process.env.DATABASE_URL
+    || process.env.NETLIFY_DATABASE_URL
+    || process.env.NETLIFY_DATABASE_URL_UNPOOLED;
   if (!connectionString) {
     return { statusCode: 500, headers, body: JSON.stringify({ ok: false, error: 'Missing DATABASE_URL env var' }) };
   }

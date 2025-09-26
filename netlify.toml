@@ -6,6 +6,17 @@
 
 [build.environment]
   NODE_VERSION = "22.12.0"
+  # This site is a Vite SPA, not Next.js. Skip the Next.js plugin if installed in UI.
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"
+
+[context.production.environment]
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"
+
+[context.deploy-preview.environment]
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"
+
+[context.branch-deploy.environment]
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"
 
 # Canonical domain redirects and HTTP->HTTPS
 [[redirects]]
