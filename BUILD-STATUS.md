@@ -1,5 +1,20 @@
-# ✅ Build System Status and Configuration
+# Build & Coverage Status
 
+This project uses Vitest for unit/integration tests and V8 coverage reporting.
+
+- Coverage directory: `./coverage`
+- Reports generated: `text` (console), `html` (open `coverage/index.html`), `lcov` (`coverage/lcov.info`)
+- Scope: Only `src/**/*.js|jsx` files are measured. Configs, scripts, tests and serverless functions are excluded to avoid zero-coverage noise.
+- Threshold gates (CI): lines 60%, statements 60%, functions 55%, branches 50%.
+
+How to run locally:
+
+```bash
+npm run test:coverage
+open coverage/index.html
+```
+
+CI will run `npm run -s test -- --run --coverage` and publish the lcov HTML as an artifact.
 [![Netlify Status](https://api.netlify.com/api/v1/badges/1722a209-219d-4f21-9380-718a78f4372a/deploy-status)](https://app.netlify.com/sites/1722a209-219d-4f21-9380-718a78f4372a/deploys)
 [![CI](https://github.com/JHARB47/pole-height-app/actions/workflows/ci.yml/badge.svg)](https://github.com/JHARB47/pole-height-app/actions/workflows/ci.yml)
 
@@ -28,7 +43,7 @@
 ✓ Coverage: calculations, exports, imports, permits, geodata
 ✓ Optional dependency graceful degradation tested
 ✓ Execution time: ~800ms average
-```text
+```
 
 ### Latest Build Output (Snapshot 2025-09-24)
 
@@ -39,7 +54,7 @@ assets/app-calculator (utils)     ~154.98 kB gzip
 assets/react-dom                  ~129.78 kB gzip
 assets/pdf-libs                   ~314.91 kB gzip  (largest)
 precache entries                  22
-```text
+```
 
 ### Optional Dependencies Status
 
@@ -83,7 +98,7 @@ export default defineConfig({
 ```text
 Error: Rollup failed to resolve import "tokml" from geodata.js
 Error: "shpjs" cannot be included in manualChunks because it is resolved as external
-```javascript
+```
 
 **Root Cause**: Vite 7.x has stricter external module detection that conflicts with current configuration
 
