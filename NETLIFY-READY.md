@@ -186,3 +186,58 @@ To validate local dev + functions:
 4. Run: `npm run dev:netlify`.
 5. Check: <http://localhost:8888/.netlify/functions/health> should return `{ ok: true }`.
 6. If you have a DB url, test: `curl http://localhost:8888/.netlify/functions/db_test`.
+
+### 🧪 Troubleshooting: curl exit 7 when calling local functions
+
+If `curl http://localhost:8888/.netlify/functions/db_test` returns exit code 7 (connection failed):
+
+1. Ensure local dev is running on 8888
+
+```bash
+# start Netlify + Vite with the proper flags
+npm run dev:netlify
+```
+
+Then watch the terminal for a line like:
+
+```text
+◈ Server now ready on http://localhost:8888
+```
+
+If a different port is shown, use that port in your curl URL.
+
+1. Quick health probe (no DB required)
+
+```bash
+curl -s http://localhost:8888/.netlify/functions/health | jq
+```
+
+Expected response:
+
+```json
+{ "ok": true, "service": "netlify-functions", "env": { "hasDb": false, "nextSkip": true } }
+```
+
+1. Set your DATABASE_URL for db_test
+
+- Copy `.env.example` to `.env` and set `DATABASE_URL` (Neon example):
+
+```bash
+DATABASE_URL=postgres://USER:PASSWORD@HOST.neon.tech:5432/DB?sslmode=require
+```
+
+- Restart `npm run dev:netlify` after adding `.env`.
+
+1. Retry db test
+
+```bash
+curl -s http://localhost:8888/.netlify/functions/db_test | jq
+```
+
+Successful example:
+
+```json
+{ "ok": true, "now": "2025-09-27T15:32:41.123Z" }
+```
+
+If you see `Missing DATABASE_URL env var`, verify `.env` exists and you restarted dev. If you see a connection or SSL error, confirm your Neon project allows connections and the URL includes `sslmode=require` (we also set `ssl: { rejectUnauthorized: false }` in the client).

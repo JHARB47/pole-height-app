@@ -7,6 +7,7 @@ import App from './App.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import ContentPage from './routes/ContentPage.jsx'
+import SiteChrome from './components/SiteChrome.jsx'
 
 const container = document.getElementById('root')
 if (!container) throw new Error('Root element not found')
@@ -20,7 +21,9 @@ const router = createBrowserRouter([
 createRoot(container).render(
   <StrictMode>
     <ErrorBoundary>
-      <RouterProvider router={router} />
+      <SiteChrome>
+        <RouterProvider router={router} />
+      </SiteChrome>
     </ErrorBoundary>
   </StrictMode>
 )

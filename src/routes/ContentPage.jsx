@@ -79,18 +79,18 @@ export default function ContentPage({ slug: propSlug }) {
 
   if (!page) {
     return (
-      <main className="max-w-4xl mx-auto px-4 py-10" aria-labelledby="nf-title">
+      <section className="max-w-4xl mx-auto px-4 py-10" aria-labelledby="nf-title">
         <h1 id="nf-title" style={{fontSize:28,fontWeight:800}}>Page not found</h1>
         <p className="mt-2">We couldn’t find the requested page.
           Try the <Link to="/">home page</Link> or launch the <Link to="/app">Pole Plan Wizard</Link>.</p>
-      </main>
+      </section>
     )
   }
 
   const sections = page.sections || []
   setPageMeta({ title: page.title || 'Pole Plan Pro', description: page.seoDescription })
   return (
-    <main id="main-content" role="main">
+    <>
       {sections.map((s, i) => {
         const Type = sectionRenderer[s.type] || RichTextSection
         return <Type key={i} section={s} />
@@ -98,6 +98,6 @@ export default function ContentPage({ slug: propSlug }) {
       <section className="max-w-5xl mx-auto px-4 py-10">
         <Link to="/app" style={{display:'inline-block',background:'#22c55e',color:'#0b1220',padding:'10px 14px',borderRadius:8,fontWeight:700}}>Launch Pole Plan Wizard</Link>
       </section>
-    </main>
+    </>
   )
 }
