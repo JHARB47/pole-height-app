@@ -9,7 +9,6 @@ class ErrorBoundary extends Component {
     return { hasError: true, error }
   }
   componentDidCatch(error, info) {
-    // eslint-disable-next-line no-console
     console.error('ErrorBoundary caught:', error, info)
   }
   render() {

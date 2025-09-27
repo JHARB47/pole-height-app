@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { getEnvTarget, controllingGroundTarget, maxTargetFromCached } from './targets';
 import { parsePolesCSVValidated, parseSpansCSVValidated } from './importers';
-import { parsePolesCSVValidated, parseSpansCSVValidated } from './importers';
 
 const profile = {
   envRoadFt: 15,

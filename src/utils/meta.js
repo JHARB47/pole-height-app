@@ -8,7 +8,7 @@ export function setPageMeta({ title, description }) {
       document.head.appendChild(meta);
     }
     if (description) meta.setAttribute('content', description);
-  } catch (_) {
+  } catch {
     // ignore in non-DOM environments (tests)
   }
 }

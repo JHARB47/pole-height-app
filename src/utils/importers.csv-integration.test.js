@@ -3,7 +3,7 @@ import { parsePolesCSV, parseSpansCSV, parseExistingLinesCSV } from './importers
 
 describe('CSV parsers integration with numeric coercion', () => {
   it('parses poles with various numeric formats', () => {
-    const csv = `id,height,power_ht,latitude,longitude\nA,40 ft,18,40.1°, -80.2\nB,12'6\",10, , \nC,1,234.56,1,234.5, -79,5`;
+  const csv = `id,height,power_ht,latitude,longitude\nA,40 ft,18,40.1°, -80.2\nB,12'6",10, , \nC,1,234.56,1,234.5, -79,5`;
     const rows = parsePolesCSV(csv, { id: 'id', height: 'height', powerHeight: 'power_ht', latitude: 'latitude', longitude: 'longitude' });
     expect(rows[0].height).toBe(40);
     expect(rows[0].powerHeight).toBe(18);
@@ -23,7 +23,7 @@ describe('CSV parsers integration with numeric coercion', () => {
   });
 
   it('parses existing lines with messy height values', () => {
-    const csv = `type,height,company,makeReady,makeReadyHeight\ncommunication,40.1°,Foo,yes,20\n,12'6\",Bar,no,`;
+  const csv = `type,height,company,makeReady,makeReadyHeight\ncommunication,40.1°,Foo,yes,20\n,12'6",Bar,no,`;
     const rows = parseExistingLinesCSV(csv, { type: 'type', height: 'height', company: 'company', makeReady: 'makeReady', makeReadyHeight: 'makeReadyHeight' });
     expect(rows[0].height).toBe('40.1');
     expect(rows[0].makeReady).toBe(true);

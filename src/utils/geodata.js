@@ -203,8 +203,7 @@ async function loadShpWriteFromCDN() {
   let lastError;
   for (const url of cdns) {
     try {
-      // Load with safer attributes; integrity omitted because upstream doesn't publish SRI
-      // eslint-disable-next-line no-await-in-loop
+  // Load with safer attributes; integrity omitted because upstream doesn't publish SRI
       await new Promise((resolve, reject) => {
         const s = document.createElement('script');
         s.src = url;
