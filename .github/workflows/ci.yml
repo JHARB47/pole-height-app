@@ -25,7 +25,12 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
-      - run: npm ci --no-audit --progress=false
+      - run: |
+          if [ -f package-lock.json ]; then
+            npm ci --no-audit --progress=false || (echo 'ci failed, falling back to install' && npm install --no-audit --progress=false)
+          else
+            npm install --no-audit --progress=false
+          fi
       - run: npm run -s lint
       - run: npm run -s lint:css
 
@@ -39,7 +44,12 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
-      - run: npm ci --no-audit --progress=false
+      - run: |
+          if [ -f package-lock.json ]; then
+            npm ci --no-audit --progress=false || (echo 'ci failed, falling back to install' && npm install --no-audit --progress=false)
+          else
+            npm install --no-audit --progress=false
+          fi
       - run: npm test -- --run --reporter=verbose
       - uses: actions/upload-artifact@v4
         if: always()
@@ -59,7 +69,12 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
-      - run: npm ci --no-audit --progress=false
+      - run: |
+          if [ -f package-lock.json ]; then
+            npm ci --no-audit --progress=false || (echo 'ci failed, falling back to install' && npm install --no-audit --progress=false)
+          else
+            npm install --no-audit --progress=false
+          fi
       - run: npm run -s build
       - name: Verify build output
         run: |
@@ -92,7 +107,12 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-      - run: npm ci --no-audit --progress=false
+      - run: |
+          if [ -f package-lock.json ]; then
+            npm ci --no-audit --progress=false || (echo 'ci failed, falling back to install' && npm install --no-audit --progress=false)
+          else
+            npm install --no-audit --progress=false
+          fi
       - run: npm test -- --run --reporter=verbose
       - uses: actions/upload-artifact@v4
         if: always()

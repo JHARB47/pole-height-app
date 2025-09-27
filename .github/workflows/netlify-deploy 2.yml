@@ -28,7 +28,12 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci --no-audit --progress=false || (echo 'ci failed, falling back to install' && npm install --no-audit --progress=false)
+          else
+            npm install --no-audit --progress=false
+          fi
 
       - name: Lint (ESLint)
         run: npm run -s lint

@@ -25,7 +25,7 @@
     "test:coverage": "vitest run --run --coverage",
     "lint:css": "stylelint \"src/**/*.css\" --allow-empty-input",
     "lint:css:fix": "stylelint \"src/**/*.css\" --allow-empty-input --fix",
-    "verify": "npm ci --no-audit --progress=false && npm run -s lint && npm test -- --run --reporter=verbose && npm run -s build && node scripts/ci/check-bundle-size.mjs",
+  "verify": "if [ -f package-lock.json ]; then npm ci --no-audit --progress=false; else echo 'No package-lock.json found, falling back to npm install'; npm install --no-audit --progress=false; fi && npm run -s lint && npm test -- --run --reporter=verbose && npm run -s build && node scripts/ci/check-bundle-size.mjs",
     "bundle:check": "node scripts/ci/check-bundle-size.mjs",
     "perf": "node ./scripts/perf/profile.mjs",
     "perf:quick": "PERF_MODE=quick node ./scripts/perf/profile.mjs",
