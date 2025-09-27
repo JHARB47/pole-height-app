@@ -174,9 +174,9 @@ If you see logs like "Installing @netlify/plugin-nextjs" or failures such as "Fa
 
 - This project is a Vite SPA, not Next.js. The Next.js plugin may be enabled in your Netlify site Plugins UI. Remove it there: Site settings → Plugins → Installed plugins → Uninstall @netlify/plugin-nextjs.
 - We also guard against accidental activation via:
-	- `NETLIFY_NEXT_PLUGIN_SKIP=true` in `netlify.toml` and `.env`
-	- `netlify.toml [dev]` configured to use Vite (`framework = "#custom"`)
-	- `npm run dev:netlify` sets the skip flag explicitly
+  - `NETLIFY_NEXT_PLUGIN_SKIP=true` in `netlify.toml` and `.env`
+  - `netlify.toml [dev]` configured to use Vite (`framework = "#custom"`)
+  - `npm run dev:netlify` sets the skip flag explicitly
 
 To validate local dev + functions:
 

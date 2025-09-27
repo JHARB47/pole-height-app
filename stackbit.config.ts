@@ -6,7 +6,6 @@ export default defineStackbitConfig({
 
   contentSources: [
     new GitContentSource({
-      rootPath: __dirname,
       contentDirs: ["content"],
       models: [
         {
@@ -32,6 +31,34 @@ export default defineStackbitConfig({
                   "CtaSection"
                 ]
               }
+            }
+          ]
+        },
+        {
+          name: "NavItem",
+          type: "object",
+          label: "Navigation Item",
+          labelField: "label",
+          fields: [
+            { name: "label", type: "string", label: "Label", required: true },
+            { name: "url", type: "string", label: "URL", required: true }
+          ]
+        },
+        {
+          name: "SiteSettings",
+          type: "data",
+          label: "Site Settings",
+          filePath: "content/site.json",
+          fields: [
+            { name: "siteTitle", type: "string", label: "Site Title", required: true },
+            { name: "logo", type: "image", label: "Logo" },
+            { name: "primaryColor", type: "string", label: "Primary Color" },
+            { name: "secondaryColor", type: "string", label: "Secondary Color" },
+            {
+              name: "navigation",
+              label: "Navigation",
+              type: "list",
+              items: { type: "model", models: ["NavItem"] }
             }
           ]
         },

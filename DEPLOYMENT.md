@@ -122,7 +122,7 @@
 **Issue**: Build fails with "Plugin \"@netlify/plugin-nextjs\" failed … does not contain a Next.js production build"
 **Cause**: The Netlify Next.js plugin is enabled for a Vite SPA. It expects a `.next` build that doesn’t exist.
 **Fix**:
- 
+
 1. In Netlify → Site settings → Build & deploy → Environment, add `NETLIFY_NEXT_PLUGIN_SKIP=true` (applies to all contexts).
 2. In Netlify → Site settings → Plugins, uninstall `@netlify/plugin-nextjs` from the site.
 3. Confirm repo `netlify.toml` has `publish = "dist"` and build command runs Vite. In this repo, the build command also exports the skip flag inline.
