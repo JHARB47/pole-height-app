@@ -165,3 +165,24 @@ Your application is **production-ready** with:
 - Security configuration ✅
 
 **Deploy with confidence!** 🚀
+
+---
+
+## 🧰 Troubleshooting: Local dev shows Next.js plugin/edge errors
+
+If you see logs like "Installing @netlify/plugin-nextjs" or failures such as "Failed to load edge functions … next@12.2.5/deno … cookie.js" during `netlify dev`:
+
+- This project is a Vite SPA, not Next.js. The Next.js plugin may be enabled in your Netlify site Plugins UI. Remove it there: Site settings → Plugins → Installed plugins → Uninstall @netlify/plugin-nextjs.
+- We also guard against accidental activation via:
+	- `NETLIFY_NEXT_PLUGIN_SKIP=true` in `netlify.toml` and `.env`
+	- `netlify.toml [dev]` configured to use Vite (`framework = "#custom"`)
+	- `npm run dev:netlify` sets the skip flag explicitly
+
+To validate local dev + functions:
+
+1. Copy `.env.example` to `.env` and optionally set `DATABASE_URL`.
+2. Use Node 22: `nvm use 22.12.0`.
+3. Install deps: `npm ci`.
+4. Run: `npm run dev:netlify`.
+5. Check: <http://localhost:8888/.netlify/functions/health> should return `{ ok: true }`.
+6. If you have a DB url, test: `curl http://localhost:8888/.netlify/functions/db_test`.

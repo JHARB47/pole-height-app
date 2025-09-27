@@ -243,6 +243,25 @@ Best Practices:
 - Keep model schema changes synchronized with the config file.
 - For rich text or additional fields, extend the Page model and update render components.
 
+### Local Functions + Studio
+
+Run the site, Functions, and Visual Editor proxy together with Netlify Dev:
+
+```bash
+nvm use 22.12.0
+npm ci
+npm run dev:netlify
+# Functions health check (no DB required)
+curl -s http://localhost:8888/.netlify/functions/health | jq
+```
+
+Routes:
+
+- `/` and `/:slug` render content files from `content/pages/{slug}.json` (used by Netlify Studio).
+- `/app` launches the Pole Plan Wizard application.
+
+If you see any Next.js plugin setup in logs, remove `@netlify/plugin-nextjs` in the Netlify Plugins UI. We also set `NETLIFY_NEXT_PLUGIN_SKIP=true` as a guard in `netlify.toml`.
+
 ### Development Issues
 
 **Dev Server Won't Start**:

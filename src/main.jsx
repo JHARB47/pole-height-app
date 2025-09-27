@@ -5,16 +5,24 @@ import './index.css'
 import App from './App.jsx'
 // @ts-ignore - allow jsx resolution in JS project
 import ErrorBoundary from './components/ErrorBoundary.jsx'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import ContentPage from './routes/ContentPage.jsx'
 
 const container = document.getElementById('root')
 if (!container) throw new Error('Root element not found')
 
+const router = createBrowserRouter([
+  { path: '/', element: <ContentPage slug="home" /> },
+  { path: '/app', element: <App /> },
+  { path: '/:slug', element: <ContentPage /> },
+])
+
 createRoot(container).render(
   <StrictMode>
     <ErrorBoundary>
-      <App />
+      <RouterProvider router={router} />
     </ErrorBoundary>
-  </StrictMode>,
+  </StrictMode>
 )
 
 // Register service worker and show a user-facing update toast when a new version is available

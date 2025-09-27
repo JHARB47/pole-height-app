@@ -15,8 +15,83 @@ export default defineStackbitConfig({
           urlPath: "/{slug}",
           filePath: "content/pages/{slug}.json",
           fields: [
-            { name: "slug", type: "string", required: true },
-            { name: "title", type: "string", required: true }
+            { name: "slug", type: "string", required: true, label: "Slug" },
+            { name: "title", type: "string", required: true, label: "Title" },
+            { name: "body", type: "text", label: "Body" },
+            { name: "seoDescription", type: "string", label: "SEO Description" },
+            {
+              name: "sections",
+              label: "Sections",
+              type: "list",
+              items: {
+                type: "model",
+                models: [
+                  "HeroSection",
+                  "RichTextSection",
+                  "FeatureSection",
+                  "CtaSection"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          name: "HeroSection",
+          type: "object",
+          label: "Hero Section",
+          labelField: "title",
+          fields: [
+            { name: "title", type: "string", label: "Title" },
+            { name: "subtitle", type: "string", label: "Subtitle" },
+            { name: "backgroundImage", type: "image", label: "Background Image" },
+            { name: "ctaLabel", type: "string", label: "CTA Label" },
+            { name: "ctaUrl", type: "string", label: "CTA URL" }
+          ]
+        },
+        {
+          name: "RichTextSection",
+          type: "object",
+          label: "Rich Text Section",
+          labelField: "content",
+          fields: [
+            { name: "content", type: "markdown", label: "Content" }
+          ]
+        },
+        {
+          name: "FeatureItem",
+          type: "object",
+          label: "Feature Item",
+          labelField: "title",
+          fields: [
+            { name: "title", type: "string", label: "Title" },
+            { name: "text", type: "string", label: "Text" },
+            { name: "icon", type: "string", label: "Icon (optional)" }
+          ]
+        },
+        {
+          name: "FeatureSection",
+          type: "object",
+          label: "Feature Section",
+          labelField: "heading",
+          fields: [
+            { name: "heading", type: "string", label: "Heading" },
+            {
+              name: "features",
+              label: "Features",
+              type: "list",
+              items: { type: "model", models: ["FeatureItem"] }
+            }
+          ]
+        },
+        {
+          name: "CtaSection",
+          type: "object",
+          label: "Call To Action Section",
+          labelField: "text",
+          fields: [
+            { name: "text", type: "string", label: "Text" },
+            { name: "buttonLabel", type: "string", label: "Button Label" },
+            { name: "buttonUrl", type: "string", label: "Button URL" }
           ]
         }
       ]

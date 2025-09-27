@@ -58,7 +58,7 @@ ErrorBoundary.propTypes = {
 export default function App() {
   return (
     <ErrorBoundary>
-      <div style={{
+      <div role="main" id="main-content" style={{
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         minHeight: '100vh',
         color: 'white',
