@@ -1,8 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import {
-  clamp,
-  degToRad,
-  radToDeg,
   normalizeBearingDeg,
   normalizeIncludedAngleDeg,
   pullFromAngleDeg,

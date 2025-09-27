@@ -230,7 +230,7 @@ export async function buildExportZip({
   zip.file(`${base}/export.kmz`, kmzBlob);
   const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' }, (meta) => {
       if (typeof onProgress === 'function') {
-        try { onProgress(meta.percent || 0); } catch (e) { /* intentionally ignore progress errors */ }
+        try { onProgress(meta.percent || 0); } catch { /* intentionally ignore progress errors */ }
       }
     });
   return blob;

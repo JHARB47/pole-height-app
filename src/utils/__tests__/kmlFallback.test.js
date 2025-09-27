@@ -13,7 +13,7 @@ describe('KML/KMZ export fallbacks', () => {
     createdAnchors = [];
     originalCreate = document.createElement.bind(document);
     originalUrlCreate = URL.createObjectURL;
-    URL.createObjectURL = (blob) => {
+    URL.createObjectURL = () => {
       // minimal stub; return deterministic string
       return 'blob:stub';
     };

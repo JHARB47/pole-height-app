@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { createServer } from 'net';
-import { readFileSync, existsSync } from 'fs';
+import { existsSync } from 'fs';
 import path from 'path';
 
 const reqNode = '22.12.0';

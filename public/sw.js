@@ -13,7 +13,7 @@ self.addEventListener('install', (event) => {
     (async () => {
       const cache = await caches.open(PRECACHE);
       // Best-effort cache of app shell for offline navigation
-      try { await cache.addAll(APP_SHELL); } catch (_) { /* ignore */ }
+  try { await cache.addAll(APP_SHELL); } catch { /* ignore */ }
       // Precache CDN resources with graceful failures
       await Promise.all(
         PRECACHE_URLS.map(u => fetch(u, { mode: 'no-cors' })
@@ -76,7 +76,7 @@ self.addEventListener('fetch', (event) => {
         // If online and ok, return network response
         if (res && res.ok) return res;
         // else fall through to cache
-      } catch (_) { /* offline or failed */ }
+      } catch { /* offline or failed */ }
       const cache = await caches.open(PRECACHE);
       return (await cache.match('/index.html')) || Response.error();
     })());
@@ -92,7 +92,7 @@ self.addEventListener('fetch', (event) => {
       e.respondWith(caches.match(req).then(r => r || fetch(req)));
     }
     // else: allow cross-origin requests to proceed normally
-  } catch (_) {
+  } catch {
     // If URL parsing fails, don't intercept
   }
 });

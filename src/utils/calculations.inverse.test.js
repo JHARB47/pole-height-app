@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { degToRad, radToDeg, pullFromAngleDeg, angleDegFromPull, normalizeBearingDeg, normalizeIncludedAngleDeg, computePullAutofill, calculateSag } from './calculations';
+import { degToRad, radToDeg, pullFromAngleDeg, angleDegFromPull, normalizeIncludedAngleDeg, computePullAutofill, calculateSag } from './calculations';
 
 const nearly = (a, b, eps = 1e-9) => Math.abs(a - b) <= eps;
 
