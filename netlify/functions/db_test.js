@@ -1,6 +1,7 @@
+/* eslint-env node */
 import { Client } from 'pg';
 
-export async function handler(event, context) {
+export async function handler(_event, _context) {
   const headers = {
     'content-type': 'application/json',
     'access-control-allow-origin': '*',
@@ -21,6 +22,6 @@ export async function handler(event, context) {
   } catch (err) {
     return { statusCode: 500, headers, body: JSON.stringify({ ok: false, error: err.message }) };
   } finally {
-    try { await client.end(); } catch {}
+    try { await client.end(); } catch { /* ignore close error */ }
   }
 }

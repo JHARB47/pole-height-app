@@ -1,3 +1,4 @@
+/* eslint-env node */
 export async function handler() {
   const ts = new Date().toISOString();
   const inNetlify = !!process.env.NETLIFY;
