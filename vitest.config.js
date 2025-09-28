@@ -1,7 +1,9 @@
 import { defineConfig } from 'vitest/config';
 
-const nodeMajor = Number(process.versions.node.split('.')[0]);
-const useThreads = nodeMajor < 23; // disable threads on Node >= 23 to avoid tinypool conflicts
+// Vitest worker threads have shown instability (Tinypool config conflicts) when
+// coverage is enabled or when running under CI. Run tests in-process instead.
+const useThreads = false;
+console.log('[vitest.config] threads enabled:', useThreads);
 
 export default defineConfig({
   resolve: {
@@ -13,10 +15,9 @@ export default defineConfig({
     include: ['src/**/*.{test,spec}.{js,jsx}', 'src/**/*.test.js'],
     exclude: ['coverage/**'],
     passWithNoTests: true,
-    // Avoid tinypool thread conflicts on newer Node versions (>=23)
-    threads: useThreads,
-    // For Node < 23 where threads are enabled, set conservative limits
-    poolOptions: useThreads ? { threads: { minThreads: 1, maxThreads: 4 } } : undefined,
+  // Avoid tinypool thread conflicts by running tests without worker threads.
+  pool: 'forks',
+  threads: useThreads,
     hookTimeout: 10000,
     testTimeout: 10000,
     globals: true,
