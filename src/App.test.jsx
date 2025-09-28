@@ -1,3 +1,4 @@
+// @ts-nocheck
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen } from '@testing-library/react';
@@ -8,7 +9,7 @@ let prevIO;
 
 beforeAll(() => {
   prevIO = globalThis.IntersectionObserver;
-  globalThis.IntersectionObserver = class {
+  globalThis.IntersectionObserver = class IntersectionObserver {
     observe() { /* no-op */ }
     unobserve() { /* no-op */ }
     disconnect() { /* no-op */ }

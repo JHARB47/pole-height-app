@@ -1,3 +1,4 @@
+// @ts-nocheck
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
@@ -9,7 +10,7 @@ let prevIO;
 // Mock IntersectionObserver for jsdom
 beforeAll(() => {
   prevIO = globalThis.IntersectionObserver;
-  globalThis.IntersectionObserver = class {
+  globalThis.IntersectionObserver = class IntersectionObserver {
     observe() { /* no-op stub */ }
     unobserve() { /* no-op stub */ }
     disconnect() { /* no-op stub */ }

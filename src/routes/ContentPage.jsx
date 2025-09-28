@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { setPageMeta } from '../utils/meta'
