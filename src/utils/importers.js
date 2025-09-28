@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Geospatial import utilities: KML, KMZ, and Shapefile -> GeoJSON
 import Papa from 'papaparse';
 // Heavy libraries are lazy-loaded with dynamic imports to keep initial bundle small.

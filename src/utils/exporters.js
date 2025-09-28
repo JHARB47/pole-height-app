@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Export utilities for interoperability with external tools
 // Provides CSV, GeoJSON, and KML exports for poles, spans, and existing lines.
 

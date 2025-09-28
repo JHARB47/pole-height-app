@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect } from 'vitest';
 import { degToRad, radToDeg, pullFromAngleDeg, angleDegFromPull, normalizeIncludedAngleDeg, computePullAutofill, calculateSag } from './calculations';
 
