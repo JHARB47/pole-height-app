@@ -23,6 +23,10 @@ describe('coerceNumber', () => {
   it('handles parentheses negatives', () => {
     expect(coerceNumber('(12.5)')).toBe(-12.5);
   });
+  it('coerces signed values with locale punctuation', () => {
+    expect(coerceNumber('-79,5')).toBe(-79.5);
+    expect(coerceNumber('+1,250.75')).toBe(1250.75);
+  });
   it('returns undefined for invalid', () => {
     expect(coerceNumber('abc')).toBeUndefined();
     expect(coerceNumber('')).toBeUndefined();

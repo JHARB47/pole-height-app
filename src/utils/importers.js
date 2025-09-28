@@ -287,6 +287,12 @@ export function coerceNumber(raw) {
     const val = feet + inches / 12;
     return negative ? -Math.abs(val) : val;
   }
+  // Preserve leading sign for pattern checks
+  let signMultiplier = 1;
+  if (/^[+-]/.test(s)) {
+    signMultiplier = s[0] === '-' ? -1 : 1;
+    s = s.slice(1);
+  }
   // Handle thousands separators and decimal marks
   // Cases:
   //  - 1,234.56 (US): remove commas
@@ -311,7 +317,9 @@ export function coerceNumber(raw) {
   s = s.replace(/["']/g, '');
   const n = parseFloat(s);
   if (!Number.isFinite(n)) return undefined;
-  return negative ? -Math.abs(n) : n;
+  const signed = n * signMultiplier;
+  const val = negative ? -Math.abs(signed) : signed;
+  return val;
 }
 
 // Simple CSV parser for existing lines: expects headers including fields matching mapping.line

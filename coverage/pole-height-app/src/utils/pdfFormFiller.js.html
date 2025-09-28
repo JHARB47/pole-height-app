@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/74</span>
+                <span class='fraction'>0/77</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/74</span>
+                <span class='fraction'>0/77</span>
             </div>
         
             
@@ -137,7 +137,10 @@
 <a name='L72'></a><a href='#L72'>72</a>
 <a name='L73'></a><a href='#L73'>73</a>
 <a name='L74'></a><a href='#L74'>74</a>
-<a name='L75'></a><a href='#L75'>75</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -211,14 +214,18 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >// Lightweight PDF form filler using pdf-lib for text-only fields.</span></span></span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >// Lightweight PDF form filler using pdf-lib for text-only fields.<span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" ></span></span></span>
 <span class="cstat-no" title="statement not covered" >// Note: Official forms often have complex AcroForms or require ePermitting; we</span>
 <span class="cstat-no" title="statement not covered" >// provide a generic text overlay approach to assist transcribing fields.</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >// Overlay text values at absolute coordinates.</span>
 <span class="cstat-no" title="statement not covered" >export async function fillPdfWithFields(basePdfBytes, fields, layout) {</span>
 <span class="cstat-no" title="statement not covered" >  // layout: [{ key, x, y, size?, pageIndex?, bold? }]</span>
-<span class="cstat-no" title="statement not covered" >  const { PDFDocument, StandardFonts, rgb } = await import('pdf-lib');</span>
+<span class="cstat-no" title="statement not covered" >  const { loadPdfLib } = await import('./pdfAsync');</span>
+<span class="cstat-no" title="statement not covered" >  const { PDFDocument, StandardFonts, rgb } = await loadPdfLib();</span>
 <span class="cstat-no" title="statement not covered" >  const doc = await PDFDocument.load(basePdfBytes);</span>
 <span class="cstat-no" title="statement not covered" >  const font = await doc.embedFont(StandardFonts.Helvetica);</span>
 <span class="cstat-no" title="statement not covered" >  const fontBold = await doc.embedFont(StandardFonts.HelveticaBold);</span>
@@ -242,7 +249,8 @@
 <span class="cstat-no" title="statement not covered" >// Fill AcroForm fields by name using normalized fields and a field name mapper.</span>
 <span class="cstat-no" title="statement not covered" >// This works when the official PDF is a fillable form.</span>
 <span class="cstat-no" title="statement not covered" >export async function fillAcroFormByName(basePdfBytes, env, fields) {</span>
-<span class="cstat-no" title="statement not covered" >  const { PDFDocument } = await import('pdf-lib');</span>
+<span class="cstat-no" title="statement not covered" >  const { loadPdfLib } = await import('./pdfAsync');</span>
+<span class="cstat-no" title="statement not covered" >  const { PDFDocument } = await loadPdfLib();</span>
 <span class="cstat-no" title="statement not covered" >  const { mapFieldNameToKey } = await import('./pdfFieldMapper');</span>
 <span class="cstat-no" title="statement not covered" >  const doc = await PDFDocument.load(basePdfBytes);</span>
 <span class="cstat-no" title="statement not covered" >  const form = doc.getForm();</span>
@@ -265,7 +273,8 @@
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >// Lightweight PDF meta reader for layout selection</span>
 <span class="cstat-no" title="statement not covered" >export async function getPdfMeta(basePdfBytes) {</span>
-<span class="cstat-no" title="statement not covered" >  const { PDFDocument } = await import('pdf-lib');</span>
+<span class="cstat-no" title="statement not covered" >  const { loadPdfLib } = await import('./pdfAsync');</span>
+<span class="cstat-no" title="statement not covered" >  const { PDFDocument } = await loadPdfLib();</span>
 <span class="cstat-no" title="statement not covered" >  const doc = await PDFDocument.load(basePdfBytes);</span>
 <span class="cstat-no" title="statement not covered" >  const pages = doc.getPages();</span>
 <span class="cstat-no" title="statement not covered" >  const first = pages[0];</span>
@@ -292,7 +301,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-25T18:38:05.147Z
+                at 2025-09-28T01:11:18.268Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

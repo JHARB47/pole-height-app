@@ -2,21 +2,53 @@ import { describe, it, expect } from 'vitest';
 import { buildPolesCSV, buildSpansCSV, buildExistingLinesCSV, buildGeoJSON, buildKML, sanitizeFilename, addBOM, buildExportBundle } from './exporters.js';
 
 describe('exporters', () => {
-  const poles = [{ id: 'P1', height: 35, class: '4', powerHeight: 28, hasTransformer: true, longitude: -80, latitude: 40 }];
-  const spans = [{ id: 'S1', fromId: 'P1', toId: 'P2', length: 150, proposedAttach: 18, coordinates: [[-80,40],[-80.001,40.001]] }];
-  const lines = [{ type: 'communication', height: 16, companyName: 'ISP', makeReady: true, makeReadyHeight: 14 }];
+  const poles = [{
+    id: 'P1',
+    label: 'Pole 1',
+    lat: 40,
+    lng: -80,
+    heightFt: 35,
+    class: '4',
+    attachHeightFt: 28,
+    bearingDeg: 12,
+    pullFt: 5,
+    notes: 'Test pole',
+  }];
+  const spans = [{
+    id: 'S1',
+    fromPoleId: 'P1',
+    toPoleId: 'P2',
+    lengthFt: 150,
+    sagFt: 2,
+    midspanHeightFt: 18,
+    coordinates: [{ lat: 40, lng: -80 }, { lat: 40.001, lng: -80.001 }],
+  }];
+  const lines = [{
+    id: 'L1',
+    type: 'communication',
+    lat: 40,
+    lng: -80,
+    heightFt: 16,
+    notes: 'Down line',
+  }];
 
   it('buildPolesCSV', () => {
     const csv = buildPolesCSV(poles, 'generic');
-    expect(csv).toContain('POLE_ID');
+    const [header, data] = csv.split('\n');
+    expect(header).toBe('id,label,latitude,longitude,height_ft,class,attach_height_ft,bearing_deg,pull_ft,notes');
+    expect(data).toBe('P1,Pole 1,40,-80,35,4,28,12,5,Test pole');
   });
   it('buildSpansCSV', () => {
     const csv = buildSpansCSV(spans, 'generic');
-    expect(csv).toContain('SPAN_ID');
+    const [header, data] = csv.split('\n');
+    expect(header).toBe('id,from_pole_id,to_pole_id,length_ft,sag_ft,midspan_height_ft');
+    expect(data).toBe('S1,P1,P2,150,2,18');
   });
   it('buildExistingLinesCSV', () => {
     const csv = buildExistingLinesCSV(lines, 'generic');
-    expect(csv).toContain('TYPE');
+    const [header, data] = csv.split('\n');
+    expect(header).toBe('id,type,latitude,longitude,height_ft,notes');
+    expect(data).toBe('L1,communication,40,-80,16,Down line');
   });
   it('buildGeoJSON', () => {
     const gj = buildGeoJSON({ poles, spans });

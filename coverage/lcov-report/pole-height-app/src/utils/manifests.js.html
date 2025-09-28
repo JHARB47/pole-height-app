@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>52/52</span>
+                <span class='fraction'>0/52</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">27.27% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>21/77</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>3/3</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>52/52</span>
+                <span class='fraction'>0/52</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -115,110 +115,110 @@
 <a name='L50'></a><a href='#L50'>50</a>
 <a name='L51'></a><a href='#L51'>51</a>
 <a name='L52'></a><a href='#L52'>52</a>
-<a name='L53'></a><a href='#L53'>53</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// Manifest builder for utility export packages
-// Profiles supported: 'firstEnergy', 'aep', 'duke', 'generic'
-&nbsp;
-export function buildManifest(profileName, poles, job) {
-  const profile = profileName <span class="branch-0 cbranch-no" title="branch not covered" >|| 'generic';</span>
-  const j = job <span class="branch-0 cbranch-no" title="branch not covered" >|| {};</span>
-  switch (profile) {
-    case 'firstEnergy': {
-      const header = [
-        'id','latitude','longitude','height','class','powerHeight','voltage','hasTransformer','spanDistance','adjacentPoleHeight','attachmentType','status','hasPhoto','timestamp','jobId','asBuiltAttachHeight','asBuiltPowerHeight','varianceIn','variancePass','commCompany'
-      ];
-      const rows = poles.map(p =&gt; [
-        p.id <span class="branch-0 cbranch-no" title="branch not covered" >|| '',</span> p.latitude <span class="branch-0 cbranch-no" title="branch not covered" >|| '',</span> p.longitude <span class="branch-0 cbranch-no" title="branch not covered" >|| '',</span> p.height <span class="branch-0 cbranch-no" title="branch not covered" >|| '',</span> p.poleClass <span class="branch-0 cbranch-no" title="branch not covered" >|| '',</span> p.powerHeight <span class="branch-0 cbranch-no" title="branch not covered" >|| '',</span> p.voltage <span class="branch-0 cbranch-no" title="branch not covered" >|| '',</span> p.hasTransformer ? 'Y' : 'N', p.spanDistance <span class="branch-0 cbranch-no" title="branch not covered" >|| '',</span> p.adjacentPoleHeight <span class="branch-0 cbranch-no" title="branch not covered" >|| '',</span> p.attachmentType <span class="branch-0 cbranch-no" title="branch not covered" >|| '',</span> (p.status <span class="branch-0 cbranch-no" title="branch not covered" >|| 'draft')</span>, (p.photoDataUrl ? 'Y' : 'N'), p.timestamp <span class="branch-0 cbranch-no" title="branch not covered" >|| '',</span> p.jobId <span class="branch-0 cbranch-no" title="branch not covered" >|| '',</span>
-        p.asBuilt<span class="branch-0 cbranch-no" title="branch not covered" >?.attachHeight </span>|| '', p.asBuilt<span class="branch-0 cbranch-no" title="branch not covered" >?.powerHeight </span>|| '', p._varianceIn || '', p._variancePass || '', j.commCompany <span class="branch-0 cbranch-no" title="branch not covered" >|| ''</span>
-      ]);
-      return { header, rows, fileLabel: 'fe-spans-package' };
-    }
-    case 'aep': {
-      const header = [
-        'PoleID','Lat','Lon','PoleHtFt','Class','PowerHt','Voltage','XFMR','SpanFt','AdjPoleFt','Cable','Status','Photo','Timestamp','JobId','CommCompany'
-      ];
-      const rows = poles.map(p =&gt; [
-        p.id<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span>p.latitude<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span>p.longitude<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span>p.height<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span>p.poleClass<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span>p.powerHeight<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span>p.voltage<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span>p.hasTransformer?'Y':'N',p.spanDistance<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span>p.adjacentPoleHeight<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span>p.attachmentType<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span>(p.status<span class="branch-0 cbranch-no" title="branch not covered" >||'draft')</span>,(p.photoDataUrl?'Y':'N'),p.timestamp<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span>p.jobId<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span> j.commCompany <span class="branch-0 cbranch-no" title="branch not covered" >|| ''</span>
-      ]);
-      return { header, rows, fileLabel: 'aep-application-package' };
-    }
-    case 'duke': {
-      // Duke Energy style application manifest (plausible schema)
-      const header = [
-        'PoleTag','Latitude','Longitude','PoleHeightFt','Class','PowerHtFt','VoltageClass','HasXFMR','SpanLengthFt','AdjPoleHtFt','Attachment','Status','PhotoIncluded','Timestamp','JobId','CommCompany'
-      ];
-      const rows = poles.map(p =&gt; [
-        p.id<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span> p.latitude<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span> p.longitude<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span> p.height<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span> p.poleClass<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span> p.powerHeight<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span> p.voltage<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span> p.hasTransformer?'Y':'N', p.spanDistance<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span> p.adjacentPoleHeight<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span> p.attachmentType<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span> (p.status<span class="branch-0 cbranch-no" title="branch not covered" >||'draft')</span>, (p.photoDataUrl?'Y':'N'), p.timestamp<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span> p.jobId<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span> j.commCompany <span class="branch-0 cbranch-no" title="branch not covered" >|| ''</span>
-      ]);
-      return { header, rows, fileLabel: 'duke-application-package' };
-    }
-    default: {
-      const header = [
-        'id','lat','lon','height','class','span','status','photo','jobId','commCompany'
-      ];
-      const rows = poles.map(p =&gt; [
-        p.id<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span>p.latitude<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span>p.longitude<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span>p.height<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span>p.poleClass<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span>p.spanDistance<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span>(p.status<span class="branch-0 cbranch-no" title="branch not covered" >||'draft')</span>,(p.photoDataUrl?'Y':'N'),p.jobId<span class="branch-0 cbranch-no" title="branch not covered" >||'',</span> j.commCompany <span class="branch-0 cbranch-no" title="branch not covered" >|| ''</span>
-      ]);
-      return { header, rows, fileLabel: 'utility-package' };
-    }
-  }
-}
-&nbsp;
-export function csvFrom(header, rows) {
-  const safe = (v) =&gt; String(v <span class="branch-0 cbranch-no" title="branch not covered" >?? '')</span>.replaceAll('"', '""');
-  return [header.join(','), ...rows.map(r =&gt; r.map(safe).join(','))].join('\n');
-}
+<a name='L53'></a><a href='#L53'>53</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >// Manifest builder for utility export packages</span></span></span>
+<span class="cstat-no" title="statement not covered" >// Profiles supported: 'firstEnergy', 'aep', 'duke', 'generic'</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >export function buildManifest(profileName, poles, job) {</span>
+<span class="cstat-no" title="statement not covered" >  const profile = profileName || 'generic';</span>
+<span class="cstat-no" title="statement not covered" >  const j = job || {};</span>
+<span class="cstat-no" title="statement not covered" >  switch (profile) {</span>
+<span class="cstat-no" title="statement not covered" >    case 'firstEnergy': {</span>
+<span class="cstat-no" title="statement not covered" >      const header = [</span>
+<span class="cstat-no" title="statement not covered" >        'id','latitude','longitude','height','class','powerHeight','voltage','hasTransformer','spanDistance','adjacentPoleHeight','attachmentType','status','hasPhoto','timestamp','jobId','asBuiltAttachHeight','asBuiltPowerHeight','varianceIn','variancePass','commCompany'</span>
+<span class="cstat-no" title="statement not covered" >      ];</span>
+<span class="cstat-no" title="statement not covered" >      const rows = poles.map(p =&gt; [</span>
+<span class="cstat-no" title="statement not covered" >        p.id || '', p.latitude || '', p.longitude || '', p.height || '', p.poleClass || '', p.powerHeight || '', p.voltage || '', p.hasTransformer ? 'Y' : 'N', p.spanDistance || '', p.adjacentPoleHeight || '', p.attachmentType || '', (p.status || 'draft'), (p.photoDataUrl ? 'Y' : 'N'), p.timestamp || '', p.jobId || '',</span>
+<span class="cstat-no" title="statement not covered" >        p.asBuilt?.attachHeight || '', p.asBuilt?.powerHeight || '', p._varianceIn || '', p._variancePass || '', j.commCompany || ''</span>
+<span class="cstat-no" title="statement not covered" >      ]);</span>
+<span class="cstat-no" title="statement not covered" >      return { header, rows, fileLabel: 'fe-spans-package' };</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    case 'aep': {</span>
+<span class="cstat-no" title="statement not covered" >      const header = [</span>
+<span class="cstat-no" title="statement not covered" >        'PoleID','Lat','Lon','PoleHtFt','Class','PowerHt','Voltage','XFMR','SpanFt','AdjPoleFt','Cable','Status','Photo','Timestamp','JobId','CommCompany'</span>
+<span class="cstat-no" title="statement not covered" >      ];</span>
+<span class="cstat-no" title="statement not covered" >      const rows = poles.map(p =&gt; [</span>
+<span class="cstat-no" title="statement not covered" >        p.id||'',p.latitude||'',p.longitude||'',p.height||'',p.poleClass||'',p.powerHeight||'',p.voltage||'',p.hasTransformer?'Y':'N',p.spanDistance||'',p.adjacentPoleHeight||'',p.attachmentType||'',(p.status||'draft'),(p.photoDataUrl?'Y':'N'),p.timestamp||'',p.jobId||'', j.commCompany || ''</span>
+<span class="cstat-no" title="statement not covered" >      ]);</span>
+<span class="cstat-no" title="statement not covered" >      return { header, rows, fileLabel: 'aep-application-package' };</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    case 'duke': {</span>
+<span class="cstat-no" title="statement not covered" >      // Duke Energy style application manifest (plausible schema)</span>
+<span class="cstat-no" title="statement not covered" >      const header = [</span>
+<span class="cstat-no" title="statement not covered" >        'PoleTag','Latitude','Longitude','PoleHeightFt','Class','PowerHtFt','VoltageClass','HasXFMR','SpanLengthFt','AdjPoleHtFt','Attachment','Status','PhotoIncluded','Timestamp','JobId','CommCompany'</span>
+<span class="cstat-no" title="statement not covered" >      ];</span>
+<span class="cstat-no" title="statement not covered" >      const rows = poles.map(p =&gt; [</span>
+<span class="cstat-no" title="statement not covered" >        p.id||'', p.latitude||'', p.longitude||'', p.height||'', p.poleClass||'', p.powerHeight||'', p.voltage||'', p.hasTransformer?'Y':'N', p.spanDistance||'', p.adjacentPoleHeight||'', p.attachmentType||'', (p.status||'draft'), (p.photoDataUrl?'Y':'N'), p.timestamp||'', p.jobId||'', j.commCompany || ''</span>
+<span class="cstat-no" title="statement not covered" >      ]);</span>
+<span class="cstat-no" title="statement not covered" >      return { header, rows, fileLabel: 'duke-application-package' };</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    default: {</span>
+<span class="cstat-no" title="statement not covered" >      const header = [</span>
+<span class="cstat-no" title="statement not covered" >        'id','lat','lon','height','class','span','status','photo','jobId','commCompany'</span>
+<span class="cstat-no" title="statement not covered" >      ];</span>
+<span class="cstat-no" title="statement not covered" >      const rows = poles.map(p =&gt; [</span>
+<span class="cstat-no" title="statement not covered" >        p.id||'',p.latitude||'',p.longitude||'',p.height||'',p.poleClass||'',p.spanDistance||'',(p.status||'draft'),(p.photoDataUrl?'Y':'N'),p.jobId||'', j.commCompany || ''</span>
+<span class="cstat-no" title="statement not covered" >      ]);</span>
+<span class="cstat-no" title="statement not covered" >      return { header, rows, fileLabel: 'utility-package' };</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >export function csvFrom(header, rows) {</span>
+<span class="cstat-no" title="statement not covered" >  const safe = (v) =&gt; String(v ?? '').replaceAll('"', '""');</span>
+<span class="cstat-no" title="statement not covered" >  return [header.join(','), ...rows.map(r =&gt; r.map(safe).join(','))].join('\n');</span>
+<span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -226,7 +226,7 @@ export function csvFrom(header, rows) {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-25T18:38:05.187Z
+                at 2025-09-28T01:11:18.333Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

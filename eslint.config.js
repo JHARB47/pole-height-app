@@ -38,7 +38,7 @@ export default [
     languageOptions: {
       globals: {
         ...globals.browser,
-        ...globals.jest, // provide describe/it/expect globals for tests
+        ...globals.vitest, // provide vitest globals when not explicitly imported
       }
     },
     rules: {

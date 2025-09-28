@@ -5,27 +5,32 @@ import { buildGeoJSON, exportKML, exportKMZ } from '../geodata';
 vi.mock('tokml', () => ({ default: () => { throw new Error('tokml failure'); } }));
 
 describe('KML/KMZ export fallbacks', () => {
+  /** @type {Array<{ download?: string }>} */
   let createdAnchors = [];
+  /** @type {typeof document.createElement} */
   let originalCreate;
+  /** @type {typeof URL.createObjectURL} */
   let originalUrlCreate;
+  /** @type {typeof URL.revokeObjectURL | undefined} */
+  let originalUrlRevoke;
 
   beforeEach(() => {
     createdAnchors = [];
     originalCreate = document.createElement.bind(document);
     originalUrlCreate = URL.createObjectURL;
-    URL.createObjectURL = (blob) => {
-      // minimal stub; return deterministic string
-      return 'blob:stub';
-    };
+    originalUrlRevoke = URL.revokeObjectURL;
+    URL.createObjectURL = () => 'blob:stub';
+    URL.revokeObjectURL = vi.fn();
     vi.spyOn(document, 'createElement').mockImplementation((tag) => {
       const el = originalCreate(tag);
       if (tag === 'a') {
         Object.defineProperty(el, 'click', { value: () => {}, writable: false });
+        /** @type {{ download?: string }} */
         const record = {};
         Object.defineProperty(el, 'download', {
           get() { return record.download; },
           set(v) { record.download = v; },
-          configurable: true
+          configurable: true,
         });
         createdAnchors.push(record);
       }
@@ -37,12 +42,13 @@ describe('KML/KMZ export fallbacks', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     URL.createObjectURL = originalUrlCreate;
+    URL.revokeObjectURL = originalUrlRevoke ?? (() => {});
   });
 
   it('falls back to GeoJSON for KML when tokml default throws', async () => {
     const fc = buildGeoJSON({ poles: [{ id: 'P1', latitude: 1, longitude: 2 }] });
     await exportKML(fc, 'sample.kml');
-    const dl = createdAnchors.find(a => a.download && a.download.endsWith('.geojson'));
+    const dl = createdAnchors.find((anchor) => anchor.download && anchor.download.endsWith('.geojson'));
     expect(dl).toBeTruthy();
     expect(console.error).toHaveBeenCalled();
   });
@@ -50,7 +56,7 @@ describe('KML/KMZ export fallbacks', () => {
   it('falls back to GeoJSON for KMZ when tokml default throws', async () => {
     const fc = buildGeoJSON({ poles: [{ id: 'P2', latitude: 3, longitude: 4 }] });
     await exportKMZ(fc, 'sample.kmz');
-    const dl = createdAnchors.find(a => a.download && a.download.endsWith('.geojson'));
+    const dl = createdAnchors.find((anchor) => anchor.download && anchor.download.endsWith('.geojson'));
     expect(dl).toBeTruthy();
     expect(console.error).toHaveBeenCalled();
   });
