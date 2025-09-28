@@ -1,42 +1,42 @@
+import { fileURLToPath } from 'node:url';
+import { dirname, resolve } from 'node:path';
 import { defineConfig } from 'vitest/config';
 
-// Vitest worker threads have shown instability (Tinypool config conflicts) when
-// coverage is enabled or when running under CI. Run tests in-process instead.
-const useThreads = false;
-console.log('[vitest.config] threads enabled:', useThreads);
+process.env.VITEST_MIN_THREADS ??= '1';
+process.env.VITEST_MAX_THREADS ??= '1';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export default defineConfig({
   resolve: {
-    alias: [
-      { find: '@', replacement: '/src' },
-    ],
+    alias: [{ find: '@', replacement: resolve(__dirname, 'src') }],
   },
   test: {
-    include: ['src/**/*.{test,spec}.{js,jsx}', 'src/**/*.test.js'],
+    include: ['src/**/*.{test,spec}.{js,jsx}'],
     exclude: ['coverage/**'],
-    passWithNoTests: true,
-  // Avoid tinypool thread conflicts by running tests without worker threads.
-  pool: 'forks',
-  threads: useThreads,
-    hookTimeout: 10000,
-    testTimeout: 10000,
+  passWithNoTests: true,
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        minThreads: 1,
+        maxThreads: 1,
+        singleThread: true,
+      },
+    },
+    hookTimeout: 10_000,
+    testTimeout: 10_000,
     globals: true,
     environment: 'jsdom',
-    setupFiles: './src/testSetup.js',
+    setupFiles: resolve(__dirname, 'src/testSetup.js'),
     coverage: {
-      // Only measure coverage for actual application code in src/
       provider: 'v8',
-      include: [
-        'src/**/*.{js,jsx}',
-      ],
+      include: ['src/**/*.{js,jsx}'],
       exclude: [
-        // tests and helpers
         'src/**/*.{test,spec}.{js,jsx}',
         'src/**/__tests__/**',
         'src/testSetup.js',
-        // type defs and generated files
         '**/*.d.ts',
-        // configs, scripts, public assets and serverless functions
         '**/vite.config.*',
         '**/vitest.config.*',
         '**/postcss.config.*',
@@ -48,14 +48,12 @@ export default defineConfig({
       ],
       reporter: ['text', 'html', 'lcov'],
       reportsDirectory: './coverage',
-      // Conservative thresholds to guard regressions while unblocking CI
       thresholds: {
         lines: 60,
         functions: 55,
         statements: 60,
         branches: 50,
       },
-      // Keep defaults for enabled=false so regular `npm test` isn’t slowed down
-    }
-  }
+    },
+  },
 });
