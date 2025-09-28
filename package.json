@@ -16,6 +16,7 @@
     "audit:report": "npm audit --omit dev --audit-level=high || true",
     "dev": "vite",
     "dev:netlify": "NETLIFY_NEXT_PLUGIN_SKIP=true npx netlify dev",
+    "dev:visual-editor": "npm run dev & npx netlify dev --dir=dist --functions=netlify/functions",
     "doctor": "node scripts/dev/doctor.mjs",
     "build": "vite build",
     "lint": "eslint .",
