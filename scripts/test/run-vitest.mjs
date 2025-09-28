@@ -12,9 +12,8 @@ process.env.VITEST_MAX_THREADS ??= '1';
 
 const argv = process.argv.slice(2);
 let command = 'run';
-if (argv.length > 0 && !argv[0].startsWith('-')) {
-  command = argv[0];
-  argv.shift();
+if (argv.length && !argv[0].startsWith('-')) {
+  command = argv.shift();
 }
 
 const child = spawn(bin, [command, ...argv], { stdio: 'inherit', env: process.env });

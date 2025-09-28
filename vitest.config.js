@@ -15,7 +15,7 @@ export default defineConfig({
   test: {
     include: ['src/**/*.{test,spec}.{js,jsx}'],
     exclude: ['coverage/**'],
-    passWithNoTests: true,
+  passWithNoTests: true,
     pool: 'threads',
     poolOptions: {
       threads: {

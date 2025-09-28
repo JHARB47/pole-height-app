@@ -1,16 +1,26 @@
 /// <reference lib="webworker" />
-const PRECACHE = 'ph-precache-v2';
+const PRECACHE = 'ph-precache-v3';
+const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/vite.svg'];
 const PRECACHE_URLS = [
-  'https://unpkg.com/@mapbox/shp-write@0.4.3/dist/shpwrite.js'
+  'https://unpkg.com/@mapbox/shp-write@0.4.3/dist/shpwrite.js',
+  'https://cdn.jsdelivr.net/npm/@mapbox/shp-write@0.4.3/dist/shpwrite.js'
 ];
 self.addEventListener('install', (event) => {
   // @ts-ignore
   if (typeof self.skipWaiting === 'function') self.skipWaiting();
   // @ts-ignore
   event.waitUntil(
-    caches.open(PRECACHE).then(cache => Promise.all(
-      PRECACHE_URLS.map(u => fetch(u, { mode: 'no-cors' }).then(r => cache.put(u, r.clone())).catch(() => null))
-    ))
+    (async () => {
+      const cache = await caches.open(PRECACHE);
+      // Best-effort cache of app shell for offline navigation
+  try { await cache.addAll(APP_SHELL); } catch { /* ignore */ }
+      // Precache CDN resources with graceful failures
+      await Promise.all(
+        PRECACHE_URLS.map(u => fetch(u, { mode: 'no-cors' })
+          .then(r => cache.put(u, r.clone()))
+          .catch(() => null))
+      );
+    })()
   );
 });
 
@@ -41,6 +51,8 @@ self.addEventListener('fetch', (event) => {
   const e = event;
   const req = e.request;
   const url = req.url;
+  // Only handle GET requests; let the browser handle others
+  if (req.method && req.method !== 'GET') return;
   if (PRECACHE_URLS.some(u => url.startsWith(u))) {
     // @ts-ignore
     e.respondWith(
@@ -55,6 +67,32 @@ self.addEventListener('fetch', (event) => {
     );
     return;
   }
-  // @ts-ignore
-  e.respondWith(caches.match(req).then(r => r || fetch(req)));
+  // Navigation requests: try network, fall back to cached index.html when offline
+  if (req.mode === 'navigate') {
+    // @ts-ignore
+    e.respondWith((async () => {
+      try {
+        const res = await fetch(req);
+        // If online and ok, return network response
+        if (res && res.ok) return res;
+        // else fall through to cache
+      } catch { /* offline or failed */ }
+      const cache = await caches.open(PRECACHE);
+      return (await cache.match('/index.html')) || Response.error();
+    })());
+    return;
+  }
+
+  // For same-origin requests, provide a simple cache-first fallback
+  try {
+    const reqUrl = new URL(url);
+    const selfOrigin = self.location.origin;
+    if (reqUrl.origin === selfOrigin) {
+      // @ts-ignore
+      e.respondWith(caches.match(req).then(r => r || fetch(req)));
+    }
+    // else: allow cross-origin requests to proceed normally
+  } catch {
+    // If URL parsing fails, don't intercept
+  }
 });

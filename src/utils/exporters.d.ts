@@ -44,6 +44,16 @@ export function buildFirstEnergyJointUseCSV({ cachedMidspans, job }: {
         name: string;
     };
 }): string;
+export function sanitizeFilename(name: string): string;
+export function addBOM(str: string): string;
+export function buildExportBundle(options?: {
+    poles?: any[];
+    spans?: any[];
+    existingLines?: any[];
+    preset?: string;
+    job?: { name: string; jobNumber: string };
+    includeBOM?: boolean;
+}): { base: string; files: Record<string, string> };
 export const EXPORT_PRESETS: {
     label: string;
     value: string;

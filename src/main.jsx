@@ -5,16 +5,27 @@ import './index.css'
 import App from './App.jsx'
 // @ts-ignore - allow jsx resolution in JS project
 import ErrorBoundary from './components/ErrorBoundary.jsx'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import ContentPage from './routes/ContentPage.jsx'
+import SiteChrome from './components/SiteChrome.jsx'
 
 const container = document.getElementById('root')
 if (!container) throw new Error('Root element not found')
 
+const router = createBrowserRouter([
+  { path: '/', element: <ContentPage slug="home" /> },
+  { path: '/app', element: <App /> },
+  { path: '/:slug', element: <ContentPage /> },
+])
+
 createRoot(container).render(
   <StrictMode>
     <ErrorBoundary>
-      <App />
+      <SiteChrome>
+        <RouterProvider router={router} />
+      </SiteChrome>
     </ErrorBoundary>
-  </StrictMode>,
+  </StrictMode>
 )
 
 // Register service worker and show a user-facing update toast when a new version is available
@@ -57,7 +68,8 @@ if (import.meta.env && import.meta.env.PROD && 'serviceWorker' in navigator) {
   };
 
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').then(reg => {
+    // Ensure we register at root scope to control the entire app
+    navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(reg => {
       if (reg.waiting) {
         showUpdateToast(reg);
       }

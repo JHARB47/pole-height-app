@@ -1,4 +1,4 @@
-# Pole Plan Wizard
+# PolePlan Pro
 
 [![Live Site](https://img.shields.io/website?url=https%3A%2F%2Fmrejointuse.netlify.app&label=live%20site&up_message=online&down_message=offline)](https://mrejointuse.netlify.app)
 [![CI](https://github.com/JHARB47/pole-height-app/actions/workflows/ci.yml/badge.svg)](https://github.com/JHARB47/pole-height-app/actions/workflows/ci.yml)
@@ -242,6 +242,25 @@ Best Practices:
 
 - Keep model schema changes synchronized with the config file.
 - For rich text or additional fields, extend the Page model and update render components.
+
+### Local Functions + Studio
+
+Run the site, Functions, and Visual Editor proxy together with Netlify Dev:
+
+```bash
+nvm use 22.12.0
+npm ci
+npm run dev:netlify
+# Functions health check (no DB required)
+curl -s http://localhost:8888/.netlify/functions/health | jq
+```
+
+Routes:
+
+- `/` and `/:slug` render content files from `content/pages/{slug}.json` (used by Netlify Studio).
+- `/app` launches the PolePlan Pro application.
+
+If you see any Next.js plugin setup in logs, remove `@netlify/plugin-nextjs` in the Netlify Plugins UI. We also set `NETLIFY_NEXT_PLUGIN_SKIP=true` as a guard in `netlify.toml`.
 
 ### Development Issues
 

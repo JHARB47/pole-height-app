@@ -17,50 +17,47 @@ function asNumber(v) {
 }
 
 /**
- * @param {{ poles?: any[], spans?: any[], job?: any }} [input]
- * @returns {FeatureCollection}
+ * Helper function to create pole feature properties
+ * @param {any} pole
+ * @param {any} job
+ * @returns {Record<string, any>}
  */
-export function buildGeoJSON(input = {}) {
-  const { poles = [], spans = [], job = {} } = /** @type {{ poles?: any[], spans?: any[], job?: any }} */ (input);
-  /** @type {any[]} */
-  const features = [];
-  // Poles as points
-  for (const p of poles) {
-    const lat = asNumber(p.latitude);
-    const lon = asNumber(p.longitude);
-    if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
-    /** @type {Record<string, any>} */
-    const props = {
-      id: p.id || '',
-      jobId: p.jobId || job.id || '',
-      status: p.status || 'draft',
-      height: p.height ?? '',
-      poleClass: p.poleClass ?? '',
-      powerHeight: p.powerHeight ?? '',
-      voltage: p.voltage ?? '',
-      hasTransformer: !!p.hasTransformer,
-      spanDistance: p.spanDistance ?? '',
-      adjacentPoleHeight: p.adjacentPoleHeight ?? '',
-      attachmentType: p.attachmentType || 'communication',
-      timestamp: p.timestamp || '',
-      commCompany: job.commCompany || '',
-      // New geometry/autofill fields
-      incomingBearingDeg: p.incomingBearingDeg ?? '',
-      outgoingBearingDeg: p.outgoingBearingDeg ?? '',
-      PULL_ft: p.PULL_ft ?? '',
-    };
-    if (p.asBuilt?.attachHeight != null) props.asBuiltAttach = p.asBuilt.attachHeight;
-    if (p.asBuilt?.powerHeight != null) props.asBuiltPower = p.asBuilt.powerHeight;
-    if (p._varianceIn != null) props.varianceIn = p._varianceIn;
-    if (p._variancePass != null) props.variancePass = p._variancePass;
-    features.push({
-      type: 'Feature',
-      properties: props,
-      geometry: { type: 'Point', coordinates: [lon, lat] }
-    });
-  }
+function createPoleProperties(pole, job) {
+  /** @type {Record<string, any>} */
+  const props = {
+    id: pole.id || '',
+    jobId: pole.jobId || job.id || '',
+    status: pole.status || 'draft',
+    height: pole.height ?? '',
+    poleClass: pole.poleClass ?? '',
+    powerHeight: pole.powerHeight ?? '',
+    voltage: pole.voltage ?? '',
+    hasTransformer: !!pole.hasTransformer,
+    spanDistance: pole.spanDistance ?? '',
+    adjacentPoleHeight: pole.adjacentPoleHeight ?? '',
+    attachmentType: pole.attachmentType || 'communication',
+    timestamp: pole.timestamp || '',
+    commCompany: job.commCompany || '',
+    incomingBearingDeg: pole.incomingBearingDeg ?? '',
+    outgoingBearingDeg: pole.outgoingBearingDeg ?? '',
+    PULL_ft: pole.PULL_ft ?? '',
+  };
+  
+  // Add optional asBuilt fields
+  if (pole.asBuilt?.attachHeight != null) props.asBuiltAttach = pole.asBuilt.attachHeight;
+  if (pole.asBuilt?.powerHeight != null) props.asBuiltPower = pole.asBuilt.powerHeight;
+  if (pole._varianceIn != null) props.varianceIn = pole._varianceIn;
+  if (pole._variancePass != null) props.variancePass = pole._variancePass;
+  
+  return props;
+}
 
-  // Spans as LineStrings (only if both endpoints are known)
+/**
+ * Helper function to build coordinate index from poles
+ * @param {any[]} poles
+ * @returns {Map<string, [number, number]>}
+ */
+function buildCoordinateIndex(poles) {
   const coordIndex = new Map();
   for (const p of poles) {
     const lat = asNumber(p.latitude);
@@ -69,17 +66,45 @@ export function buildGeoJSON(input = {}) {
       coordIndex.set(String(p.id), [lon, lat]);
     }
   }
+  return coordIndex;
+}
+
+/**
+ * @param {{ poles?: any[], spans?: any[], job?: any }} [input]
+ * @returns {FeatureCollection}
+ */
+export function buildGeoJSON(input = {}) {
+  const { poles = [], spans = [], job = {} } = /** @type {{ poles?: any[], spans?: any[], job?: any }} */ (input);
+  /** @type {any[]} */
+  const features = [];
+  
+  // Poles as points
+  for (const p of poles) {
+    const lat = asNumber(p.latitude);
+    const lon = asNumber(p.longitude);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+    
+    const props = createPoleProperties(p, job);
+    features.push({
+      type: 'Feature',
+      properties: props,
+      geometry: { type: 'Point', coordinates: [lon, lat] }
+    });
+  }
+
+  // Spans as LineStrings (only if both endpoints are known)
+  const coordIndex = buildCoordinateIndex(poles);
   for (const s of spans) {
     const a = s.fromId != null ? coordIndex.get(String(s.fromId)) : undefined;
     const b = s.toId != null ? coordIndex.get(String(s.toId)) : undefined;
     if (!a || !b) continue;
+    
     const props = {
       id: s.id || '',
       jobId: job.id || '',
       lengthFt: s.length ?? '',
       proposedAttach: s.proposedAttach ?? '',
       environment: s.environment || '',
-      // Optional derived fields if present at span-level
       incomingBearingDeg: s.incomingBearingDeg ?? '',
       outgoingBearingDeg: s.outgoingBearingDeg ?? '',
       PULL_ft: s.PULL_ft ?? '',
@@ -121,7 +146,7 @@ export async function exportKML(fc, filename = 'geodata.kml') {
   try {
     const mod = await import('tokml');
     const tokml = mod.default ?? mod;
-    const kml = tokml(fc, { documentName: 'Pole Plan Wizard', name: 'id', description: 'jobId' });
+    const kml = tokml(fc, { documentName: 'PolePlan Pro', name: 'id', description: 'jobId' });
     downloadText(filename, kml, 'application/vnd.google-earth.kml+xml');
   } catch (e) {
     console.error('Error exporting KML, falling back to GeoJSON', e);
@@ -141,7 +166,7 @@ export async function exportKMZ(fc, filename = 'geodata.kmz') {
   try {
     const mod = await import('tokml');
     const tokml = mod.default ?? mod;
-    const kml = tokml(fc, { documentName: 'Pole Plan Wizard', name: 'id', description: 'jobId' });
+    const kml = tokml(fc, { documentName: 'PolePlan Pro', name: 'id', description: 'jobId' });
     const zip = new JSZip();
     zip.file('doc.kml', kml);
     const blob = await zip.generateAsync({ type: 'blob' });
@@ -196,16 +221,29 @@ async function loadShpWriteFromCDN() {
   if (typeof window === 'undefined') return undefined;
   // @ts-ignore
   if (window.shpwrite) return window.shpwrite;
-  const url = 'https://unpkg.com/@mapbox/shp-write@0.4.3/dist/shpwrite.js';
-  /** @type {Promise<void>} */
-  await new Promise((resolve, reject) => {
-    const s = document.createElement('script');
-    s.src = url;
-    s.async = true;
-    s.onload = () => resolve(undefined);
-    s.onerror = () => reject(new Error('Failed to load shpwrite from CDN'));
-    document.head.appendChild(s);
-  });
-  // @ts-ignore
-  return window.shpwrite;
+  const cdns = [
+    'https://unpkg.com/@mapbox/shp-write@0.4.3/dist/shpwrite.js',
+    'https://cdn.jsdelivr.net/npm/@mapbox/shp-write@0.4.3/dist/shpwrite.js'
+  ];
+  let lastError;
+  for (const url of cdns) {
+    try {
+  // Load with safer attributes; integrity omitted because upstream doesn't publish SRI
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = url;
+        s.async = true;
+        s.referrerPolicy = 'no-referrer';
+        s.crossOrigin = 'anonymous';
+        s.onload = () => resolve(undefined);
+        s.onerror = () => reject(new Error('Failed to load shpwrite from CDN: ' + url));
+        document.head.appendChild(s);
+      });
+      // @ts-ignore
+      if (window.shpwrite) return window.shpwrite;
+    } catch (e) {
+      lastError = e;
+    }
+  }
+  throw lastError || new Error('Failed to load shpwrite from all CDNs');
 }

@@ -1,7 +1,9 @@
 {
-  "name": "Pole Plan Wizard",
-  "short_name": "PoleWizard",
+  "name": "PolePlan Pro",
+  "short_name": "PolePlan Pro",
+  "id": "/",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0ea5e9",

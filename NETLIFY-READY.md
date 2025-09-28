@@ -5,7 +5,7 @@
 
 ## ✅ READY FOR DEPLOYMENT
 
-Your Pole Plan Wizard application is **fully optimized** for Netlify deployment with all necessary configurations in place.
+Your PolePlan Pro application is **fully optimized** for Netlify deployment with all necessary configurations in place.
 
 ### 📦 Build Status
 
@@ -165,3 +165,79 @@ Your application is **production-ready** with:
 - Security configuration ✅
 
 **Deploy with confidence!** 🚀
+
+---
+
+## 🧰 Troubleshooting: Local dev shows Next.js plugin/edge errors
+
+If you see logs like "Installing @netlify/plugin-nextjs" or failures such as "Failed to load edge functions … next@12.2.5/deno … cookie.js" during `netlify dev`:
+
+- This project is a Vite SPA, not Next.js. The Next.js plugin may be enabled in your Netlify site Plugins UI. Remove it there: Site settings → Plugins → Installed plugins → Uninstall @netlify/plugin-nextjs.
+- We also guard against accidental activation via:
+  - `NETLIFY_NEXT_PLUGIN_SKIP=true` in `netlify.toml` and `.env`
+  - `netlify.toml [dev]` configured to use Vite (`framework = "#custom"`)
+  - `npm run dev:netlify` sets the skip flag explicitly
+
+To validate local dev + functions:
+
+1. Copy `.env.example` to `.env` and optionally set `DATABASE_URL`.
+2. Use Node 22: `nvm use 22.12.0`.
+3. Install deps: `npm ci`.
+4. Run: `npm run dev:netlify`.
+5. Check: <http://localhost:8888/.netlify/functions/health> should return `{ ok: true }`.
+6. If you have a DB url, test: `curl http://localhost:8888/.netlify/functions/db_test`.
+
+### 🧪 Troubleshooting: curl exit 7 when calling local functions
+
+If `curl http://localhost:8888/.netlify/functions/db_test` returns exit code 7 (connection failed):
+
+1. Ensure local dev is running on 8888
+
+```bash
+# start Netlify + Vite with the proper flags
+npm run dev:netlify
+```
+
+Then watch the terminal for a line like:
+
+```text
+◈ Server now ready on http://localhost:8888
+```
+
+If a different port is shown, use that port in your curl URL.
+
+1. Quick health probe (no DB required)
+
+```bash
+curl -s http://localhost:8888/.netlify/functions/health | jq
+```
+
+Expected response:
+
+```json
+{ "ok": true, "service": "netlify-functions", "env": { "hasDb": false, "nextSkip": true } }
+```
+
+1. Set your DATABASE_URL for db_test
+
+- Copy `.env.example` to `.env` and set `DATABASE_URL` (Neon example):
+
+```bash
+DATABASE_URL=postgres://USER:PASSWORD@HOST.neon.tech:5432/DB?sslmode=require
+```
+
+- Restart `npm run dev:netlify` after adding `.env`.
+
+1. Retry db test
+
+```bash
+curl -s http://localhost:8888/.netlify/functions/db_test | jq
+```
+
+Successful example:
+
+```json
+{ "ok": true, "now": "2025-09-27T15:32:41.123Z" }
+```
+
+If you see `Missing DATABASE_URL env var`, verify `.env` exists and you restarted dev. If you see a connection or SSL error, confirm your Neon project allows connections and the URL includes `sslmode=require` (we also set `ssl: { rejectUnauthorized: false }` in the client).

@@ -16,6 +16,9 @@ export function mapGeoJSONToAppData(fc: any, config: any): {
 export function parseExistingLinesCSV(csvText: any, lineMapping: any): any;
 export function parsePolesCSV(csvText: any, poleMapping: any): any;
 export function parseSpansCSV(csvText: any, spanMapping: any): any;
+export function parsePolesCSVValidated(csvText: any, poleMapping: any): Promise<any>;
+export function parseSpansCSVValidated(csvText: any, spanMapping: any): Promise<any>;
+export function coerceNumber(raw: any): number | null;
 export const MAPPING_PRESETS: {
     label: string;
     value: string;

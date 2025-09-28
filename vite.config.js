@@ -108,15 +108,5 @@ export default defineConfig({
     // Provide global for libraries that expect it
     global: 'globalThis',
   },
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: './src/testSetup.js',
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'html', 'lcov'],
-      reportsDirectory: './coverage'
-    }
-  },
 })
 

@@ -1,9 +1,23 @@
 [build]
+  # Ensure Netlify uses the repo root (monorepo-safe)
+  base = "."
   publish = "dist"
-  command = "npm run build"
+  # Belt-and-suspenders: export skip flag inline so the Next.js plugin respects it even if UI plugin is installed
+  command = "NETLIFY_NEXT_PLUGIN_SKIP=true npm run build"
 
 [build.environment]
   NODE_VERSION = "22.12.0"
+  # This site is a Vite SPA, not Next.js. Skip the Next.js plugin if installed in UI.
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"
+
+[context.production.environment]
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"
+
+[context.deploy-preview.environment]
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"
+
+[context.branch-deploy.environment]
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"
 
 # Canonical domain redirects and HTTP->HTTPS
 [[redirects]]
@@ -23,3 +37,23 @@
   to = "https://poleplanpro.com/:splat"
   status = 301
   force = true
+
+# SPA fallback for client-side routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+  external_node_modules = ["pg"]
+
+
+# Local dev settings: force custom Vite dev to avoid framework auto-detection (e.g., Next.js)
+[dev]
+  framework = "#custom"
+  command = "npm run dev"
+  targetPort = 5173
+  port = 8888
+  publish = "dist"

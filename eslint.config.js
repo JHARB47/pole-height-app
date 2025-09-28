@@ -46,6 +46,20 @@ export default [
       'react-refresh/only-export-components': 'off'
     }
   },
+  // Netlify Functions (Node runtime)
+  {
+    files: ['netlify/functions/**/*.{js,mjs,cjs}'],
+    languageOptions: {
+      globals: globals.node,
+      sourceType: 'module',
+      ecmaVersion: 'latest'
+    },
+    rules: {
+      // serverless handlers may receive event/context even if not used
+      'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      'no-empty': ['error', { allowEmptyCatch: true }]
+    }
+  },
   {
     files: [
       'scripts/**/*.{js,mjs,cjs}',

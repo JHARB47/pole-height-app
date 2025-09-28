@@ -1,0 +1,10 @@
+{
+  "siteTitle": "Pole Plan Pro",
+  "logo": "/pwa-192.png",
+  "primaryColor": "#0ea5e9",
+  "secondaryColor": "#1f2937",
+  "navigation": [
+    { "label": "Home", "url": "/" },
+    { "label": "App", "url": "/app" }
+  ]
+}

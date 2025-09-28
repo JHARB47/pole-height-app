@@ -1,3 +1,4 @@
+// @ts-nocheck
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
@@ -9,7 +10,7 @@ let prevIO;
 // Mock IntersectionObserver for jsdom
 beforeAll(() => {
   prevIO = globalThis.IntersectionObserver;
-  globalThis.IntersectionObserver = class {
+  globalThis.IntersectionObserver = class IntersectionObserver {
     observe() { /* no-op stub */ }
     unobserve() { /* no-op stub */ }
     disconnect() { /* no-op stub */ }
@@ -37,7 +38,7 @@ describe('ProposedLineCalculator', () => {
   it('should render expected UI elements', () => {
     render(<ProposedLineCalculator />);
     // Key heading/title
-    expect(screen.getByText('Pole Plan Wizard')).toBeTruthy();
+    expect(screen.getByText('PolePlan Pro')).toBeTruthy();
     // Workflow nav links
     expect(screen.getByRole('link', { name: 'Job' })).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Import/Map' })).toBeTruthy();

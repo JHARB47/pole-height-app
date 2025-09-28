@@ -1,4 +1,35 @@
 {
   "title": "Home",
-  "slug": "home"
+  "slug": "home",
+  "body": "Welcome to the home page. You can edit this content in the visual editor.",
+  "seoDescription": "Pole Plan Pro home page",
+  "sections": [
+    {
+      "type": "HeroSection",
+      "title": "OSP Engineering & Permit Management",
+      "subtitle": "Faster permits, clearer plans.",
+      "backgroundImage": "/pwa-192.png",
+      "ctaLabel": "Get Started",
+      "ctaUrl": "/"
+    },
+    {
+      "type": "RichTextSection",
+      "content": "## Welcome\nThis is a structured section using markdown."
+    },
+    {
+      "type": "FeatureSection",
+      "heading": "Why choose us",
+      "features": [
+        { "type": "FeatureItem", "title": "Speed", "text": "Streamlined permit workflows." },
+        { "type": "FeatureItem", "title": "Accuracy", "text": "Consistent calculations and exports." },
+        { "type": "FeatureItem", "title": "PWA", "text": "Works offline with updates." }
+      ]
+    },
+    {
+      "type": "CtaSection",
+      "text": "Ready to plan your next pole line?",
+      "buttonLabel": "Open App",
+      "buttonUrl": "/"
+    }
+  ]
 }
