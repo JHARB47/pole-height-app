@@ -1,4 +1,4 @@
-# Pole Plan Wizard
+# PolePlan Pro
 
 [![Live Site](https://img.shields.io/website?url=https%3A%2F%2Fmrejointuse.netlify.app&label=live%20site&up_message=online&down_message=offline)](https://mrejointuse.netlify.app)
 [![CI](https://github.com/JHARB47/pole-height-app/actions/workflows/ci.yml/badge.svg)](https://github.com/JHARB47/pole-height-app/actions/workflows/ci.yml)
@@ -258,7 +258,7 @@ curl -s http://localhost:8888/.netlify/functions/health | jq
 Routes:
 
 - `/` and `/:slug` render content files from `content/pages/{slug}.json` (used by Netlify Studio).
-- `/app` launches the Pole Plan Wizard application.
+- `/app` launches the PolePlan Pro application.
 
 If you see any Next.js plugin setup in logs, remove `@netlify/plugin-nextjs` in the Netlify Plugins UI. We also set `NETLIFY_NEXT_PLUGIN_SKIP=true` as a guard in `netlify.toml`.
 

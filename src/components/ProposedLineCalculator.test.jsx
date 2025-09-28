@@ -37,7 +37,7 @@ describe('ProposedLineCalculator', () => {
   it('should render expected UI elements', () => {
     render(<ProposedLineCalculator />);
     // Key heading/title
-    expect(screen.getByText('Pole Plan Wizard')).toBeTruthy();
+    expect(screen.getByText('PolePlan Pro')).toBeTruthy();
     // Workflow nav links
     expect(screen.getByRole('link', { name: 'Job' })).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Import/Map' })).toBeTruthy();

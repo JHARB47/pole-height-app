@@ -5,7 +5,7 @@
 
 ## ✅ READY FOR DEPLOYMENT
 
-Your Pole Plan Wizard application is **fully optimized** for Netlify deployment with all necessary configurations in place.
+Your PolePlan Pro application is **fully optimized** for Netlify deployment with all necessary configurations in place.
 
 ### 📦 Build Status
 

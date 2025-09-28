@@ -8,15 +8,15 @@ describe('exporters', () => {
 
   it('buildPolesCSV', () => {
     const csv = buildPolesCSV(poles, 'generic');
-    expect(csv).toContain('POLE_ID');
+    expect(csv).toContain('id,label,latitude');
   });
   it('buildSpansCSV', () => {
     const csv = buildSpansCSV(spans, 'generic');
-    expect(csv).toContain('SPAN_ID');
+    expect(csv).toContain('id,from_pole_id,to_pole_id');
   });
   it('buildExistingLinesCSV', () => {
     const csv = buildExistingLinesCSV(lines, 'generic');
-    expect(csv).toContain('TYPE');
+    expect(csv).toContain('id,type,latitude');
   });
   it('buildGeoJSON', () => {
     const gj = buildGeoJSON({ poles, spans });

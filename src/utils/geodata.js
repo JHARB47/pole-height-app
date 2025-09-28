@@ -121,7 +121,7 @@ export async function exportKML(fc, filename = 'geodata.kml') {
   try {
     const mod = await import('tokml');
     const tokml = mod.default ?? mod;
-    const kml = tokml(fc, { documentName: 'Pole Plan Wizard', name: 'id', description: 'jobId' });
+    const kml = tokml(fc, { documentName: 'PolePlan Pro', name: 'id', description: 'jobId' });
     downloadText(filename, kml, 'application/vnd.google-earth.kml+xml');
   } catch (e) {
     console.error('Error exporting KML, falling back to GeoJSON', e);
@@ -141,7 +141,7 @@ export async function exportKMZ(fc, filename = 'geodata.kmz') {
   try {
     const mod = await import('tokml');
     const tokml = mod.default ?? mod;
-    const kml = tokml(fc, { documentName: 'Pole Plan Wizard', name: 'id', description: 'jobId' });
+    const kml = tokml(fc, { documentName: 'PolePlan Pro', name: 'id', description: 'jobId' });
     const zip = new JSZip();
     zip.file('doc.kml', kml);
     const blob = await zip.generateAsync({ type: 'blob' });

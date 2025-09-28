@@ -32,7 +32,7 @@ describe('App', () => {
     ).toBeTruthy();
 
     // The lazy calculator will load; assert on a heading inside it
-    const wizard = await screen.findByText('Pole Plan Wizard');
+    const wizard = await screen.findByText('PolePlan Pro');
     expect(wizard).toBeTruthy();
   });
 });

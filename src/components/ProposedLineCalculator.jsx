@@ -286,7 +286,7 @@ export default function ProposedLineCalculator() {
       </nav>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h1 className="text-lg md:text-xl font-semibold">Pole Plan Wizard</h1>
+          <h1 className="text-lg md:text-xl font-semibold">PolePlan Pro</h1>
           <span className="hidden sm:inline text-xs text-gray-600">Job:</span>
           <select className="hidden sm:inline text-sm border rounded px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" value={currentJobId || ''} onChange={e => setCurrentJobId(e.target.value)}>
             <option value="">-- None --</option>

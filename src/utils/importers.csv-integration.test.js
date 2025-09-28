@@ -3,7 +3,7 @@ import { parsePolesCSV, parseSpansCSV, parseExistingLinesCSV } from './importers
 
 describe('CSV parsers integration with numeric coercion', () => {
   it('parses poles with various numeric formats', () => {
-    const csv = `id,height,power_ht,latitude,longitude\nA,40 ft,18,40.1°, -80.2\nB,12'6",10, , \nC,1,234.56,1,234.5, -79,5`;
+    const csv = `id,height,power_ht,latitude,longitude\nA,40 ft,18,40.1°,-80.2\nB,12'6",10,,\nC,"1,234.56",15,"1,234.5",-79.5`;
     const rows = parsePolesCSV(csv, { id: 'id', height: 'height', powerHeight: 'power_ht', latitude: 'latitude', longitude: 'longitude' });
     expect(rows[0].height).toBe(40);
     expect(rows[0].powerHeight).toBe(18);
@@ -16,7 +16,7 @@ describe('CSV parsers integration with numeric coercion', () => {
   });
 
   it('parses spans with locale decimals and units', () => {
-    const csv = `id,length,attach,from_id,to_id\nS1,1.234,56,15 ft,F1,T1`;
+    const csv = `id,length,attach,from_id,to_id\nS1,"1,234.56",15 ft,F1,T1`;
     const rows = parseSpansCSV(csv, { id: 'id', length: 'length', proposedAttach: 'attach', fromId: 'from_id', toId: 'to_id' });
     expect(rows[0].length).toBe(1234.56);
     expect(rows[0].proposedAttach).toBe(15);
