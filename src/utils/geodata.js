@@ -17,50 +17,47 @@ function asNumber(v) {
 }
 
 /**
- * @param {{ poles?: any[], spans?: any[], job?: any }} [input]
- * @returns {FeatureCollection}
+ * Helper function to create pole feature properties
+ * @param {any} pole
+ * @param {any} job
+ * @returns {Record<string, any>}
  */
-export function buildGeoJSON(input = {}) {
-  const { poles = [], spans = [], job = {} } = /** @type {{ poles?: any[], spans?: any[], job?: any }} */ (input);
-  /** @type {any[]} */
-  const features = [];
-  // Poles as points
-  for (const p of poles) {
-    const lat = asNumber(p.latitude);
-    const lon = asNumber(p.longitude);
-    if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
-    /** @type {Record<string, any>} */
-    const props = {
-      id: p.id || '',
-      jobId: p.jobId || job.id || '',
-      status: p.status || 'draft',
-      height: p.height ?? '',
-      poleClass: p.poleClass ?? '',
-      powerHeight: p.powerHeight ?? '',
-      voltage: p.voltage ?? '',
-      hasTransformer: !!p.hasTransformer,
-      spanDistance: p.spanDistance ?? '',
-      adjacentPoleHeight: p.adjacentPoleHeight ?? '',
-      attachmentType: p.attachmentType || 'communication',
-      timestamp: p.timestamp || '',
-      commCompany: job.commCompany || '',
-      // New geometry/autofill fields
-      incomingBearingDeg: p.incomingBearingDeg ?? '',
-      outgoingBearingDeg: p.outgoingBearingDeg ?? '',
-      PULL_ft: p.PULL_ft ?? '',
-    };
-    if (p.asBuilt?.attachHeight != null) props.asBuiltAttach = p.asBuilt.attachHeight;
-    if (p.asBuilt?.powerHeight != null) props.asBuiltPower = p.asBuilt.powerHeight;
-    if (p._varianceIn != null) props.varianceIn = p._varianceIn;
-    if (p._variancePass != null) props.variancePass = p._variancePass;
-    features.push({
-      type: 'Feature',
-      properties: props,
-      geometry: { type: 'Point', coordinates: [lon, lat] }
-    });
-  }
+function createPoleProperties(pole, job) {
+  /** @type {Record<string, any>} */
+  const props = {
+    id: pole.id || '',
+    jobId: pole.jobId || job.id || '',
+    status: pole.status || 'draft',
+    height: pole.height ?? '',
+    poleClass: pole.poleClass ?? '',
+    powerHeight: pole.powerHeight ?? '',
+    voltage: pole.voltage ?? '',
+    hasTransformer: !!pole.hasTransformer,
+    spanDistance: pole.spanDistance ?? '',
+    adjacentPoleHeight: pole.adjacentPoleHeight ?? '',
+    attachmentType: pole.attachmentType || 'communication',
+    timestamp: pole.timestamp || '',
+    commCompany: job.commCompany || '',
+    incomingBearingDeg: pole.incomingBearingDeg ?? '',
+    outgoingBearingDeg: pole.outgoingBearingDeg ?? '',
+    PULL_ft: pole.PULL_ft ?? '',
+  };
+  
+  // Add optional asBuilt fields
+  if (pole.asBuilt?.attachHeight != null) props.asBuiltAttach = pole.asBuilt.attachHeight;
+  if (pole.asBuilt?.powerHeight != null) props.asBuiltPower = pole.asBuilt.powerHeight;
+  if (pole._varianceIn != null) props.varianceIn = pole._varianceIn;
+  if (pole._variancePass != null) props.variancePass = pole._variancePass;
+  
+  return props;
+}
 
-  // Spans as LineStrings (only if both endpoints are known)
+/**
+ * Helper function to build coordinate index from poles
+ * @param {any[]} poles
+ * @returns {Map<string, [number, number]>}
+ */
+function buildCoordinateIndex(poles) {
   const coordIndex = new Map();
   for (const p of poles) {
     const lat = asNumber(p.latitude);
@@ -69,17 +66,45 @@ export function buildGeoJSON(input = {}) {
       coordIndex.set(String(p.id), [lon, lat]);
     }
   }
+  return coordIndex;
+}
+
+/**
+ * @param {{ poles?: any[], spans?: any[], job?: any }} [input]
+ * @returns {FeatureCollection}
+ */
+export function buildGeoJSON(input = {}) {
+  const { poles = [], spans = [], job = {} } = /** @type {{ poles?: any[], spans?: any[], job?: any }} */ (input);
+  /** @type {any[]} */
+  const features = [];
+  
+  // Poles as points
+  for (const p of poles) {
+    const lat = asNumber(p.latitude);
+    const lon = asNumber(p.longitude);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+    
+    const props = createPoleProperties(p, job);
+    features.push({
+      type: 'Feature',
+      properties: props,
+      geometry: { type: 'Point', coordinates: [lon, lat] }
+    });
+  }
+
+  // Spans as LineStrings (only if both endpoints are known)
+  const coordIndex = buildCoordinateIndex(poles);
   for (const s of spans) {
     const a = s.fromId != null ? coordIndex.get(String(s.fromId)) : undefined;
     const b = s.toId != null ? coordIndex.get(String(s.toId)) : undefined;
     if (!a || !b) continue;
+    
     const props = {
       id: s.id || '',
       jobId: job.id || '',
       lengthFt: s.length ?? '',
       proposedAttach: s.proposedAttach ?? '',
       environment: s.environment || '',
-      // Optional derived fields if present at span-level
       incomingBearingDeg: s.incomingBearingDeg ?? '',
       outgoingBearingDeg: s.outgoingBearingDeg ?? '',
       PULL_ft: s.PULL_ft ?? '',
