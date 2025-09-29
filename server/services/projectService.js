@@ -1,8 +1,8 @@
 import { query, transaction } from '../db/client.js';
 import { ValidationError, NotFoundError } from '../utils/errors.js';
 
-export async function listProjects({ organizationId, departmentId }) {
-  const params = [organizationId];
+export async function listProjects({ _organizationId, departmentId }) {
+  const params = [_organizationId];
   let clause = 'organization_id = $1';
   if (departmentId) {
     params.push(departmentId);
@@ -15,22 +15,22 @@ export async function listProjects({ organizationId, departmentId }) {
   return rows;
 }
 
-export async function getProjectById(projectId, organizationId) {
+export async function getProjectById(projectId, _organizationId) {
   const { rows } = await query(
     `SELECT * FROM projects WHERE id = $1 AND organization_id = $2`,
-    [projectId, organizationId]
+    [projectId, _organizationId]
   );
   return rows[0] || null;
 }
 
-export async function createProject({ organizationId, departmentId, name, status = 'draft', metadata = {}, creatorId }) {
+export async function createProject({ _organizationId, departmentId, name, status = 'draft', metadata = {}, creatorId }) {
   if (!name) throw new ValidationError('Project name is required');
   return transaction(async (client) => {
     const { rows } = await client.query(
       `INSERT INTO projects (organization_id, department_id, name, status, metadata)
        VALUES ($1, $2, $3, $4, $5::jsonb)
        RETURNING *`,
-      [organizationId, departmentId || null, name, status, JSON.stringify(metadata)]
+      [_organizationId, departmentId || null, name, status, JSON.stringify(metadata)]
     );
     const project = rows[0];
     if (creatorId) {
@@ -46,7 +46,7 @@ export async function createProject({ organizationId, departmentId, name, status
   });
 }
 
-export async function updateProject({ projectId, organizationId, name, status, metadata }) {
+export async function updateProject({ projectId, _organizationId, name, status, metadata }) {
   const updates = [];
   const params = [];
   let idx = 1;
@@ -66,7 +66,7 @@ export async function updateProject({ projectId, organizationId, name, status, m
     throw new ValidationError('No updates supplied');
   }
   params.push(projectId);
-  params.push(organizationId);
+  params.push(_organizationId);
   const { rows } = await query(
     `UPDATE projects
         SET ${updates.join(', ')}, updated_at = now()
@@ -78,7 +78,7 @@ export async function updateProject({ projectId, organizationId, name, status, m
   return rows[0];
 }
 
-export async function recordPoleSet({ projectId, organizationId, version, data, checksum, createdBy }) {
+export async function recordPoleSet({ projectId, _organizationId, version, data, checksum, createdBy }) {
   if (typeof version !== 'number') {
     throw new ValidationError('Pole set version must be numeric');
   }
@@ -108,21 +108,21 @@ export async function listPoleSets({ projectId }) {
   return rows;
 }
 
-export async function recordAuditEvent({ organizationId, actorId, action, targetType, targetId, context = {} }) {
+export async function recordAuditEvent({ _organizationId, actorId, action, targetType, targetId, context = {} }) {
   await query(
     `INSERT INTO audit_events (organization_id, actor_id, action, target_type, target_id, context)
      VALUES ($1, $2, $3, $4, $5, $6::jsonb)`
-    , [organizationId, actorId || null, action, targetType, targetId || null, JSON.stringify(context)]
+    , [_organizationId, actorId || null, action, targetType, targetId || null, JSON.stringify(context)]
   );
 }
 
-export async function listAuditEvents({ organizationId, limit = 50 }) {
+export async function listAuditEvents({ _organizationId, limit = 50 }) {
   const { rows } = await query(
     `SELECT * FROM audit_events
       WHERE organization_id = $1
       ORDER BY created_at DESC
       LIMIT $2`,
-    [organizationId, limit]
+    [_organizationId, limit]
   );
   return rows;
 }

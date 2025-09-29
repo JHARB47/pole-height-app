@@ -1,0 +1,9 @@
+# Ignore server directory - has separate linting
+server/
+# Build outputs
+dist/
+coverage/
+# Dependencies
+node_modules/
+# Generated files
+.netlify/
