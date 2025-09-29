@@ -100,7 +100,7 @@ export default defineConfig({
       external: [],
       output: {
         manualChunks: (id) => chunkForId(id)
-  }
+      }
     }
   },
   // Avoid forcing prebundling of unused deps; keep defaults

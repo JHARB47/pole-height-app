@@ -2,8 +2,8 @@
   # Ensure Netlify uses the repo root (monorepo-safe)
   base = "."
   publish = "dist"
-  # Belt-and-suspenders: export skip flag inline so the Next.js plugin respects it even if UI plugin is installed
-  command = "NETLIFY_NEXT_PLUGIN_SKIP=true npm run build"
+  # Disable submodule processing and build
+  command = "git submodule deinit --all -f 2>/dev/null || true && NETLIFY_NEXT_PLUGIN_SKIP=true npm run build"
 
 [build.environment]
   NODE_VERSION = "22.12.0"
