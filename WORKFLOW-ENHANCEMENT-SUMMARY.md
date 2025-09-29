@@ -30,11 +30,11 @@ This session has comprehensively enhanced the pole-height-app workflow, communic
 - Bundle size analysis and verification
 
 **Netlify Deploy (`netlify-deploy.yml`)**:
-
+m
 - Separate production and preview deployments
 - Build metadata generation with commit info
 - Enhanced verification steps for PWA assets
-- Deployment summaries and artifact management
+- Deployment sumaries and artifact management
 
 **Features Added**:
 

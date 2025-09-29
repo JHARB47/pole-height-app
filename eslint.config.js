@@ -6,7 +6,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 
 export default [
-  { ignores: ['dist/**', 'coverage/**', 'node_modules/**', '**/*.ts', '**/pole-height-app-*/**', '**/*.d.ts', '.netlify/**'] },
+  { ignores: ['dist/**', 'coverage/**', 'node_modules/**', '**/*.ts', '**/pole-height-app-*/**', '**/*.d.ts', '.netlify/**', 'server/**'] },
   js.configs.recommended,
   {
     files: ['**/*.{js,jsx}'],
@@ -58,6 +58,36 @@ export default [
       // serverless handlers may receive event/context even if not used
       'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       'no-empty': ['error', { allowEmptyCatch: true }]
+    }
+  },
+  // Server/Backend files (Node runtime) - ES Modules
+  {
+    files: ['server/**/*.{js,mjs}'],
+    languageOptions: {
+      globals: globals.node,
+      sourceType: 'module',
+      ecmaVersion: 'latest'
+    },
+    rules: {
+      'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      'react-hooks/rules-of-hooks': 'off',
+      'react-hooks/exhaustive-deps': 'off',
+      'react-refresh/only-export-components': 'off'
+    }
+  },
+  // Server/Backend files (Node runtime) - CommonJS
+  {
+    files: ['server/**/*.cjs'],
+    languageOptions: {
+      globals: globals.node,
+      sourceType: 'commonjs',
+      ecmaVersion: 'latest'
+    },
+    rules: {
+      'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      'react-hooks/rules-of-hooks': 'off',
+      'react-hooks/exhaustive-deps': 'off',
+      'react-refresh/only-export-components': 'off'
     }
   },
   {

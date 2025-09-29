@@ -1,0 +1,9 @@
+# Ignore server-side Node.js files
+server/
+# Other ignores
+dist/
+coverage/
+node_modules/
+.netlify/
+**/*.d.ts
+**/pole-height-app-*/

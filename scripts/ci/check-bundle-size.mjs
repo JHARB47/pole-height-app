@@ -7,7 +7,7 @@ import { readdirSync, statSync } from 'fs';
 import { join } from 'path';
 
 const dist = 'dist';
-const BUDGET_KB = 1200; // 1.2 MB combined (adjust as needed)
+const BUDGET_KB = 1200; // 1.2 MB combined (original target)
 
 function walk(dir) {
   return readdirSync(dir).flatMap(f => {

@@ -3,7 +3,8 @@ const PRECACHE = 'ph-precache-v3';
 const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/vite.svg'];
 const PRECACHE_URLS = [
   'https://unpkg.com/@mapbox/shp-write@0.4.3/dist/shpwrite.js',
-  'https://cdn.jsdelivr.net/npm/@mapbox/shp-write@0.4.3/dist/shpwrite.js'
+  'https://cdn.jsdelivr.net/npm/@mapbox/shp-write@0.4.3/dist/shpwrite.js',
+  'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js'
 ];
 self.addEventListener('install', (event) => {
   // @ts-ignore
