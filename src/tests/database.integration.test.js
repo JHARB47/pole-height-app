@@ -7,7 +7,6 @@ import { describe, test, expect, beforeAll, afterAll, beforeEach } from 'vitest'
 import { GenericContainer, Wait } from 'testcontainers';
 import { DatabaseService } from '../server/services/database.js';
 import { Logger } from '../server/services/logger.js';
-import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -48,6 +47,7 @@ export class DatabaseTestHelper {
       this.testDbUrl = `postgresql://test_user:test_password@${host}:${port}/poleplan_test`;
       
       // Set environment variable for database service
+      // eslint-disable-next-line no-undef
       process.env.DATABASE_URL = this.testDbUrl;
       
       // Initialize database service

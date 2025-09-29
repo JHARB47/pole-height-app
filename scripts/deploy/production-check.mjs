@@ -5,8 +5,6 @@
  */
 
 import { execSync } from 'child_process';
-import { readFileSync, writeFileSync } from 'fs';
-import path from 'path';
 
 const DEPLOYMENT_CHECKLIST = {
   'Node.js Version': 'node --version | grep "v22.12.0"',
@@ -28,7 +26,7 @@ for (const [check, command] of Object.entries(DEPLOYMENT_CHECKLIST)) {
   try {
     console.log(`✓ ${check}...`);
     execSync(command, { stdio: 'ignore' });
-  } catch (error) {
+  } catch {
     console.log(`✗ ${check} FAILED`);
     allChecksPass = false;
   }
