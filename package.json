@@ -92,6 +92,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
+    "@size-limit/preset-app": "^11.2.0",
     "@stackbit/cms-git": "^1.0.35",
     "@stackbit/types": "^2.1.14",
     "@testing-library/react": "^16.3.0",
@@ -114,6 +115,7 @@
     "node-pg-migrate": "^7.6.2",
     "postcss": "^8.5.6",
     "shpjs": "^6.1.0",
+    "size-limit": "^11.2.0",
     "stylelint": "^16.9.0",
     "supertest": "^7.1.1",
     "tailwindcss": "^3.4.17",
@@ -154,5 +156,9 @@
     "defaults",
     "not op_mini all",
     "maintained node versions"
+  ],
+  "size-limit": [
+    { "path": "dist/assets/*.js", "limit": "1450 KB" }
   ]
+
 }
