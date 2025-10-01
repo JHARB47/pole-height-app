@@ -29,7 +29,8 @@ createRoot(container).render(
 )
 
 // Register service worker and show a user-facing update toast when a new version is available
-if (import.meta.env && import.meta.env.PROD && 'serviceWorker' in navigator) {
+const swEnabled = import.meta.env?.VITE_ENABLE_SW === 'true';
+if (import.meta.env && import.meta.env.PROD && swEnabled && 'serviceWorker' in navigator) {
   const showUpdateToast = (reg) => {
     // Create toast container
     const container = document.createElement('div');

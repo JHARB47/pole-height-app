@@ -85,6 +85,7 @@ function chunkForId(id) {
 
 
 export default defineConfig({
+  base: '/',
   plugins: [
     react()
   ],
@@ -94,7 +95,9 @@ export default defineConfig({
     ],
   },
   build: {
-    target: 'es2022', // Align with modern evergreen browsers & Node 22 toolchain
+    target: 'es2019', // Ensure compatibility with evergreen browsers & Netlify CDN edge
+    sourcemap: true,
+    manifest: true,
     treeshake: true,
     rollupOptions: {
       external: [],
@@ -109,4 +112,3 @@ export default defineConfig({
     global: 'globalThis',
   },
 })
-

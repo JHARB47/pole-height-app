@@ -141,3 +141,11 @@ Current Bundle Size: 1,424KB (within 1,450KB enterprise budget)
 This application successfully balances **feature richness** with **performance optimization**, providing a complete utility engineering solution with enterprise-grade infrastructure, comprehensive security, and professional user experience.
 
 **Recommendation**: Deploy to production immediately with confidence.
+
+---
+
+## 📡 Monitoring & Alerting Next Steps
+
+- **Synthetic uptime**: Provision Checkly multi-region checks hitting `/` and `/api/health` (5 min frequency, Slack + PagerDuty alerts).
+- **Frontend error tracking**: Instrument Sentry for SPA capture with release tagging sourced from Vite manifest + uploaded sourcemaps.
+- **Logs & metrics**: Ship Netlify Functions and Express logs to Datadog (HTTP log ingestion with `x-request-id` correlation) and enable Datadog RUM dashboards for golden-path monitoring.

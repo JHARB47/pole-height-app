@@ -6,10 +6,12 @@ import { dirname, resolve } from 'node:path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const directionArgIndex = process.argv.findIndex(arg => ['up', 'down', 'redo'].includes(arg));
-const direction = directionArgIndex >= 0 ? process.argv[directionArgIndex] : 'up';
+const cliArgs = process.argv.slice(2);
+const directionIndex = cliArgs.findIndex(arg => ['up', 'down', 'redo'].includes(arg));
+const direction = directionIndex >= 0 ? cliArgs[directionIndex] : 'up';
+const extraArgs = cliArgs.filter((_, index) => index !== directionIndex);
 
-const args = ['--config', resolve(__dirname, '..', '..', 'server', 'db', 'migrate.config.cjs'), direction];
+const args = ['--config', resolve(__dirname, '..', '..', 'server', 'db', 'migrate.config.cjs'), direction, ...extraArgs];
 const child = spawn(process.execPath, [resolve(process.cwd(), 'node_modules', '.bin', 'node-pg-migrate'), ...args], {
   stdio: 'inherit',
   env: process.env,

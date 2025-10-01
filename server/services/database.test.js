@@ -65,7 +65,7 @@ describe('Database Service', () => {
 
     expect(health.status).toBe('healthy');
     expect(health.connected).toBe(true);
-    expect(mockQuery).toHaveBeenCalledWith('SELECT 1');
+    expect(mockQuery).toHaveBeenCalledWith('SELECT 1', undefined);
   });
 
   test('should return unhealthy status when database is not accessible', async () => {
