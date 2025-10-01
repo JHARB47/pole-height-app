@@ -15,7 +15,7 @@ console.log('📋 Running npm audit...');
 try {
   execSync('npm audit --audit-level=high --omit dev', { stdio: 'inherit' });
   console.log('✅ No high/critical vulnerabilities found');
-} catch (error) {
+} catch {
   console.error('❌ High/critical vulnerabilities detected');
   hasErrors = true;
 }
