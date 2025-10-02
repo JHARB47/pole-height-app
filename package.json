@@ -26,6 +26,7 @@
     "preview": "vite preview",
     "preview:no-sw": "cross-env VITE_ENABLE_SW=false vite preview",
     "test": "node scripts/test/run-vitest.mjs",
+    "test:ci": "node scripts/test/run-vitest.mjs run --reporter=verbose",
     "test:api": "cross-env NODE_ENV=test node scripts/test/run-vitest.mjs run --config vitest.config.server.js",
     "test:watch": "node scripts/test/run-vitest.mjs watch --watch",
     "test:coverage": "node scripts/test/run-vitest.mjs run --coverage",
@@ -33,7 +34,18 @@
     "test:full": "npm run test && npm run test:api",
     "lint:css": "stylelint \"src/**/*.css\" --allow-empty-input",
     "lint:css:fix": "stylelint \"src/**/*.css\" --allow-empty-input --fix",
-    "verify": "node scripts/ci/check-env.mjs && if [ \"${SKIP_INSTALL:-false}\" != \"true\" ]; then if [ -f package-lock.json ]; then npm ci --no-audit --progress=false; else echo 'No package-lock.json found, falling back to npm install'; npm install --no-audit --progress=false; fi; fi && npm run db:migrate -- --dry-run --check-order && npm run -s lint && node scripts/test/run-vitest.mjs run --reporter=verbose && npm run -s test:api && npm run -s build && node scripts/ci/check-bundle-size.mjs && node scripts/ci/check-health.mjs",
+    "start": "vite dev",
+    "prestart": "npm run lint",
+    "verify": "npm run check:health && npm run lint && npm run test:ci && npm run build && npm run check:bundle && npm run format:check",
+    "check:health": "node scripts/dev/doctor.mjs",
+    "check:bundle": "node scripts/ci/check-bundle-size.mjs",
+    "check:env": "node scripts/ci/check-env.mjs",
+    "format:check": "prettier --check src/",
+    "size": "size-limit",
+    "prebuild": "npm run db:pre-build --if-present",
+    "postbuild": "npm run db:post-build --if-present",
+    "migrate": "node server/scripts/migrate.js",
+    "rebuild": "rm -rf node_modules dist && npm ci && npm run build",
     "server:dev": "cd server && npm run dev",
     "server:build": "cd server && npm run build",
     "server:start": "cd server && npm start",
@@ -93,7 +105,9 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@cyclonedx/cyclonedx-npm": "^1.19.3",
     "@eslint/js": "^9.9.0",
+    "@playwright/test": "^1.48.0",
     "@size-limit/preset-app": "^11.2.0",
     "@stackbit/cms-git": "^1.0.35",
     "@stackbit/types": "^2.1.14",
@@ -104,8 +118,11 @@
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^5.0.1",
     "autoprefixer": "^10.4.21",
+    "axe-core": "^4.10.2",
     "concurrently": "^9.1.0",
     "cross-env": "^7.0.3",
+    "depcheck": "^1.4.7",
+    "esbuild": "^0.24.2",
     "eslint": "^9.9.0",
     "eslint-plugin-react": "^7.35.0",
     "eslint-plugin-react-hooks": "^5.2.0",
@@ -113,17 +130,22 @@
     "globals": "^16.3.0",
     "husky": "^9.1.6",
     "jsdom": "^26.1.0",
+    "knip": "^5.42.2",
+    "lighthouse": "^12.2.1",
     "lint-staged": "^16.1.5",
     "node-pg-migrate": "^7.6.2",
     "pg-mem": "^3.0.5",
     "postcss": "^8.5.6",
+    "prettier": "^3.3.3",
+    "retire": "^5.2.4",
     "shpjs": "^6.1.0",
     "size-limit": "^11.2.0",
     "stylelint": "^16.9.0",
     "supertest": "^7.1.1",
     "tailwindcss": "^3.4.17",
     "testcontainers": "^11.6.0",
-    "vite": "5.4.19",
+    "typescript": "^5.9.2",
+    "vite": "^6.0.3",
     "vitest": "^1.6.0"
   },
   "optionalDependencies": {
@@ -141,14 +163,42 @@
     "uglify-js": "^3.19.0",
     "sourcemap-codec": "npm:@jridgewell/sourcemap-codec@^1.5.0",
     "rimraf": "^5.0.10",
-    "debug": "^4.3.7"
+    "debug": "^4.3.7",
+    "@node-saml/node-saml": "^5.1.0",
+    "esbuild": "^0.24.2",
+    "minimatch": "^9.0.5",
+    "@octokit/request": "^8.4.1",
+    "@octokit/request-error": "^5.1.1",
+    "@octokit/plugin-paginate-rest": "^9.2.2",
+    "glob": "^10.4.5",
+    "inflight": "npm:@isaacs/inflight@^1.0.4",
+    "string-similarity": "npm:fastest-levenshtein@^1.0.16",
+    "sudo-prompt": "npm:@vscode/sudo-prompt@^9.0.1",
+    "yurnalist": "npm:npmlog@^7.0.1",
+    "tokml": {
+      "strxml": "npm:fast-xml-parser@^4.5.0",
+      "tap": "npm:@vitest/utils@^1.6.0"
+    }
   },
+  "size-limit": [
+    {
+      "name": "Bundle size",
+      "path": "dist/**/*.js",
+      "limit": "1450 KB",
+      "gzip": true,
+      "brotli": false,
+      "running": false
+    }
+  ],
   "lint-staged": {
-    "src/**/*.{js,jsx}": [
+    "*.{js,jsx,ts,tsx}": [
       "eslint --fix"
     ],
-    "src/**/*.css": [
+    "*.{css,scss}": [
       "stylelint --fix"
+    ],
+    "*.{js,jsx,ts,tsx,json,css,md}": [
+      "prettier --write"
     ]
   },
   "engines": {
@@ -159,11 +209,5 @@
     "defaults",
     "not op_mini all",
     "maintained node versions"
-  ],
-  "size-limit": [
-    {
-      "path": "dist/assets/*.js",
-      "limit": "1450 KB"
-    }
   ]
 }

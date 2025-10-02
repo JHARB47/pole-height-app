@@ -12,6 +12,8 @@ import { downloadErrorsCSV } from '../utils/validationExport';
 import { buildManifest, csvFrom } from '../utils/manifests';
 import { makePermitSummary } from '../utils/permitSummary';
 import { EXPORT_PRESETS, buildPolesCSV, buildSpansCSV, buildExistingLinesCSV, buildGeoJSON, buildKML, buildFirstEnergyJointUseCSV } from '../utils/exporters';
+import { validatePoleCoordinates } from '../utils/gisValidation';
+import { useDebounce } from '../hooks/useDebounce';
 // Geodata utilities are imported dynamically in onPermit to keep geospatial libs lazy-loaded
 import SpansEditor from './SpansEditor';
 
@@ -236,6 +238,31 @@ export default function ProposedLineCalculator() {
     setAnalysis
   ]);
 
+  // GIS Validation state with debouncing for better performance
+  const [coordinateValidation, setCoordinateValidation] = React.useState({ valid: true, errors: [], warnings: [] });
+  const [isValidating, setIsValidating] = React.useState(false);
+  
+  // Debounce coordinates to avoid validating on every keystroke (300ms delay)
+  const debouncedLatitude = useDebounce(poleLatitude, 300);
+  const debouncedLongitude = useDebounce(poleLongitude, 300);
+  
+  // Validate coordinates whenever debounced values change
+  React.useEffect(() => {
+    if (debouncedLatitude || debouncedLongitude) {
+      setIsValidating(true);
+      const validation = validatePoleCoordinates({
+        id: 'current-pole',
+        latitude: debouncedLatitude,
+        longitude: debouncedLongitude
+      });
+      setCoordinateValidation(validation);
+      setIsValidating(false);
+    } else {
+      setCoordinateValidation({ valid: true, errors: [], warnings: [] });
+      setIsValidating(false);
+    }
+  }, [debouncedLatitude, debouncedLongitude]);
+  
   // Simple results panel + inputs
   const useDeviceGPS = async () => {
     if (!('geolocation' in navigator)) {
@@ -340,6 +367,52 @@ export default function ProposedLineCalculator() {
                     Use GPS
                   </button>
                 </div>
+                {/* GIS Validation Feedback */}
+                {(poleLatitude || poleLongitude) && (
+                  <div className="md:col-span-2">
+                    {isValidating && (
+                      <div className="p-2 bg-blue-50 border border-blue-300 rounded text-sm">
+                        <div className="font-medium text-blue-800 flex items-center gap-1">
+                          <span className="animate-pulse">🔄</span> Validating coordinates...
+                        </div>
+                      </div>
+                    )}
+                    {!isValidating && !coordinateValidation.valid && coordinateValidation.errors.length > 0 && (
+                      <div className="p-2 bg-red-50 border border-red-300 rounded text-sm">
+                        <div className="font-medium text-red-800 flex items-center gap-1">
+                          <span>❌</span> Invalid Coordinates
+                        </div>
+                        <ul className="mt-1 text-red-700 list-disc pl-5">
+                          {coordinateValidation.errors.map((error, i) => (
+                            <li key={i}>{error}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {!isValidating && coordinateValidation.valid && coordinateValidation.warnings && coordinateValidation.warnings.length > 0 && (
+                      <div className="p-2 bg-yellow-50 border border-yellow-300 rounded text-sm">
+                        <div className="font-medium text-yellow-800 flex items-center gap-1">
+                          <span>⚠️</span> Warning
+                        </div>
+                        <ul className="mt-1 text-yellow-700 list-disc pl-5">
+                          {coordinateValidation.warnings.map((warning, i) => (
+                            <li key={i}>{warning}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {!isValidating && coordinateValidation.valid && (!coordinateValidation.warnings || coordinateValidation.warnings.length === 0) && (
+                      <div className="p-2 bg-green-50 border border-green-300 rounded text-sm">
+                        <div className="font-medium text-green-800 flex items-center gap-1">
+                          <span>✅</span> Valid Coordinates
+                        </div>
+                        <div className="text-green-700 text-xs mt-1">
+                          WGS84: {poleLatitude}, {poleLongitude}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
               <Select label="Preset Profile" value={presetProfile} onChange={e => setPresetProfile(e.target.value)} options={[{ label: 'None', value: '' }, ...Object.values(DEFAULTS.presets).map(p => ({ label: p.label, value: p.value }))]} />
               <Select label="Submission Profile" value={(useAppStore.getState().jobs || []).find(j => j.id === useAppStore.getState().currentJobId)?.submissionProfileName || currentSubmissionProfile} onChange={e => {

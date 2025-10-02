@@ -2,14 +2,20 @@
   # Ensure Netlify uses the repo root (monorepo-safe)
   base = "."
   publish = "dist"
-  # Disable submodule processing and build
+  # Disable submodule processing and build with robust command
   command = "git submodule deinit --all -f 2>/dev/null || true && NETLIFY_NEXT_PLUGIN_SKIP=true npm run build"
+  ignore = "git diff --quiet HEAD^ HEAD -- . ':(exclude)docs/**' ':(exclude)**/*.md'"
 
 [build.environment]
-  NODE_VERSION = "22.12.0"
+  NODE_VERSION = "20"
+  # Keep dev deps available for Vite build, but do not rely on @stackbit in build
+  NPM_FLAGS = "--include=dev"
   # This site is a Vite SPA, not Next.js. Skip the Next.js plugin if installed in UI.
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
 
+<<<<<<< HEAD
+# SPA rewrite
+=======
 [context.production.environment]
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
 
@@ -20,30 +26,65 @@
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
 
 # Canonical domain redirects and HTTP->HTTPS
+>>>>>>> 5afe738b086a6fb2c9bc624a69527c5b24c6ac90
 [[redirects]]
+<<<<<<< HEAD
+  from = "/*"
+  to = "/index.html"
+  status = 200
+=======
   from = "http://poleplanpro.com/*"
   to = "https://poleplanpro.com/:splat"
   status = 301
   force = true
+>>>>>>> 5afe738b086a6fb2c9bc624a69527c5b24c6ac90
 
+<<<<<<< HEAD
+# Caching
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+=======
 [[redirects]]
   from = "http://www.poleplanpro.com/*"
   to = "https://poleplanpro.com/:splat"
   status = 301
   force = true
+>>>>>>> 5afe738b086a6fb2c9bc624a69527c5b24c6ac90
 
+<<<<<<< HEAD
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+=======
 [[redirects]]
   from = "https://www.poleplanpro.com/*"
   to = "https://poleplanpro.com/:splat"
   status = 301
   force = true
+>>>>>>> 5afe738b086a6fb2c9bc624a69527c5b24c6ac90
 
+<<<<<<< HEAD
+=======
 # SPA fallback for client-side routing
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+>>>>>>> 5afe738b086a6fb2c9bc624a69527c5b24c6ac90
 
+<<<<<<< HEAD
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+  external_node_modules = ["pg"]
+
+# ---- Security headers (enhanced with modern standards) ----
+=======
+>>>>>>> 5afe738b086a6fb2c9bc624a69527c5b24c6ac90
 [[headers]]
   for = "/"
   [headers.values]
