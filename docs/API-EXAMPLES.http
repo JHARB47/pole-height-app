@@ -1,0 +1,243 @@
+###
+# PolePlan Pro API Examples
+# Use with VS Code REST Client extension or similar tools
+# Replace {{token}} with your actual JWT token
+###
+
+@baseUrl = http://localhost:3000
+@token = your-jwt-token-here
+
+###############################################################################
+# 1. LIST PROJECTS - Basic
+###############################################################################
+
+GET {{baseUrl}}/api/projects
+Authorization: Bearer {{token}}
+
+###############################################################################
+# 2. LIST PROJECTS - With Pagination
+###############################################################################
+
+GET {{baseUrl}}/api/projects?page=1&limit=10
+Authorization: Bearer {{token}}
+
+###############################################################################
+# 3. LIST PROJECTS - With Search
+###############################################################################
+
+GET {{baseUrl}}/api/projects?search=main
+Authorization: Bearer {{token}}
+
+###############################################################################
+# 4. LIST PROJECTS - Complex Query
+###############################################################################
+
+GET {{baseUrl}}/api/projects?search=street&page=1&limit=25&sort=name&order=asc
+Authorization: Bearer {{token}}
+
+###############################################################################
+# 5. LIST PROJECTS - Filter by Organization
+###############################################################################
+
+GET {{baseUrl}}/api/projects?organization_id=org_123
+Authorization: Bearer {{token}}
+
+###############################################################################
+# 6. LIST PROJECTS - Filter by Client
+###############################################################################
+
+GET {{baseUrl}}/api/projects?client_id=client_456
+Authorization: Bearer {{token}}
+
+###############################################################################
+# 7. GET SINGLE PROJECT
+###############################################################################
+
+GET {{baseUrl}}/api/projects/1
+Authorization: Bearer {{token}}
+
+###############################################################################
+# 8. CREATE PROJECT - Valid
+###############################################################################
+
+POST {{baseUrl}}/api/projects
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Main Street Line Extension",
+  "organization_id": "org_123",
+  "client_id": "client_456",
+  "project_data": {
+    "poles": [
+      {
+        "id": "P1",
+        "latitude": 37.7749,
+        "longitude": -122.4194,
+        "height": 40,
+        "groundLineClearance": 15.5
+      },
+      {
+        "id": "P2",
+        "latitude": 34.0522,
+        "longitude": -118.2437,
+        "height": 45,
+        "groundLineClearance": 16.0
+      }
+    ]
+  }
+}
+
+###############################################################################
+# 9. CREATE PROJECT - Invalid Coordinates (Will Fail Validation)
+###############################################################################
+
+POST {{baseUrl}}/api/projects
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Invalid Project",
+  "project_data": {
+    "poles": [
+      {
+        "id": "P1",
+        "latitude": 91,
+        "longitude": -122.4194,
+        "height": 40
+      }
+    ]
+  }
+}
+
+###############################################################################
+# 10. UPDATE PROJECT
+###############################################################################
+
+PUT {{baseUrl}}/api/projects/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Main Street Line Extension (Updated)",
+  "project_data": {
+    "poles": [
+      {
+        "id": "P1",
+        "latitude": 37.7749,
+        "longitude": -122.4194,
+        "height": 45,
+        "groundLineClearance": 16.0
+      }
+    ]
+  }
+}
+
+###############################################################################
+# 11. VALIDATE PROJECT COORDINATES
+###############################################################################
+
+POST {{baseUrl}}/api/projects/1/validate-coordinates
+Authorization: Bearer {{token}}
+
+###############################################################################
+# 12. DELETE PROJECT
+###############################################################################
+
+DELETE {{baseUrl}}/api/projects/1
+Authorization: Bearer {{token}}
+
+###############################################################################
+# PERFORMANCE TESTING
+###############################################################################
+
+### Test Response Time - Page 1
+GET {{baseUrl}}/api/projects?page=1&limit=50
+Authorization: Bearer {{token}}
+
+### Test Response Time - Page 5
+GET {{baseUrl}}/api/projects?page=5&limit=50
+Authorization: Bearer {{token}}
+
+### Test Search Performance
+GET {{baseUrl}}/api/projects?search=test
+Authorization: Bearer {{token}}
+
+###############################################################################
+# ERROR TESTING
+###############################################################################
+
+### 401 - Unauthorized (No Token)
+GET {{baseUrl}}/api/projects
+
+### 404 - Project Not Found
+GET {{baseUrl}}/api/projects/99999
+Authorization: Bearer {{token}}
+
+### 400 - Invalid Pagination
+GET {{baseUrl}}/api/projects?limit=1000
+Authorization: Bearer {{token}}
+
+###############################################################################
+# PAGINATION EDGE CASES
+###############################################################################
+
+### First Page
+GET {{baseUrl}}/api/projects?page=1&limit=10
+Authorization: Bearer {{token}}
+
+### Last Page (adjust based on your data)
+GET {{baseUrl}}/api/projects?page=100&limit=10
+Authorization: Bearer {{token}}
+
+### Beyond Last Page (should return empty)
+GET {{baseUrl}}/api/projects?page=999999&limit=10
+Authorization: Bearer {{token}}
+
+### Limit = 1
+GET {{baseUrl}}/api/projects?limit=1
+Authorization: Bearer {{token}}
+
+### Limit = Max (100)
+GET {{baseUrl}}/api/projects?limit=100
+Authorization: Bearer {{token}}
+
+###############################################################################
+# SORTING TESTS
+###############################################################################
+
+### Sort by Name (A-Z)
+GET {{baseUrl}}/api/projects?sort=name&order=asc
+Authorization: Bearer {{token}}
+
+### Sort by Name (Z-A)
+GET {{baseUrl}}/api/projects?sort=name&order=desc
+Authorization: Bearer {{token}}
+
+### Sort by Created Date (Oldest First)
+GET {{baseUrl}}/api/projects?sort=created_at&order=asc
+Authorization: Bearer {{token}}
+
+### Sort by Updated Date (Most Recent First)
+GET {{baseUrl}}/api/projects?sort=updated_at&order=desc
+Authorization: Bearer {{token}}
+
+###############################################################################
+# COMBINED FILTERS
+###############################################################################
+
+### Search + Pagination
+GET {{baseUrl}}/api/projects?search=street&page=1&limit=5
+Authorization: Bearer {{token}}
+
+### Organization + Client Filter
+GET {{baseUrl}}/api/projects?organization_id=org_123&client_id=client_456
+Authorization: Bearer {{token}}
+
+### Search + Sort + Pagination
+GET {{baseUrl}}/api/projects?search=main&sort=name&order=asc&page=1&limit=10
+Authorization: Bearer {{token}}
+
+### All Filters Combined
+GET {{baseUrl}}/api/projects?search=2024&organization_id=org_123&client_id=client_456&sort=updated_at&order=desc&page=1&limit=25
+Authorization: Bearer {{token}}

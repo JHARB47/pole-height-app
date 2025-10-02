@@ -165,7 +165,7 @@
     "rimraf": "^5.0.10",
     "debug": "^4.3.7",
     "@node-saml/node-saml": "^5.1.0",
-    "esbuild": "^0.24.2",
+    "esbuild": "^0.25.10",
     "minimatch": "^9.0.5",
     "@octokit/request": "^8.4.1",
     "@octokit/request-error": "^5.1.1",

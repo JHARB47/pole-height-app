@@ -1,90 +1,58 @@
 [build]
-  # Ensure Netlify uses the repo root (monorepo-safe)
   base = "."
   publish = "dist"
-  # Disable submodule processing and build with robust command
   command = "git submodule deinit --all -f 2>/dev/null || true && NETLIFY_NEXT_PLUGIN_SKIP=true npm run build"
   ignore = "git diff --quiet HEAD^ HEAD -- . ':(exclude)docs/**' ':(exclude)**/*.md'"
 
 [build.environment]
   NODE_VERSION = "20"
-  # Keep dev deps available for Vite build, but do not rely on @stackbit in build
   NPM_FLAGS = "--include=dev"
-  # This site is a Vite SPA, not Next.js. Skip the Next.js plugin if installed in UI.
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
+  # Map Neon database URLs to what the app expects
+  DATABASE_URL = "${NETLIFY_DATABASE_URL}"
+  DATABASE_URL_UNPOOLED = "${NETLIFY_DATABASE_URL_UNPOOLED}"
 
-<<<<<<< HEAD
-# SPA rewrite
-=======
 [context.production.environment]
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
+  DATABASE_URL = "${NETLIFY_DATABASE_URL}"
+  DATABASE_URL_UNPOOLED = "${NETLIFY_DATABASE_URL_UNPOOLED}"
 
 [context.deploy-preview.environment]
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
+  DATABASE_URL = "${NETLIFY_DATABASE_URL}"
+  DATABASE_URL_UNPOOLED = "${NETLIFY_DATABASE_URL_UNPOOLED}"
 
 [context.branch-deploy.environment]
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
+  DATABASE_URL = "${NETLIFY_DATABASE_URL}"
+  DATABASE_URL_UNPOOLED = "${NETLIFY_DATABASE_URL_UNPOOLED}"
 
 # Canonical domain redirects and HTTP->HTTPS
->>>>>>> 5afe738b086a6fb2c9bc624a69527c5b24c6ac90
 [[redirects]]
-<<<<<<< HEAD
-  from = "/*"
-  to = "/index.html"
-  status = 200
-=======
   from = "http://poleplanpro.com/*"
   to = "https://poleplanpro.com/:splat"
   status = 301
   force = true
->>>>>>> 5afe738b086a6fb2c9bc624a69527c5b24c6ac90
 
-<<<<<<< HEAD
-# Caching
-[[headers]]
-  for = "/*"
-  [headers.values]
-    Cache-Control = "public, max-age=0, must-revalidate"
-=======
 [[redirects]]
   from = "http://www.poleplanpro.com/*"
   to = "https://poleplanpro.com/:splat"
   status = 301
   force = true
->>>>>>> 5afe738b086a6fb2c9bc624a69527c5b24c6ac90
 
-<<<<<<< HEAD
-[[headers]]
-  for = "/assets/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-=======
 [[redirects]]
   from = "https://www.poleplanpro.com/*"
   to = "https://poleplanpro.com/:splat"
   status = 301
   force = true
->>>>>>> 5afe738b086a6fb2c9bc624a69527c5b24c6ac90
 
-<<<<<<< HEAD
-=======
 # SPA fallback for client-side routing
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
->>>>>>> 5afe738b086a6fb2c9bc624a69527c5b24c6ac90
 
-<<<<<<< HEAD
-
-[functions]
-  directory = "netlify/functions"
-  node_bundler = "esbuild"
-  external_node_modules = ["pg"]
-
-# ---- Security headers (enhanced with modern standards) ----
-=======
->>>>>>> 5afe738b086a6fb2c9bc624a69527c5b24c6ac90
+# Cache headers
 [[headers]]
   for = "/"
   [headers.values]
@@ -105,6 +73,7 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
+# Security headers
 [[headers]]
   for = "/*"
   [headers.values]
@@ -115,13 +84,13 @@
     Permissions-Policy = "geolocation=(), microphone=()"
     Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tile.openstreetmap.org https://*.tile.openstreetmap.org; font-src 'self' data:; connect-src 'self' https://poleplanpro.com https://www.poleplanpro.com https://api.poleplanpro.com https://unpkg.com; worker-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
 
+# Netlify Functions configuration
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
   external_node_modules = ["pg"]
 
-
-# Local dev settings: force custom Vite dev to avoid framework auto-detection (e.g., Next.js)
+# Local development settings
 [dev]
   framework = "#custom"
   command = "npm run dev"
