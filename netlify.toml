@@ -8,8 +8,9 @@
   NODE_VERSION = "22.12.0"
   NPM_FLAGS = "--include=dev"
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
-  # Exclude documentation files from secrets scanning
+  # Exclude documentation files and JWT secrets from secrets scanning
   SECRETS_SCAN_OMIT_PATHS = "**/*.md,**/*.txt,docs/**"
+  SECRETS_SCAN_OMIT_KEYS = "JWT_SECRET,REFRESH_TOKEN_SECRET"
   # Map Neon database URLs to what the app expects
   DATABASE_URL = "${NETLIFY_DATABASE_URL}"
   DATABASE_URL_UNPOOLED = "${NETLIFY_DATABASE_URL_UNPOOLED}"
