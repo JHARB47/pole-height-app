@@ -17,6 +17,16 @@ try {
 }
 
 const useAppStore = create(persist((set) => ({
+  // User and Organization Context
+  currentUser: null, // { id, email, name, role, organization_id }
+  setCurrentUser: (user) => set({ currentUser: user }),
+  currentOrganization: null, // { id, name, subscription_tier }
+  setCurrentOrganization: (org) => set({ currentOrganization: org }),
+  currentClient: null, // Optional client context for multi-tenant setups
+  setCurrentClient: (client) => set({ currentClient: client }),
+  isAuthenticated: false,
+  setIsAuthenticated: (value) => set({ isAuthenticated: value }),
+  
   // UI: per-section last saved timestamps
   uiSectionSaved: {}, // e.g., { map: ISO, spans: ISO, existing: ISO, field: ISO }
   setSectionSaved: (section) => set((s) => ({ uiSectionSaved: { ...(s.uiSectionSaved || {}), [section]: new Date().toISOString() } })),
