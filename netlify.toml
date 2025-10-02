@@ -8,6 +8,8 @@
   NODE_VERSION = "22.12.0"
   NPM_FLAGS = "--include=dev"
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
+  # Exclude documentation files from secrets scanning
+  SECRETS_SCAN_OMIT_PATHS = "**/*.md,**/*.txt,docs/**"
   # Map Neon database URLs to what the app expects
   DATABASE_URL = "${NETLIFY_DATABASE_URL}"
   DATABASE_URL_UNPOOLED = "${NETLIFY_DATABASE_URL_UNPOOLED}"
@@ -63,13 +65,100 @@
   status = 301
   force = true
 
-# SPA fallback for client-side routing
+# SPA routing - serve index.html for all routes
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
-# Cache headers
+# Custom headers for security and caching
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cache-Control = "no-store"
+    Cross-Origin-Opener-Policy = "same-origin"
+    Cross-Origin-Resource-Policy = "same-origin"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=(), fullscreen=(self)"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://unpkg.com https://cdn.jsdelivr.net blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https:; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Content-Type = "application/javascript; charset=utf-8"
+    Service-Worker-Allowed = "/"
+
+[[headers]]
+  for = "/favicon.png"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+    Content-Type = "image/png"
+
+[[headers]]
+  for = "/pwa-192.png"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+    Content-Type = "image/png"
+
+[[headers]]
+  for = "/pwa-512.png"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+    Content-Type = "image/png"
+
+[[headers]]
+  for = "/maskable_icon.png"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+    Content-Type = "image/png"
+
+[[headers]]
+  for = "/vite.svg"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000, immutable"
+    Content-Type = "image/svg+xml; charset=utf-8"
+
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+    Content-Type = "application/manifest+json; charset=utf-8"
+
+[[headers]]
+  for = "/sitemap.xml"
+  [headers.values]
+    Cache-Control = "public, max-age=600"
+    Content-Type = "application/xml; charset=utf-8"
+
+[[headers]]
+  for = "/robots.txt"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+    Content-Type = "text/plain; charset=utf-8"
+
+[[headers]]
+  for = "/debug.html"
+  [headers.values]
+    Cache-Control = "no-store"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://unpkg.com https://cdn.jsdelivr.net 'unsafe-inline' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https:; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/test.html"
+  [headers.values]
+    Cache-Control = "no-store"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://unpkg.com https://cdn.jsdelivr.net 'unsafe-inline' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https:; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+    X-Robots-Tag = "noindex, nofollow"
+
 [[headers]]
   for = "/"
   [headers.values]
@@ -90,27 +179,18 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# Security headers
 [[headers]]
   for = "/*"
   [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tile.openstreetmap.org https://*.tile.openstreetmap.org; font-src 'self' data:; connect-src 'self' https://poleplanpro.com https://www.poleplanpro.com https://api.poleplanpro.com https://unpkg.com; worker-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+    Permissions-Policy = "geolocation=(), microphone=()"
+    Referrer-Policy = "strict-origin-when-cross-origin"
     Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
     X-Content-Type-Options = "nosniff"
     X-Frame-Options = "DENY"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "geolocation=(), microphone=()"
-    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tile.openstreetmap.org https://*.tile.openstreetmap.org; font-src 'self' data:; connect-src 'self' https://poleplanpro.com https://www.poleplanpro.com https://api.poleplanpro.com https://unpkg.com; worker-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
 
 # Netlify Functions configuration
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
   external_node_modules = ["pg"]
-
-# Local development settings
-[dev]
-  framework = "#custom"
-  command = "npm run dev"
-  targetPort = 5173
-  port = 8888
-  publish = "dist"
