@@ -1,2 +1,3 @@
-# Run fast pre-commit checks only; full test/build run in CI
-npx --no-install lint-staged || true
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+npm run -s verify
