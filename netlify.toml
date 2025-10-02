@@ -5,27 +5,44 @@
   ignore = "git diff --quiet HEAD^ HEAD -- . ':(exclude)docs/**' ':(exclude)**/*.md'"
 
 [build.environment]
-  NODE_VERSION = "20"
+  NODE_VERSION = "22.12.0"
   NPM_FLAGS = "--include=dev"
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
   # Map Neon database URLs to what the app expects
   DATABASE_URL = "${NETLIFY_DATABASE_URL}"
   DATABASE_URL_UNPOOLED = "${NETLIFY_DATABASE_URL_UNPOOLED}"
+  JWT_SECRET = "${JWT_SECRET}"
+  REFRESH_TOKEN_SECRET = "${REFRESH_TOKEN_SECRET}"
+  JWT_EXPIRES_IN = "${JWT_EXPIRES_IN}"
+  REFRESH_TOKEN_TTL = "${REFRESH_TOKEN_TTL}"
 
 [context.production.environment]
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
+  NODE_ENV = "production"
   DATABASE_URL = "${NETLIFY_DATABASE_URL}"
   DATABASE_URL_UNPOOLED = "${NETLIFY_DATABASE_URL_UNPOOLED}"
+  JWT_SECRET = "${JWT_SECRET}"
+  REFRESH_TOKEN_SECRET = "${REFRESH_TOKEN_SECRET}"
+  ALLOWED_ORIGINS = "https://poleplanpro.com"
+  LOG_LEVEL = "info"
 
 [context.deploy-preview.environment]
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
+  NODE_ENV = "development"
   DATABASE_URL = "${NETLIFY_DATABASE_URL}"
   DATABASE_URL_UNPOOLED = "${NETLIFY_DATABASE_URL_UNPOOLED}"
+  JWT_SECRET = "${JWT_SECRET}"
+  REFRESH_TOKEN_SECRET = "${REFRESH_TOKEN_SECRET}"
+  LOG_LEVEL = "debug"
 
 [context.branch-deploy.environment]
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
+  NODE_ENV = "development"
   DATABASE_URL = "${NETLIFY_DATABASE_URL}"
   DATABASE_URL_UNPOOLED = "${NETLIFY_DATABASE_URL_UNPOOLED}"
+  JWT_SECRET = "${JWT_SECRET}"
+  REFRESH_TOKEN_SECRET = "${REFRESH_TOKEN_SECRET}"
+  LOG_LEVEL = "debug"
 
 # Canonical domain redirects and HTTP->HTTPS
 [[redirects]]
