@@ -62,3 +62,10 @@ package-lock 2.json
 .env
 .env.*
 !.env.example
+
+# Secret reference files (contain actual secret values)
+NETLIFY-ADD-THESE.txt
+GITHUB-ADD-THESE.txt
+.env.netlify
+*-secrets.txt
+*-secrets.md
