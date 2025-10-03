@@ -13,8 +13,8 @@ const container = document.getElementById('root')
 if (!container) throw new Error('Root element not found')
 
 const router = createBrowserRouter([
-  { path: '/', element: <ContentPage slug="home" /> },
-  { path: '/app', element: <App /> },
+  { path: '/', element: <App /> },
+  { path: '/home', element: <ContentPage slug="home" /> },
   { path: '/:slug', element: <ContentPage /> },
 ])
 
