@@ -3,7 +3,7 @@
  * Tests: User Authentication, Data Isolation, GIS Validation, CSV Export
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { validatePoleCoordinates, validatePoleBatch } from '../src/utils/gisValidation';
 import { 
   getDefaultColumns, 

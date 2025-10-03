@@ -341,7 +341,7 @@ export const EXPORT_PRESETS = {
  * @returns {any[]} Formatted data array
  */
 export function formatDataForExport(poles, selectedColumns, options = {}) {
-  const { framework = 'NESC', useTickMarkFormat = false } = options;
+  const { useTickMarkFormat = false } = options;
   
   return poles.map(pole => {
     const row = {};

@@ -4,7 +4,7 @@
  * Run this script to create sample data and test new features
  */
 
-import { BUILT_IN_TEMPLATES, saveTemplate, getAllTemplates, exportUserTemplates } from '../src/utils/exportTemplates.js';
+import { BUILT_IN_TEMPLATES, saveTemplate, getAllTemplates } from '../src/utils/exportTemplates.js';
 import { validatePoleCoordinates } from '../src/utils/gisValidation.js';
 
 console.log('\n╔═══════════════════════════════════════════════════════════╗');
@@ -111,11 +111,11 @@ console.log('\n📦 GENERATING SAMPLE DATA FOR PAGINATION TESTING\n');
 // Generate sample project data
 const sampleProjects = [];
 const cities = ['San Francisco', 'New York', 'Chicago', 'Houston', 'Phoenix', 'Philadelphia', 'San Antonio', 'San Diego', 'Dallas', 'Austin'];
-const clients = ['PG&E', 'ConEd', 'ComEd', 'CenterPoint', 'APS', 'PECO', 'CPS Energy', 'SDG&E', 'Oncor', 'Austin Energy'];
+// const clients = ['PG&E', 'ConEd', 'ComEd', 'CenterPoint', 'APS', 'PECO', 'CPS Energy', 'SDG&E', 'Oncor', 'Austin Energy'];
 
 for (let i = 1; i <= 100; i++) {
   const city = cities[i % cities.length];
-  const client = clients[i % clients.length];
+  // const client = clients[i % clients.length];
   
   sampleProjects.push({
     id: i,
