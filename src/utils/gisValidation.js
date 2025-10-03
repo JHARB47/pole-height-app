@@ -338,12 +338,21 @@ export function validatePoleCoordinates(pole) {
     if (result.valid && result.coordinates[0] === 0 && result.coordinates[1] === 0) {
       warnings.push('Coordinates are at [0, 0] - this is likely unintentional');
     }
+    
+    // Check if coordinates are very close to [0, 0] (null island proximity)
+    if (result.valid) {
+      const lat = Math.abs(result.coordinates[1]);
+      const lon = Math.abs(result.coordinates[0]);
+      if (lat < 0.001 && lon < 0.001 && !(lat === 0 && lon === 0)) {
+        warnings.push('Coordinates very close to [0, 0] - please verify');
+      }
+    }
   }
   
   return {
     valid: errors.length === 0,
-    errors,  // Always return the array (empty or with items)
-    warnings: warnings.length > 0 ? warnings : []  // Always return array
+    errors,  // Always return array
+    warnings: warnings.length > 0 ? warnings : []
   };
 }
 
@@ -359,18 +368,16 @@ export function validatePoleBatch(poles) {
     ...validatePoleCoordinates(pole)
   }));
   
-  const invalid = results.filter(r => !r.valid);
+  const errors = results.filter(r => !r.valid);
   const warnings = results.filter(r => r.warnings && r.warnings.length > 0);
   
   return {
-    valid: invalid.length === 0,
+    valid: errors.length === 0,
     results,
-    invalid,  // Add this for compatibility with integration tests
     summary: {
       total: poles.length,
-      valid: poles.length - invalid.length,
-      invalid: invalid.length,  // Use 'invalid' instead of 'errors'
-      errors: invalid.length,   // Keep 'errors' for backwards compatibility
+      valid: poles.length - errors.length,
+      errors: errors.length,
       warnings: warnings.length
     }
   };
