@@ -201,8 +201,9 @@ export function saveTemplate(template) {
  * @returns {Object} Result object with success/error
  */
 export function updateTemplate(templateId, updates) {
-  // Can't update built-in templates
-  if (templateId in BUILT_IN_TEMPLATES) {
+  // Can't update built-in templates (check by id property, not key)
+  const isBuiltIn = Object.values(BUILT_IN_TEMPLATES).some(t => t.id === templateId);
+  if (isBuiltIn) {
     return { success: false, error: 'Cannot modify built-in templates' };
   }
 
@@ -237,8 +238,9 @@ export function updateTemplate(templateId, updates) {
  * @returns {Object} Result object with success/error
  */
 export function deleteTemplate(templateId) {
-  // Can't delete built-in templates
-  if (templateId in BUILT_IN_TEMPLATES) {
+  // Can't delete built-in templates (check by id property, not key)
+  const isBuiltIn = Object.values(BUILT_IN_TEMPLATES).some(t => t.id === templateId);
+  if (isBuiltIn) {
     return { success: false, error: 'Cannot delete built-in templates' };
   }
 
@@ -264,9 +266,10 @@ export function deleteTemplate(templateId) {
  * @returns {Object|null} Template object or null if not found
  */
 export function getTemplateById(templateId) {
-  // Check built-in templates first
-  if (templateId in BUILT_IN_TEMPLATES) {
-    return BUILT_IN_TEMPLATES[templateId];
+  // Check built-in templates first (search by id property, not key)
+  const builtInTemplate = Object.values(BUILT_IN_TEMPLATES).find(t => t.id === templateId);
+  if (builtInTemplate) {
+    return builtInTemplate;
   }
 
   // Check user templates

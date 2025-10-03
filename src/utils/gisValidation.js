@@ -314,20 +314,21 @@ export function validatePoleCoordinates(pole) {
   const errors = [];
   const warnings = [];
   
-  if (!pole.latitude && !pole.longitude) {
+  // Check if both coordinates are missing (distinguish from 0,0)
+  if (pole.latitude === undefined && pole.longitude === undefined) {
     warnings.push('No coordinates provided for pole');
     return { valid: true, warnings };
   }
   
-  if (pole.latitude && !pole.longitude) {
+  if ((pole.latitude !== undefined && pole.latitude !== null) && (pole.longitude === undefined || pole.longitude === null)) {
     errors.push('Latitude provided without longitude');
   }
   
-  if (pole.longitude && !pole.latitude) {
+  if ((pole.longitude !== undefined && pole.longitude !== null) && (pole.latitude === undefined || pole.latitude === null)) {
     errors.push('Longitude provided without latitude');
   }
   
-  if (pole.latitude && pole.longitude) {
+  if ((pole.latitude !== undefined && pole.latitude !== null) && (pole.longitude !== undefined && pole.longitude !== null)) {
     const result = validateCoordinates(pole.latitude, pole.longitude);
     if (!result.valid) {
       errors.push(...result.errors);
@@ -341,8 +342,8 @@ export function validatePoleCoordinates(pole) {
   
   return {
     valid: errors.length === 0,
-    errors: errors.length > 0 ? errors : undefined,
-    warnings: warnings.length > 0 ? warnings : undefined
+    errors,  // Always return the array (empty or with items)
+    warnings: warnings.length > 0 ? warnings : []  // Always return array
   };
 }
 
@@ -358,16 +359,18 @@ export function validatePoleBatch(poles) {
     ...validatePoleCoordinates(pole)
   }));
   
-  const errors = results.filter(r => !r.valid);
+  const invalid = results.filter(r => !r.valid);
   const warnings = results.filter(r => r.warnings && r.warnings.length > 0);
   
   return {
-    valid: errors.length === 0,
+    valid: invalid.length === 0,
     results,
+    invalid,  // Add this for compatibility with integration tests
     summary: {
       total: poles.length,
-      valid: poles.length - errors.length,
-      errors: errors.length,
+      valid: poles.length - invalid.length,
+      invalid: invalid.length,  // Use 'invalid' instead of 'errors'
+      errors: invalid.length,   // Keep 'errors' for backwards compatibility
       warnings: warnings.length
     }
   };
