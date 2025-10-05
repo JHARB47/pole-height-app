@@ -56,7 +56,7 @@ describe('GIS Validation Integration', () => {
       });
       
       expect(result.valid).toBe(true);
-      expect(result.warnings).toContain('Coordinates [0, 0] detected - this is likely a placeholder');
+      expect(result.warnings).toContain('Coordinates are at [0, 0] - this is likely unintentional');
     });
     
     it('should warn about null island proximity', () => {
@@ -83,7 +83,7 @@ describe('GIS Validation Integration', () => {
       
       expect(result.summary.total).toBe(3);
       expect(result.summary.valid).toBe(3);
-      expect(result.summary.invalid).toBe(0);
+      expect(result.summary.errors).toBe(0);
     });
     
     it('should identify invalid poles in batch', () => {
@@ -97,8 +97,8 @@ describe('GIS Validation Integration', () => {
       
       expect(result.summary.total).toBe(3);
       expect(result.summary.valid).toBe(1);
-      expect(result.summary.invalid).toBe(2);
-      expect(result.invalid).toHaveLength(2);
+      expect(result.summary.errors).toBe(2);
+      expect(result.results.filter(r => !r.valid)).toHaveLength(2);
     });
   });
 });
