@@ -3,7 +3,7 @@ import { createServer } from 'net';
 import { existsSync } from 'fs';
 import path from 'path';
 
-const reqNode = '22.12.0';
+const reqNode = '24.9.0'; // Updated for Node 24 support
 
 function compareVersions(a, b) {
   const pa = a.split('.').map(Number);
@@ -35,8 +35,8 @@ async function main() {
 
   // Node version
   const node = process.versions.node;
-  const nodeOk = compareVersions(node, '22.0.0') >= 0 && compareVersions(node, '23.0.0') < 0;
-  log(nodeOk, `Node version ${node} (expected >=22 <23${reqNode ? `; recommended ${reqNode}` : ''})`);
+  const nodeOk = compareVersions(node, '22.0.0') >= 0 && compareVersions(node, '25.0.0') < 0;
+  log(nodeOk, `Node version ${node} (expected >=22 <25${reqNode ? `; recommended ${reqNode}` : ''})`);
 
   // Files
   const files = ['netlify.toml', 'package.json', 'public/sw.js'];

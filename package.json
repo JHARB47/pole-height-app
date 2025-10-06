@@ -52,7 +52,7 @@
     "docker:dev": "docker-compose up --build",
     "docker:prod": "docker-compose -f docker-compose.prod.yml up --build",
     "docker:test": "docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit",
-    "db:migrate": "node scripts/db/run-migrations.mjs",
+    "db:migrate": "netlify dev:exec drizzle-kit migrate",
     "db:seed": "cd server && npm run seed",
     "test:integration": "node scripts/test/run-vitest.mjs run --config vitest.integration.config.js",
     "test:e2e": "npx playwright test",
@@ -73,7 +73,9 @@
     "deploy:git": "npm run verify && npm run sync:deploy",
     "release:patch": "npm version patch -m 'chore(release): %s' && git push --follow-tags",
     "release:minor": "npm version minor -m 'chore(release): %s' && git push --follow-tags",
-    "release:major": "npm version major -m 'chore(release): %s' && git push --follow-tags"
+    "release:major": "npm version major -m 'chore(release): %s' && git push --follow-tags",
+    "db:generate": "drizzle-kit generate",
+    "db:studio": "netlify dev:exec drizzle-kit studio"
   },
   "dependencies": {
     "@node-saml/passport-saml": "^5.1.0",
