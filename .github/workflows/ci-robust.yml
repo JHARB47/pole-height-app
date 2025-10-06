@@ -45,12 +45,17 @@ jobs:
       - name: Audit (full tree, warn only)
         run: npm audit || true
 
-      - name: Run comprehensive verification
+      - name: Run comprehensive verification (with secrets)
         run: npm run verify
+        if: ${{ secrets.DATABASE_URL && secrets.JWT_SECRET && secrets.REFRESH_TOKEN_SECRET }}
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
+
+      - name: Run comprehensive verification (no secrets)
+        run: npm run verify
+        if: ${{ !secrets.DATABASE_URL || !secrets.JWT_SECRET || !secrets.REFRESH_TOKEN_SECRET }}
           
       - name: Build production bundle
         run: npm run build
@@ -61,7 +66,7 @@ jobs:
 
   deploy:
     needs: verify
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && secrets.NETLIFY_BUILD_HOOK_URL
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Netlify build hook
