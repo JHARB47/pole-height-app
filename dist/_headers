@@ -1,0 +1,68 @@
+/*
+  X-Frame-Options: DENY
+  X-XSS-Protection: 1; mode=block
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), fullscreen=(self)
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  Cache-Control: no-store
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/*
+  # CSP updated: allow unpkg CDN for runtime shapefile export (shp-write) while retaining existing constraints.
+  # Inline scripts are disallowed globally; debug/test pages below have tailored overrides to allow inline scripts.
+  # 'unsafe-eval' was removed (2025-09-24). If a regression occurs (e.g., a dependency requires eval in production build), restore by adding 'unsafe-eval' to script-src.
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://unpkg.com https://cdn.jsdelivr.net blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https:; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+  Content-Type: application/javascript; charset=utf-8
+  Service-Worker-Allowed: /
+
+/favicon.png
+  Cache-Control: public, max-age=604800
+  Content-Type: image/png
+
+/pwa-192.png
+  Cache-Control: public, max-age=604800
+  Content-Type: image/png
+
+/pwa-512.png
+  Cache-Control: public, max-age=604800
+  Content-Type: image/png
+
+/maskable_icon.png
+  Cache-Control: public, max-age=604800
+  Content-Type: image/png
+
+/vite.svg
+  Cache-Control: public, max-age=2592000, immutable
+  Content-Type: image/svg+xml; charset=utf-8
+
+/manifest.webmanifest
+  Cache-Control: public, max-age=3600
+  Content-Type: application/manifest+json; charset=utf-8
+
+/sitemap.xml
+  Cache-Control: public, max-age=600
+  Content-Type: application/xml; charset=utf-8
+
+/robots.txt
+  Cache-Control: public, max-age=3600
+  Content-Type: text/plain; charset=utf-8
+
+/debug.html
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-store
+  # Allow inline script on debug page only
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://unpkg.com https://cdn.jsdelivr.net 'unsafe-inline' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https:; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+
+/test.html
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-store
+  # Allow inline script on test page only
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://unpkg.com https://cdn.jsdelivr.net 'unsafe-inline' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https:; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
