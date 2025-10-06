@@ -6,43 +6,45 @@ let pdfLibCache = null;
 
 async function loadPdfLibFromCDN() {
   if (pdfLibCache) return pdfLibCache;
-  
+
   try {
     // Check if PDFLib is already available globally (from CDN)
     if (window.PDFLib) {
       pdfLibCache = window.PDFLib;
       return window.PDFLib;
     }
-    
+
     // Load pdf-lib from CDN to reduce bundle size
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js';
+    const script = document.createElement("script");
+    script.src =
+      "https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js";
     script.async = true;
-    
+
     const loadPromise = new Promise((resolve, reject) => {
       script.onload = () => {
         if (window.PDFLib) {
           pdfLibCache = window.PDFLib;
           resolve(window.PDFLib);
         } else {
-          reject(new Error('PDF-lib failed to load from CDN'));
+          reject(new Error("PDF-lib failed to load from CDN"));
         }
       };
-      script.onerror = () => reject(new Error('PDF-lib CDN script failed to load'));
+      script.onerror = () =>
+        reject(new Error("PDF-lib CDN script failed to load"));
     });
-    
+
     document.head.appendChild(script);
     return await loadPromise;
   } catch (error) {
-    console.warn('CDN load failed, falling back to dynamic import:', error);
+    console.warn("CDN load failed, falling back to dynamic import:", error);
     // Fallback to dynamic import if CDN fails
     try {
-      const mod = await import('pdf-lib');
+      const mod = await import("pdf-lib");
       pdfLibCache = mod;
       return mod;
     } catch (importError) {
-      console.error('Both CDN and dynamic import failed:', importError);
-      throw new Error('Unable to load PDF library');
+      console.error("Both CDN and dynamic import failed:", importError);
+      throw new Error("Unable to load PDF library");
     }
   }
 }

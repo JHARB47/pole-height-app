@@ -6,6 +6,6 @@
  */
 export function detectPermitIssues(summary: object): string[];
 declare namespace _default {
-    export { detectPermitIssues };
+  export { detectPermitIssues };
 }
 export default _default;

@@ -2,7 +2,7 @@
  * Tests for Export Template Management
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   BUILT_IN_TEMPLATES,
   getAllTemplates,
@@ -13,11 +13,11 @@ import {
   getTemplateById,
   exportUserTemplates,
   importUserTemplates,
-} from '../exportTemplates';
+} from "../exportTemplates";
 
-const STORAGE_KEY = 'poleplan_export_templates';
+const STORAGE_KEY = "poleplan_export_templates";
 
-describe('Export Templates', () => {
+describe("Export Templates", () => {
   beforeEach(() => {
     // Clear localStorage before each test
     localStorage.clear();
@@ -28,8 +28,8 @@ describe('Export Templates', () => {
     localStorage.clear();
   });
 
-  describe('Built-in Templates', () => {
-    it('should have all required built-in templates', () => {
+  describe("Built-in Templates", () => {
+    it("should have all required built-in templates", () => {
       expect(BUILT_IN_TEMPLATES.BASIC).toBeDefined();
       expect(BUILT_IN_TEMPLATES.NESC_FULL).toBeDefined();
       expect(BUILT_IN_TEMPLATES.CSA_STANDARD).toBeDefined();
@@ -37,14 +37,14 @@ describe('Export Templates', () => {
       expect(BUILT_IN_TEMPLATES.FIELD_COLLECTION).toBeDefined();
     });
 
-    it('should mark built-in templates correctly', () => {
-      Object.values(BUILT_IN_TEMPLATES).forEach(template => {
+    it("should mark built-in templates correctly", () => {
+      Object.values(BUILT_IN_TEMPLATES).forEach((template) => {
         expect(template.builtin).toBe(true);
       });
     });
 
-    it('should have valid structure for built-in templates', () => {
-      Object.values(BUILT_IN_TEMPLATES).forEach(template => {
+    it("should have valid structure for built-in templates", () => {
+      Object.values(BUILT_IN_TEMPLATES).forEach((template) => {
         expect(template.id).toBeDefined();
         expect(template.name).toBeDefined();
         expect(template.framework).toBeDefined();
@@ -55,21 +55,21 @@ describe('Export Templates', () => {
     });
   });
 
-  describe('getAllTemplates', () => {
-    it('should return built-in templates when no user templates exist', () => {
+  describe("getAllTemplates", () => {
+    it("should return built-in templates when no user templates exist", () => {
       const templates = getAllTemplates();
       const builtInCount = Object.keys(BUILT_IN_TEMPLATES).length;
-      
+
       expect(templates.length).toBe(builtInCount);
-      expect(templates.every(t => t.builtin)).toBe(true);
+      expect(templates.every((t) => t.builtin)).toBe(true);
     });
 
-    it('should return built-in + user templates', () => {
+    it("should return built-in + user templates", () => {
       const userTemplate = {
-        id: 'user_test',
-        name: 'Test Template',
-        framework: 'CUSTOM',
-        columns: ['id', 'height'],
+        id: "user_test",
+        name: "Test Template",
+        framework: "CUSTOM",
+        columns: ["id", "height"],
         options: { useTickMarks: false },
       };
 
@@ -77,19 +77,19 @@ describe('Export Templates', () => {
 
       const templates = getAllTemplates();
       const builtInCount = Object.keys(BUILT_IN_TEMPLATES).length;
-      
+
       expect(templates.length).toBe(builtInCount + 1);
-      expect(templates.find(t => t.id === 'user_test')).toBeDefined();
+      expect(templates.find((t) => t.id === "user_test")).toBeDefined();
     });
   });
 
-  describe('saveTemplate', () => {
-    it('should save a valid template', () => {
+  describe("saveTemplate", () => {
+    it("should save a valid template", () => {
       const template = {
-        name: 'My Template',
-        description: 'Test description',
-        framework: 'NESC',
-        columns: ['id', 'height', 'latitude'],
+        name: "My Template",
+        description: "Test description",
+        framework: "NESC",
+        columns: ["id", "height", "latitude"],
         options: { useTickMarks: true, decimalPrecision: 2 },
       };
 
@@ -103,23 +103,23 @@ describe('Export Templates', () => {
       expect(result.template.builtin).toBe(false);
     });
 
-    it('should reject template without name', () => {
+    it("should reject template without name", () => {
       const template = {
-        framework: 'NESC',
-        columns: ['id', 'height'],
+        framework: "NESC",
+        columns: ["id", "height"],
         options: {},
       };
 
       const result = saveTemplate(template);
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('name is required');
+      expect(result.error).toContain("name is required");
     });
 
-    it('should reject template without columns', () => {
+    it("should reject template without columns", () => {
       const template = {
-        name: 'Test',
-        framework: 'NESC',
+        name: "Test",
+        framework: "NESC",
         columns: [],
         options: {},
       };
@@ -127,14 +127,14 @@ describe('Export Templates', () => {
       const result = saveTemplate(template);
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('column');
+      expect(result.error).toContain("column");
     });
 
-    it('should reject duplicate template names', () => {
+    it("should reject duplicate template names", () => {
       const template = {
-        name: 'Duplicate',
-        framework: 'NESC',
-        columns: ['id'],
+        name: "Duplicate",
+        framework: "NESC",
+        columns: ["id"],
         options: {},
       };
 
@@ -142,16 +142,16 @@ describe('Export Templates', () => {
       const result = saveTemplate(template);
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('already exists');
+      expect(result.error).toContain("already exists");
     });
 
-    it('should enforce template limit', () => {
+    it("should enforce template limit", () => {
       // Create 20 templates
       const templates = Array.from({ length: 20 }, (_, i) => ({
         id: `template_${i}`,
         name: `Template ${i}`,
-        framework: 'CUSTOM',
-        columns: ['id'],
+        framework: "CUSTOM",
+        columns: ["id"],
         options: {},
       }));
 
@@ -159,60 +159,60 @@ describe('Export Templates', () => {
 
       // Try to add one more
       const result = saveTemplate({
-        name: 'Overflow Template',
-        framework: 'CUSTOM',
-        columns: ['id'],
+        name: "Overflow Template",
+        framework: "CUSTOM",
+        columns: ["id"],
         options: {},
       });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Maximum');
+      expect(result.error).toContain("Maximum");
     });
   });
 
-  describe('updateTemplate', () => {
-    it('should update an existing user template', () => {
+  describe("updateTemplate", () => {
+    it("should update an existing user template", () => {
       const template = {
-        name: 'Original',
-        framework: 'NESC',
-        columns: ['id', 'height'],
+        name: "Original",
+        framework: "NESC",
+        columns: ["id", "height"],
         options: { useTickMarks: false },
       };
 
       const saved = saveTemplate(template);
-      
+
       const result = updateTemplate(saved.template.id, {
-        name: 'Updated',
-        columns: ['id', 'height', 'latitude'],
+        name: "Updated",
+        columns: ["id", "height", "latitude"],
       });
 
       expect(result.success).toBe(true);
-      expect(result.template.name).toBe('Updated');
-      expect(result.template.columns).toContain('latitude');
+      expect(result.template.name).toBe("Updated");
+      expect(result.template.columns).toContain("latitude");
       expect(result.template.updatedAt).toBeDefined();
     });
 
-    it('should not allow updating built-in templates', () => {
-      const result = updateTemplate('basic', { name: 'Modified' });
+    it("should not allow updating built-in templates", () => {
+      const result = updateTemplate("basic", { name: "Modified" });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('built-in');
+      expect(result.error).toContain("built-in");
     });
 
-    it('should return error for non-existent template', () => {
-      const result = updateTemplate('nonexistent', { name: 'Updated' });
+    it("should return error for non-existent template", () => {
+      const result = updateTemplate("nonexistent", { name: "Updated" });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('not found');
+      expect(result.error).toContain("not found");
     });
   });
 
-  describe('deleteTemplate', () => {
-    it('should delete a user template', () => {
+  describe("deleteTemplate", () => {
+    it("should delete a user template", () => {
       const template = {
-        name: 'To Delete',
-        framework: 'CUSTOM',
-        columns: ['id'],
+        name: "To Delete",
+        framework: "CUSTOM",
+        columns: ["id"],
         options: {},
       };
 
@@ -222,38 +222,38 @@ describe('Export Templates', () => {
       expect(result.success).toBe(true);
 
       const remaining = getUserTemplates();
-      expect(remaining.find(t => t.id === saved.template.id)).toBeUndefined();
+      expect(remaining.find((t) => t.id === saved.template.id)).toBeUndefined();
     });
 
-    it('should not allow deleting built-in templates', () => {
-      const result = deleteTemplate('basic');
+    it("should not allow deleting built-in templates", () => {
+      const result = deleteTemplate("basic");
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('built-in');
+      expect(result.error).toContain("built-in");
     });
 
-    it('should return error for non-existent template', () => {
-      const result = deleteTemplate('nonexistent');
+    it("should return error for non-existent template", () => {
+      const result = deleteTemplate("nonexistent");
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('not found');
+      expect(result.error).toContain("not found");
     });
   });
 
-  describe('getTemplateById', () => {
-    it('should retrieve built-in template', () => {
-      const template = getTemplateById('basic');
+  describe("getTemplateById", () => {
+    it("should retrieve built-in template", () => {
+      const template = getTemplateById("basic");
 
       expect(template).toBeDefined();
-      expect(template.id).toBe('basic');
+      expect(template.id).toBe("basic");
       expect(template.builtin).toBe(true);
     });
 
-    it('should retrieve user template', () => {
+    it("should retrieve user template", () => {
       const template = {
-        name: 'User Template',
-        framework: 'CUSTOM',
-        columns: ['id'],
+        name: "User Template",
+        framework: "CUSTOM",
+        columns: ["id"],
         options: {},
       };
 
@@ -265,18 +265,18 @@ describe('Export Templates', () => {
       expect(retrieved.builtin).toBe(false);
     });
 
-    it('should return null for non-existent template', () => {
-      const template = getTemplateById('nonexistent');
+    it("should return null for non-existent template", () => {
+      const template = getTemplateById("nonexistent");
       expect(template).toBeNull();
     });
   });
 
-  describe('Import/Export', () => {
-    it('should export user templates as JSON', () => {
+  describe("Import/Export", () => {
+    it("should export user templates as JSON", () => {
       const template = {
-        name: 'Export Test',
-        framework: 'NESC',
-        columns: ['id', 'height'],
+        name: "Export Test",
+        framework: "NESC",
+        columns: ["id", "height"],
         options: { useTickMarks: true },
       };
 
@@ -287,32 +287,32 @@ describe('Export Templates', () => {
 
       expect(Array.isArray(parsed)).toBe(true);
       expect(parsed.length).toBe(1);
-      expect(parsed[0].name).toBe('Export Test');
+      expect(parsed[0].name).toBe("Export Test");
     });
 
-    it('should import templates (merge mode)', () => {
+    it("should import templates (merge mode)", () => {
       // Create existing template
       saveTemplate({
-        name: 'Existing',
-        framework: 'CUSTOM',
-        columns: ['id'],
+        name: "Existing",
+        framework: "CUSTOM",
+        columns: ["id"],
         options: {},
       });
 
       // Import new templates
       const imported = JSON.stringify([
         {
-          id: 'imported_1',
-          name: 'Imported 1',
-          framework: 'NESC',
-          columns: ['id', 'height'],
+          id: "imported_1",
+          name: "Imported 1",
+          framework: "NESC",
+          columns: ["id", "height"],
           options: {},
         },
         {
-          id: 'imported_2',
-          name: 'Imported 2',
-          framework: 'CSA',
-          columns: ['id', 'height', 'latitude'],
+          id: "imported_2",
+          name: "Imported 2",
+          framework: "CSA",
+          columns: ["id", "height", "latitude"],
           options: {},
         },
       ]);
@@ -327,22 +327,22 @@ describe('Export Templates', () => {
       expect(templates.length).toBe(3);
     });
 
-    it('should import templates (replace mode)', () => {
+    it("should import templates (replace mode)", () => {
       // Create existing template
       saveTemplate({
-        name: 'Existing',
-        framework: 'CUSTOM',
-        columns: ['id'],
+        name: "Existing",
+        framework: "CUSTOM",
+        columns: ["id"],
         options: {},
       });
 
       // Import (replace)
       const imported = JSON.stringify([
         {
-          id: 'imported_1',
-          name: 'Imported 1',
-          framework: 'NESC',
-          columns: ['id'],
+          id: "imported_1",
+          name: "Imported 1",
+          framework: "NESC",
+          columns: ["id"],
           options: {},
         },
       ]);
@@ -354,11 +354,11 @@ describe('Export Templates', () => {
 
       const templates = getUserTemplates();
       expect(templates.length).toBe(1);
-      expect(templates[0].name).toBe('Imported 1');
+      expect(templates[0].name).toBe("Imported 1");
     });
 
-    it('should reject invalid JSON', () => {
-      const result = importUserTemplates('invalid json', true);
+    it("should reject invalid JSON", () => {
+      const result = importUserTemplates("invalid json", true);
 
       expect(result.success).toBe(false);
       expect(result.error).toBeDefined();

@@ -202,7 +202,7 @@
     ]
   },
   "engines": {
-    "node": ">=22 <25",
+    "node": ">=22 <23",
     "npm": ">=10"
   },
   "browserslist": [

@@ -1,5 +1,5 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import React from "react";
+import PropTypes from "prop-types";
 
 class OSPErrorBoundary extends React.Component {
   constructor(props) {
@@ -14,20 +14,24 @@ class OSPErrorBoundary extends React.Component {
   componentDidCatch(error, errorInfo) {
     this.setState({
       error,
-      errorInfo
+      errorInfo,
     });
 
     // Log to console in development
     if (import.meta?.env?.DEV) {
-      console.error('OSP Engineering App Error:', error, errorInfo);
+      console.error("OSP Engineering App Error:", error, errorInfo);
     }
 
     // Track error for analytics in production
     try {
-      if (typeof window !== 'undefined' && 'gtag' in window && typeof window.gtag === 'function') {
-        window.gtag('event', 'exception', {
+      if (
+        typeof window !== "undefined" &&
+        "gtag" in window &&
+        typeof window.gtag === "function"
+      ) {
+        window.gtag("event", "exception", {
           description: String(error),
-          fatal: false
+          fatal: false,
         });
       }
     } catch {
@@ -50,15 +54,18 @@ class OSPErrorBoundary extends React.Component {
                 Engineering Calculation Error
               </h3>
               <p className="text-sm text-red-600 mb-4">
-                A technical error occurred in the {this.props.section || 'calculation'} module.
-                This may be due to invalid input data or a calculation edge case.
+                A technical error occurred in the{" "}
+                {this.props.section || "calculation"} module. This may be due to
+                invalid input data or a calculation edge case.
               </p>
 
               {import.meta?.env?.DEV && this.state.error && (
                 <details className="text-left bg-red-100 p-3 rounded text-xs mb-4">
-                  <summary className="font-medium cursor-pointer">Technical Details</summary>
+                  <summary className="font-medium cursor-pointer">
+                    Technical Details
+                  </summary>
                   <pre className="mt-2 overflow-auto">
-                    {String(this.state.error || 'Error details unavailable')}
+                    {String(this.state.error || "Error details unavailable")}
                   </pre>
                 </details>
               )}
@@ -72,7 +79,8 @@ class OSPErrorBoundary extends React.Component {
                 Retry Calculation
               </button>
               <div className="text-xs text-red-500">
-                If the error persists, check input values and try refreshing the page.
+                If the error persists, check input values and try refreshing the
+                page.
               </div>
             </div>
           </div>
@@ -86,7 +94,7 @@ class OSPErrorBoundary extends React.Component {
 
 OSPErrorBoundary.propTypes = {
   children: PropTypes.node.isRequired,
-  section: PropTypes.string
+  section: PropTypes.string,
 };
 
 export default OSPErrorBoundary;

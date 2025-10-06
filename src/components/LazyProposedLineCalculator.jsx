@@ -1,7 +1,9 @@
-import React, { Suspense } from 'react';
+import React, { Suspense } from "react";
 
 // Lazy load the heavy ProposedLineCalculator component
-const ProposedLineCalculator = React.lazy(() => import('./ProposedLineCalculator'));
+const ProposedLineCalculator = React.lazy(
+  () => import("./ProposedLineCalculator"),
+);
 
 // Loading fallback component
 function CalculatorLoading() {

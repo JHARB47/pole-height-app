@@ -12,17 +12,22 @@ This feature computes PULL_ft from the two incident segment bearings at a pole.
 ## Usage (Button)
 
 ```jsx
-import { AutoFillPullButton } from '@/components';
+import { AutoFillPullButton } from "@/components";
 
-<AutoFillPullButton pole={pole} onUpdatePole={updatePole} baseSpanFt={100} />
+<AutoFillPullButton pole={pole} onUpdatePole={updatePole} baseSpanFt={100} />;
 ```
 
 ## Usage (Background)
 
 ```jsx
-import { useAutoFillPull } from '@/hooks';
+import { useAutoFillPull } from "@/hooks";
 
-useAutoFillPull({ pole, onUpdatePole: updatePole, baseSpanFt: 100, enabled: true });
+useAutoFillPull({
+  pole,
+  onUpdatePole: updatePole,
+  baseSpanFt: 100,
+  enabled: true,
+});
 ```
 
 Notes:

@@ -1,43 +1,63 @@
-import { describe, it, expect } from 'vitest';
-import { computeAnalysis, formatFeetInches } from './calculations.js';
+import { describe, it, expect } from "vitest";
+import { computeAnalysis, formatFeetInches } from "./calculations.js";
 
 function mockInputs(overrides = {}) {
   return {
     poleHeight: 40,
-    poleClass: 'Class 4',
-    existingPowerHeight: '35ft 0in',
-    existingPowerVoltage: 'distribution',
+    poleClass: "Class 4",
+    existingPowerHeight: "35ft 0in",
+    existingPowerVoltage: "distribution",
     spanDistance: 150,
     isNewConstruction: false,
     adjacentPoleHeight: 40,
-    attachmentType: 'communication',
+    attachmentType: "communication",
     cableDiameter: 0.6,
     windSpeed: 90,
-    spanEnvironment: 'road',
-    streetLightHeight: '25ft 0in',
-    dripLoopHeight: '22ft 0in',
-    proposedLineHeight: '22ft 0in',
+    spanEnvironment: "road",
+    streetLightHeight: "25ft 0in",
+    dripLoopHeight: "22ft 0in",
+    proposedLineHeight: "22ft 0in",
     existingLines: [
-      { type: 'communication', height: '18ft 6in', makeReady: true, makeReadyHeight: '19ft 6in', companyName: 'Comcast' },
-      { type: 'drop', height: '15ft 0in', makeReady: false, makeReadyHeight: '', companyName: 'Verizon' },
-      { type: 'neutral', height: '26ft 0in', makeReady: false, makeReadyHeight: '', companyName: 'Utility' },
+      {
+        type: "communication",
+        height: "18ft 6in",
+        makeReady: true,
+        makeReadyHeight: "19ft 6in",
+        companyName: "Comcast",
+      },
+      {
+        type: "drop",
+        height: "15ft 0in",
+        makeReady: false,
+        makeReadyHeight: "",
+        companyName: "Verizon",
+      },
+      {
+        type: "neutral",
+        height: "26ft 0in",
+        makeReady: false,
+        makeReadyHeight: "",
+        companyName: "Utility",
+      },
     ],
     iceThicknessIn: 0,
     hasTransformer: true,
-    presetProfile: 'firstEnergy',
-    customMinTopSpace: '',
-    customRoadClearance: '',
-    customCommToPower: '',
+    presetProfile: "firstEnergy",
+    customMinTopSpace: "",
+    customRoadClearance: "",
+    customCommToPower: "",
     ...overrides,
   };
 }
 
-function within(x, min, max) { return x >= min && x <= max; }
+function within(x, min, max) {
+  return x >= min && x <= max;
+}
 
-describe('computeAnalysis reliability', () => {
-  it('produces a coherent analysis with typical inputs', () => {
-  const { results, cost, errors } = computeAnalysis(mockInputs());
-  expect(errors).toBeUndefined();
+describe("computeAnalysis reliability", () => {
+  it("produces a coherent analysis with typical inputs", () => {
+    const { results, cost, errors } = computeAnalysis(mockInputs());
+    expect(errors).toBeUndefined();
     expect(results).toBeTruthy();
 
     // Pole basics
@@ -70,78 +90,114 @@ describe('computeAnalysis reliability', () => {
     expect(results.span.midspanFt).toBeGreaterThan(0);
 
     // Formatting helpers don’t crash on values
-    expect(typeof formatFeetInches(results.attach.proposedAttachFt)).toBe('string');
+    expect(typeof formatFeetInches(results.attach.proposedAttachFt)).toBe(
+      "string",
+    );
   });
 
-  it('handles new construction path', () => {
-    const out = computeAnalysis(mockInputs({ isNewConstruction: true, existingPowerHeight: '' }));
+  it("handles new construction path", () => {
+    const out = computeAnalysis(
+      mockInputs({ isNewConstruction: true, existingPowerHeight: "" }),
+    );
     expect(out.errors).toBeUndefined();
     expect(out.results.attach.proposedAttachFt).toBeGreaterThan(0);
   });
 
-  it('flags low midspan clearance as warning when applicable', () => {
-    const out = computeAnalysis(mockInputs({ spanDistance: 300, adjacentPoleHeight: 35, proposedLineHeight: '20ft 0in' }));
+  it("flags low midspan clearance as warning when applicable", () => {
+    const out = computeAnalysis(
+      mockInputs({
+        spanDistance: 300,
+        adjacentPoleHeight: 35,
+        proposedLineHeight: "20ft 0in",
+      }),
+    );
     expect(Array.isArray(out.warnings)).toBe(true);
   });
 
   it('uses FE 44" comm-to-power when jobOwner is FE subsidiary', () => {
     // Baseline with generic preset and no FE owner: expect 40"
-    const base = computeAnalysis(mockInputs({ presetProfile: '', existingPowerHeight: '35ft 0in', jobOwner: '', powerReference: 'power', dripLoopHeight: '' }));
+    const base = computeAnalysis(
+      mockInputs({
+        presetProfile: "",
+        existingPowerHeight: "35ft 0in",
+        jobOwner: "",
+        powerReference: "power",
+        dripLoopHeight: "",
+      }),
+    );
     expect(base.errors).toBeUndefined();
     const sep40 = (35 - base.results.attach.proposedAttachFt) * 12; // inches
     // With FE subsidiary owner at job level: expect ~44"
-    const fe = computeAnalysis(mockInputs({ presetProfile: '', existingPowerHeight: '35ft 0in', jobOwner: 'Mon Power', powerReference: 'power', dripLoopHeight: '' }));
+    const fe = computeAnalysis(
+      mockInputs({
+        presetProfile: "",
+        existingPowerHeight: "35ft 0in",
+        jobOwner: "Mon Power",
+        powerReference: "power",
+        dripLoopHeight: "",
+      }),
+    );
     expect(fe.errors).toBeUndefined();
     const sep44 = (35 - fe.results.attach.proposedAttachFt) * 12;
     expect(Math.round(sep40)).toBe(40);
     expect(Math.round(sep44)).toBe(44);
   });
 
-  it('applies environment-specific ground clearance override (residential)', () => {
-    const out = computeAnalysis(mockInputs({
-      spanEnvironment: 'residential',
-      submissionProfile: { envResidentialFt: 16.5 },
-    }));
+  it("applies environment-specific ground clearance override (residential)", () => {
+    const out = computeAnalysis(
+      mockInputs({
+        spanEnvironment: "residential",
+        submissionProfile: { envResidentialFt: 16.5 },
+      }),
+    );
     expect(out.errors).toBeUndefined();
     expect(out.results.clearances.groundClearance).toBeCloseTo(16.5, 5);
   });
 
-  it('applies Interstate ground clearance from profile', () => {
-    const out = computeAnalysis(mockInputs({
-      spanEnvironment: 'interstate',
-      submissionProfile: { envInterstateFt: 18.0 },
-    }));
+  it("applies Interstate ground clearance from profile", () => {
+    const out = computeAnalysis(
+      mockInputs({
+        spanEnvironment: "interstate",
+        submissionProfile: { envInterstateFt: 18.0 },
+      }),
+    );
     expect(out.errors).toBeUndefined();
     expect(out.results.clearances.groundClearance).toBeCloseTo(18.0, 5);
   });
 
-  it('applies Interstate (New Crossing) ground clearance from profile', () => {
-    const out = computeAnalysis(mockInputs({
-      spanEnvironment: 'interstateNewCrossing',
-      submissionProfile: { envInterstateNewCrossingFt: 21.0 },
-    }));
+  it("applies Interstate (New Crossing) ground clearance from profile", () => {
+    const out = computeAnalysis(
+      mockInputs({
+        spanEnvironment: "interstateNewCrossing",
+        submissionProfile: { envInterstateNewCrossingFt: 21.0 },
+      }),
+    );
     expect(out.errors).toBeUndefined();
     expect(out.results.clearances.groundClearance).toBeCloseTo(21.0, 5);
   });
 
-  it('applies Non-Residential Driveway ground clearance from profile', () => {
-    const out = computeAnalysis(mockInputs({
-      spanEnvironment: 'nonResidentialDriveway',
-      submissionProfile: { envNonResidentialDrivewayFt: 16.0 },
-    }));
+  it("applies Non-Residential Driveway ground clearance from profile", () => {
+    const out = computeAnalysis(
+      mockInputs({
+        spanEnvironment: "nonResidentialDriveway",
+        submissionProfile: { envNonResidentialDrivewayFt: 16.0 },
+      }),
+    );
     expect(out.errors).toBeUndefined();
     expect(out.results.clearances.groundClearance).toBeCloseTo(16.0, 5);
   });
 
-  it('clamps proposed attach to min communications attach height when no power present', () => {
+  it("clamps proposed attach to min communications attach height when no power present", () => {
     // Force commOwnerScenario by setting voltage to 'communication' and no power height
-    const out = computeAnalysis(mockInputs({
-      poleHeight: 18,
-      existingPowerHeight: '',
-      existingPowerVoltage: 'communication',
-      isNewConstruction: false,
-      submissionProfile: { minCommAttachFt: 14.0 },
-    }));
+    const out = computeAnalysis(
+      mockInputs({
+        poleHeight: 18,
+        existingPowerHeight: "",
+        existingPowerVoltage: "communication",
+        isNewConstruction: false,
+        submissionProfile: { minCommAttachFt: 14.0 },
+      }),
+    );
     expect(out.errors).toBeUndefined();
     expect(out.results.attach.proposedAttachFt).toBeGreaterThanOrEqual(14.0);
   });

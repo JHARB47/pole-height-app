@@ -25,9 +25,11 @@ try {
   try {
     execSync('npm audit --audit-level=high', { encoding: 'utf8' });
     console.log('✅ No high-severity vulnerabilities found');
-  } catch (error) {
+  } catch (err) {
     console.error('⚠️  High-severity vulnerabilities detected. Run: npm audit');
-    console.error(error.message);
+    if (err instanceof Error) {
+      console.error(err.message);
+    }
   }
   results.audit = true;
 } catch (_error) { // eslint-disable-line no-unused-vars
@@ -52,8 +54,9 @@ try {
     }
   });
   results.outdated = true;
-  } catch (error) {
-    console.error('❌ Failed to parse package.json:', error.message);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('❌ Failed to parse package.json:', message);
     process.exit(1);
   }
 
@@ -68,8 +71,9 @@ try {
     console.error('❌ Missing browserslist configuration');
     hasErrors = true;
   }
-} catch (error) {
-  console.error('❌ Error validating browserslist:', error.message);
+} catch (err) {
+  const message = err instanceof Error ? err.message : String(err);
+  console.error('❌ Error validating browserslist:', message);
   hasErrors = true;
 }
 

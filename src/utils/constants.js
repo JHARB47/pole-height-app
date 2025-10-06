@@ -1,9 +1,21 @@
 // Clearance targets at midspan by surface category
 export const SURFACE_CATEGORIES = {
   pedestrian: { label: "Pedestrian-only area", commMin: 12, powerMin: 12 },
-  residentialDrive: { label: "Residential driveway/yard", commMin: 15.5, powerMin: 16 },
-  publicRoad: { label: "Public road (truck traffic)", commMin: 16, powerMin: 18 },
-  railroad: { label: "Railroad crossing (CSX, etc.)", commMin: 23.5, powerMin: 25 },
+  residentialDrive: {
+    label: "Residential driveway/yard",
+    commMin: 15.5,
+    powerMin: 16,
+  },
+  publicRoad: {
+    label: "Public road (truck traffic)",
+    commMin: 16,
+    powerMin: 18,
+  },
+  railroad: {
+    label: "Railroad crossing (CSX, etc.)",
+    commMin: 23.5,
+    powerMin: 25,
+  },
 };
 
 // Vertical separation requirements
@@ -90,27 +102,51 @@ export const FE_REQUIRED = {
 // West Virginia companies (seed list; not exhaustive)
 export const WV_COMPANIES = {
   power: [
-    { name: 'Appalachian Power (AEP)', short: 'Appalachian Power', parent: 'AEP' },
-    { name: 'Wheeling Power (AEP)', short: 'Wheeling Power', parent: 'AEP' },
-    { name: 'Monongahela Power (Mon Power)', short: 'Mon Power', parent: 'FirstEnergy' },
-    { name: 'Potomac Edison', short: 'Potomac Edison', parent: 'FirstEnergy' },
-    { name: 'Harrison Rural Electrification Association (HREA)', short: 'HREA', parent: 'Cooperative' },
-    { name: 'Black Diamond Power Company', short: 'Black Diamond Power', parent: 'Investor-owned' },
-    { name: 'City of New Martinsville Electric', short: 'New Martinsville Electric', parent: 'Municipal' },
-    { name: 'City of Philippi Electric', short: 'Philippi Electric', parent: 'Municipal' },
+    {
+      name: "Appalachian Power (AEP)",
+      short: "Appalachian Power",
+      parent: "AEP",
+    },
+    { name: "Wheeling Power (AEP)", short: "Wheeling Power", parent: "AEP" },
+    {
+      name: "Monongahela Power (Mon Power)",
+      short: "Mon Power",
+      parent: "FirstEnergy",
+    },
+    { name: "Potomac Edison", short: "Potomac Edison", parent: "FirstEnergy" },
+    {
+      name: "Harrison Rural Electrification Association (HREA)",
+      short: "HREA",
+      parent: "Cooperative",
+    },
+    {
+      name: "Black Diamond Power Company",
+      short: "Black Diamond Power",
+      parent: "Investor-owned",
+    },
+    {
+      name: "City of New Martinsville Electric",
+      short: "New Martinsville Electric",
+      parent: "Municipal",
+    },
+    {
+      name: "City of Philippi Electric",
+      short: "Philippi Electric",
+      parent: "Municipal",
+    },
   ],
   communication: [
-    { name: 'Frontier Communications', short: 'Frontier' },
-    { name: 'Optimum (formerly Suddenlink)', short: 'Optimum' },
-    { name: 'Armstrong', short: 'Armstrong' },
-    { name: 'Citynet', short: 'Citynet' },
-    { name: 'Lumen (CenturyLink/Level 3)', short: 'Lumen' },
-    { name: 'Zayo', short: 'Zayo' },
-    { name: 'Segra (Lumos Networks)', short: 'Segra' },
-    { name: 'Comcast Xfinity', short: 'Comcast' },
-    { name: 'Charter Spectrum', short: 'Spectrum' },
-    { name: 'AT&T', short: 'AT&T' },
-    { name: 'Verizon', short: 'Verizon' },
-    { name: 'T-Mobile', short: 'T-Mobile' },
+    { name: "Frontier Communications", short: "Frontier" },
+    { name: "Optimum (formerly Suddenlink)", short: "Optimum" },
+    { name: "Armstrong", short: "Armstrong" },
+    { name: "Citynet", short: "Citynet" },
+    { name: "Lumen (CenturyLink/Level 3)", short: "Lumen" },
+    { name: "Zayo", short: "Zayo" },
+    { name: "Segra (Lumos Networks)", short: "Segra" },
+    { name: "Comcast Xfinity", short: "Comcast" },
+    { name: "Charter Spectrum", short: "Spectrum" },
+    { name: "AT&T", short: "AT&T" },
+    { name: "Verizon", short: "Verizon" },
+    { name: "T-Mobile", short: "T-Mobile" },
   ],
 };

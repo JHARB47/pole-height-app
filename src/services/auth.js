@@ -6,11 +6,11 @@
 
 class AuthService {
   constructor() {
-    this.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-    this.tokenKey = 'poleplan_token';
-    this.refreshKey = 'poleplan_refresh';
-    this.userKey = 'poleplan_user';
-    
+    this.baseURL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+    this.tokenKey = "poleplan_token";
+    this.refreshKey = "poleplan_refresh";
+    this.userKey = "poleplan_user";
+
     // Initialize token refresh timer
     this.refreshTimer = null;
     this.setupTokenRefresh();
@@ -22,9 +22,9 @@ class AuthService {
   async login(email, password) {
     try {
       const response = await fetch(`${this.baseURL}/auth/login`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
       });
@@ -32,13 +32,13 @@ class AuthService {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
+        throw new Error(data.error || "Login failed");
       }
 
       this.handleAuthSuccess(data);
       return data;
     } catch (error) {
-      console.error('Login error:', error);
+      console.error("Login error:", error);
       throw error;
     }
   }
@@ -49,9 +49,9 @@ class AuthService {
   async register(userData) {
     try {
       const response = await fetch(`${this.baseURL}/auth/register`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(userData),
       });
@@ -59,13 +59,13 @@ class AuthService {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Registration failed');
+        throw new Error(data.error || "Registration failed");
       }
 
       this.handleAuthSuccess(data);
       return data;
     } catch (error) {
-      console.error('Registration error:', error);
+      console.error("Registration error:", error);
       throw error;
     }
   }
@@ -78,14 +78,14 @@ class AuthService {
       const token = this.getToken();
       if (token) {
         await fetch(`${this.baseURL}/auth/logout`, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         });
       }
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
     } finally {
       this.clearAuth();
     }
@@ -98,13 +98,13 @@ class AuthService {
     try {
       const refreshToken = localStorage.getItem(this.refreshKey);
       if (!refreshToken) {
-        throw new Error('No refresh token available');
+        throw new Error("No refresh token available");
       }
 
       const response = await fetch(`${this.baseURL}/auth/refresh`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ refresh_token: refreshToken }),
       });
@@ -112,13 +112,13 @@ class AuthService {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Token refresh failed');
+        throw new Error(data.error || "Token refresh failed");
       }
 
       this.handleTokenRefresh(data.tokens);
       return data.tokens;
     } catch (error) {
-      console.error('Token refresh error:', error);
+      console.error("Token refresh error:", error);
       this.clearAuth();
       throw error;
     }
@@ -136,7 +136,7 @@ class AuthService {
 
       const response = await fetch(`${this.baseURL}/auth/me`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -146,14 +146,14 @@ class AuthService {
           await this.refreshToken();
           return this.getCurrentUser();
         }
-        throw new Error('Failed to get user info');
+        throw new Error("Failed to get user info");
       }
 
       const data = await response.json();
       localStorage.setItem(this.userKey, JSON.stringify(data.user));
       return data.user;
     } catch (error) {
-      console.error('Get current user error:', error);
+      console.error("Get current user error:", error);
       return null;
     }
   }
@@ -163,18 +163,21 @@ class AuthService {
    */
   handleSSOCallback() {
     const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
-    const refreshToken = urlParams.get('refresh');
+    const token = urlParams.get("token");
+    const refreshToken = urlParams.get("refresh");
 
     if (token && refreshToken) {
-      this.handleTokenRefresh({ access_token: token, refresh_token: refreshToken });
-      
+      this.handleTokenRefresh({
+        access_token: token,
+        refresh_token: refreshToken,
+      });
+
       // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
-      
+
       return true;
     }
-    
+
     return false;
   }
 
@@ -183,16 +186,16 @@ class AuthService {
    */
   async apiRequest(endpoint, options = {}) {
     const token = this.getToken();
-    
+
     if (!token) {
-      throw new Error('No authentication token available');
+      throw new Error("No authentication token available");
     }
 
     const config = {
       ...options,
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
         ...options.headers,
       },
     };
@@ -203,14 +206,14 @@ class AuthService {
     if (response.status === 401) {
       try {
         await this.refreshToken();
-        
+
         // Update token in headers and retry
         config.headers.Authorization = `Bearer ${this.getToken()}`;
         response = await fetch(`${this.baseURL}${endpoint}`, config);
       } catch (refreshError) {
-        console.error('Token refresh failed during API request:', refreshError);
+        console.error("Token refresh failed during API request:", refreshError);
         this.clearAuth();
-        throw new Error('Authentication expired');
+        throw new Error("Authentication expired");
       }
     }
 
@@ -225,7 +228,7 @@ class AuthService {
       localStorage.setItem(this.tokenKey, data.tokens.access_token);
       localStorage.setItem(this.refreshKey, data.tokens.refresh_token);
     }
-    
+
     if (data.user) {
       localStorage.setItem(this.userKey, JSON.stringify(data.user));
     }
@@ -249,7 +252,7 @@ class AuthService {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.refreshKey);
     localStorage.removeItem(this.userKey);
-    
+
     if (this.refreshTimer) {
       clearTimeout(this.refreshTimer);
       this.refreshTimer = null;
@@ -307,20 +310,20 @@ class AuthService {
 
     try {
       // Decode JWT to get expiration time
-      const payload = JSON.parse(atob(token.split('.')[1]));
+      const payload = JSON.parse(atob(token.split(".")[1]));
       const expTime = payload.exp * 1000; // Convert to milliseconds
       const currentTime = Date.now();
-      const timeToRefresh = expTime - currentTime - (5 * 60 * 1000); // Refresh 5 minutes before expiry
+      const timeToRefresh = expTime - currentTime - 5 * 60 * 1000; // Refresh 5 minutes before expiry
 
       if (timeToRefresh > 0) {
         this.refreshTimer = setTimeout(() => {
-          this.refreshToken().catch(error => {
-            console.error('Automatic token refresh failed:', error);
+          this.refreshToken().catch((error) => {
+            console.error("Automatic token refresh failed:", error);
           });
         }, timeToRefresh);
       }
     } catch (error) {
-      console.error('Failed to setup token refresh:', error);
+      console.error("Failed to setup token refresh:", error);
     }
   }
 
@@ -329,24 +332,24 @@ class AuthService {
    */
   initializeSSO() {
     // Add SSO button click handlers
-    const googleBtn = document.getElementById('google-sso-btn');
-    const azureBtn = document.getElementById('azure-sso-btn');
-    const samlBtn = document.getElementById('saml-sso-btn');
+    const googleBtn = document.getElementById("google-sso-btn");
+    const azureBtn = document.getElementById("azure-sso-btn");
+    const samlBtn = document.getElementById("saml-sso-btn");
 
     if (googleBtn) {
-      googleBtn.addEventListener('click', () => {
+      googleBtn.addEventListener("click", () => {
         window.location.href = `${this.baseURL}/auth/google`;
       });
     }
 
     if (azureBtn) {
-      azureBtn.addEventListener('click', () => {
+      azureBtn.addEventListener("click", () => {
         window.location.href = `${this.baseURL}/auth/azure`;
       });
     }
 
     if (samlBtn) {
-      samlBtn.addEventListener('click', () => {
+      samlBtn.addEventListener("click", () => {
         window.location.href = `${this.baseURL}/auth/saml`;
       });
     }
@@ -357,9 +360,9 @@ class AuthService {
 export const authService = new AuthService();
 
 // Auto-initialize on import
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   // Handle SSO callback on page load
-  window.addEventListener('DOMContentLoaded', () => {
+  window.addEventListener("DOMContentLoaded", () => {
     authService.handleSSOCallback();
     authService.initializeSSO();
   });

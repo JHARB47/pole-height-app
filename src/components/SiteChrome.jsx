@@ -1,20 +1,23 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
-import site from '../../content/site.json'
+import React from "react";
+import { Link } from "react-router-dom";
+import site from "../../content/site.json";
 
 export default function SiteChrome({ children }) {
-  const title = site?.siteTitle || 'Pole Plan Pro'
-  const logo = site?.logo || '/pwa-192.png'
-  const nav = Array.isArray(site?.navigation) && site.navigation.length > 0
-    ? site.navigation
-    : [
-        { label: 'Home', url: '/' },
-        { label: 'App', url: '/app' }
-      ]
+  const title = site?.siteTitle || "Pole Plan Pro";
+  const logo = site?.logo || "/pwa-192.png";
+  const nav =
+    Array.isArray(site?.navigation) && site.navigation.length > 0
+      ? site.navigation
+      : [
+          { label: "Home", url: "/" },
+          { label: "App", url: "/app" },
+        ];
 
   return (
     <>
-      <a href="#main-content" className="skip-link">Skip to main content</a>
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
       <header role="banner" className="top-nav" aria-label="Primary">
         <Link to="/" className="brand" aria-label={`${title} home`}>
           <img src={logo} alt="" width="24" height="24" />
@@ -22,7 +25,9 @@ export default function SiteChrome({ children }) {
         </Link>
         <nav aria-label="Primary navigation" className="nav-links">
           {nav.map((item, i) => (
-            <Link key={i} to={item.url}>{item.label}</Link>
+            <Link key={i} to={item.url}>
+              {item.label}
+            </Link>
           ))}
         </nav>
       </header>
@@ -39,5 +44,5 @@ export default function SiteChrome({ children }) {
         body{padding-top:44px}
       `}</style>
     </>
-  )
+  );
 }

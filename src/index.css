@@ -3,235 +3,247 @@
 @import "tailwindcss/utilities";
 
 /* Print helpers */
-.break-anywhere { 
-	overflow-wrap: anywhere; 
+.break-anywhere {
+  overflow-wrap: anywhere;
 }
 
 .line-clamp-2 {
-	display: -webkit-box;
-	-webkit-line-clamp: 2;
-	-webkit-box-orient: vertical;
-	line-clamp: 2;
-	overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  overflow: hidden;
 }
 
 @media print {
-	.no-print { display: none !important; }
+  .no-print {
+    display: none !important;
+  }
 
-	.page-break {
-		break-before: page;
-	}
+  .page-break {
+    break-before: page;
+  }
 }
 
 /* Minor mobile-friendly utility tweaks */
 .safe-px {
-	padding-left: env(safe-area-inset-left);
-	padding-right: env(safe-area-inset-right);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
-.safe-pt { padding-top: env(safe-area-inset-top); }
-.safe-pb { padding-bottom: env(safe-area-inset-bottom); }
-.anchor-offset { scroll-margin-top: 56px; }
+.safe-pt {
+  padding-top: env(safe-area-inset-top);
+}
+.safe-pb {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.anchor-offset {
+  scroll-margin-top: 56px;
+}
 
 /* Reusable section and workflow helpers to improve readability/navigation */
 .app-section {
-	border-radius: 0.5rem; /* rounded */
-	border-width: 1px;     /* border */
-	border-style: solid;
-	border-color: #e5e7eb; /* Tailwind's border-gray-200 */
-	padding: 1rem;         /* p-4 */
-	background-color: #fff; /* bg-white */
-	box-shadow: 0 1px 2px 0 rgb(0 0 0 / 5%); /* shadow-sm */
+  border-radius: 0.5rem; /* rounded */
+  border-width: 1px; /* border */
+  border-style: solid;
+  border-color: #e5e7eb; /* Tailwind's border-gray-200 */
+  padding: 1rem; /* p-4 */
+  background-color: #fff; /* bg-white */
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 5%); /* shadow-sm */
 }
 
 @media (width >= 768px) {
-	.app-section {
-		padding: 1.5rem; /* md:p-6 */
-	}
+  .app-section {
+    padding: 1.5rem; /* md:p-6 */
+  }
 }
 
-	.section-title {
-		font-size: 1.125rem; /* text-lg */
-		font-weight: 600;    /* font-semibold */
-		margin-bottom: 0.75rem; /* mb-3 */
-		color: #1a202c;      /* text-gray-900 */
-	}
+.section-title {
+  font-size: 1.125rem; /* text-lg */
+  font-weight: 600; /* font-semibold */
+  margin-bottom: 0.75rem; /* mb-3 */
+  color: #1a202c; /* text-gray-900 */
+}
 
-	@media (width >= 768px) {
-		.section-title {
-			font-size: 1.25rem; /* md:text-xl */
-		}
-	}
+@media (width >= 768px) {
+  .section-title {
+    font-size: 1.25rem; /* md:text-xl */
+  }
+}
 
-	.section-subtitle {
-		font-size: 0.875rem;      /* text-sm */
-		color: #4b5563;           /* text-gray-600 */
-		margin-bottom: 1rem;      /* mb-4 */
-		line-height: 1.625;       /* leading-relaxed */
-	}
+.section-subtitle {
+  font-size: 0.875rem; /* text-sm */
+  color: #4b5563; /* text-gray-600 */
+  margin-bottom: 1rem; /* mb-4 */
+  line-height: 1.625; /* leading-relaxed */
+}
 
-	.section-grid {
-		display: grid;
-		gap: 1rem;
-	}
+.section-grid {
+  display: grid;
+  gap: 1rem;
+}
 
-	@media (width >= 768px) {
-		.section-grid {
-			gap: 1.5rem;
-		}
-	}
+@media (width >= 768px) {
+  .section-grid {
+    gap: 1.5rem;
+  }
+}
 
-	.section-divider {
-		border-top-width: 1px;
-		border-color: #e5e7eb; /* Tailwind's border-gray-200 */
-		margin-top: 1rem;
-		margin-bottom: 1rem;
-	}
+.section-divider {
+  border-top-width: 1px;
+  border-color: #e5e7eb; /* Tailwind's border-gray-200 */
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
 
-	@media (width >= 768px) {
-		.section-divider {
-			margin-top: 1.5rem;
-			margin-bottom: 1.5rem;
-		}
-	}
+@media (width >= 768px) {
+  .section-divider {
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+}
 
-	.vertical-rhythm > * + * {
-		margin-top: 1rem;
-	}
+.vertical-rhythm > * + * {
+  margin-top: 1rem;
+}
 
-	.workflow-nav {
-		position: sticky;
-		top: 0;
-		z-index: 40;
-		background-color: rgb(255 255 255 / 90%);
-		backdrop-filter: blur(4px);
-		border-bottom: 1px solid #e5e7eb; /* Tailwind's border-gray-200 */
-	}
+.workflow-nav {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background-color: rgb(255 255 255 / 90%);
+  backdrop-filter: blur(4px);
+  border-bottom: 1px solid #e5e7eb; /* Tailwind's border-gray-200 */
+}
 
-		.workflow-nav a {
-			font-size: 0.875rem; /* text-sm */
-			color: #4b5563; /* text-gray-700 */
-			padding: 0.75rem; /* px-3 */ /* py-3 */
-			display: inline-block;
-			font-weight: 500; /* font-medium */
-			transition-property: color;
-			transition-duration: 150ms;
-			transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-		}
+.workflow-nav a {
+  font-size: 0.875rem; /* text-sm */
+  color: #4b5563; /* text-gray-700 */
+  padding: 0.75rem; /* px-3 */ /* py-3 */
+  display: inline-block;
+  font-weight: 500; /* font-medium */
+  transition-property: color;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
 
-		@media (width >= 768px) {
-			.workflow-nav a {
-				font-size: 1rem; /* md:text-base */
-			}
-		}
+@media (width >= 768px) {
+  .workflow-nav a {
+    font-size: 1rem; /* md:text-base */
+  }
+}
 
-		.workflow-nav a:hover {
-			color: #000; /* hover:text-black */
-		}
+.workflow-nav a:hover {
+  color: #000; /* hover:text-black */
+}
 
-	/* Form layout improvements */
-		.form-grid {
-			display: grid;
-			grid-template-columns: 1fr;
-			gap: 1rem;
-		}
+/* Form layout improvements */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
 
-		@media (width >= 1280px) {
-			.form-grid {
-				grid-template-columns: repeat(3, 1fr);
-			}
-		}
+@media (width >= 1280px) {
+  .form-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
 
-	.form-section {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem; /* space-y-4 in Tailwind is 1rem */
-		padding: 1rem; /* p-4 */
-		background-color: #f9fafb; /* bg-gray-50 */
-		border-radius: 0.5rem; /* rounded-lg */
-		border-width: 1px; /* border */
-		border-style: solid;
-		border-color: #e5e7eb; /* Tailwind's border-gray-200 */
-	}
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; /* space-y-4 in Tailwind is 1rem */
+  padding: 1rem; /* p-4 */
+  background-color: #f9fafb; /* bg-gray-50 */
+  border-radius: 0.5rem; /* rounded-lg */
+  border-width: 1px; /* border */
+  border-style: solid;
+  border-color: #e5e7eb; /* Tailwind's border-gray-200 */
+}
 
-	.form-section-title {
-		font-size: 1rem;         /* text-base */
-		font-weight: 600;        /* font-semibold */
-		color: #1a202c;          /* text-gray-900 */
-		margin-bottom: 0.75rem;  /* mb-3 */
-	}
+.form-section-title {
+  font-size: 1rem; /* text-base */
+  font-weight: 600; /* font-semibold */
+  color: #1a202c; /* text-gray-900 */
+  margin-bottom: 0.75rem; /* mb-3 */
+}
 
-	/* Input field styling for better text-to-box ratio */
-	.form-input {
-		border-width: 1px;
-		border-style: solid;
-		border-color: #d1d5db; /* Tailwind's border-gray-300 */
-		border-radius: 0.375rem; /* rounded-md */
-		padding: 0.75rem 1rem; /* px-4 */ /* py-3 */
-		min-width: 0;
-		width: 100%;
-		font-size: 1rem; /* text-base */
-		line-height: 1.5; /* leading-normal */
-		background-color: #fff; /* bg-white */
-		min-height: 44px; /* Ensures good touch targets */
-		outline: none;
-		transition: box-shadow 0.2s, border-color 0.2s;
-	}
+/* Input field styling for better text-to-box ratio */
+.form-input {
+  border-width: 1px;
+  border-style: solid;
+  border-color: #d1d5db; /* Tailwind's border-gray-300 */
+  border-radius: 0.375rem; /* rounded-md */
+  padding: 0.75rem 1rem; /* px-4 */ /* py-3 */
+  min-width: 0;
+  width: 100%;
+  font-size: 1rem; /* text-base */
+  line-height: 1.5; /* leading-normal */
+  background-color: #fff; /* bg-white */
+  min-height: 44px; /* Ensures good touch targets */
+  outline: none;
+  transition:
+    box-shadow 0.2s,
+    border-color 0.2s;
+}
 
-	.form-input:focus {
-		outline: none;
-		box-shadow: 0 0 0 2px #3b82f6; /* focus:ring-2 focus:ring-blue-500 */
-		border-color: #3b82f6; /* focus:border-blue-500 */
-	}
+.form-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #3b82f6; /* focus:ring-2 focus:ring-blue-500 */
+  border-color: #3b82f6; /* focus:border-blue-500 */
+}
 
-	.form-input::placeholder {
-		color: #9ca3af; /* placeholder:text-gray-400 */
-	}
+.form-input::placeholder {
+  color: #9ca3af; /* placeholder:text-gray-400 */
+}
 
-	.form-select {
-		border-width: 1px;
-		border-style: solid;
-		border-color: #d1d5db; /* Tailwind's border-gray-300 */
-		border-radius: 0.375rem; /* rounded-md */
-		padding-left: 1rem; /* px-4 */
-		font-size: 1rem; /* text-base */
-		line-height: 1.5; /* leading-normal */
-		background-color: #fff; /* bg-white */
-		min-height: 44px;
-		outline: none;
-		transition: box-shadow 0.2s, border-color 0.2s;
-	}
+.form-select {
+  border-width: 1px;
+  border-style: solid;
+  border-color: #d1d5db; /* Tailwind's border-gray-300 */
+  border-radius: 0.375rem; /* rounded-md */
+  padding-left: 1rem; /* px-4 */
+  font-size: 1rem; /* text-base */
+  line-height: 1.5; /* leading-normal */
+  background-color: #fff; /* bg-white */
+  min-height: 44px;
+  outline: none;
+  transition:
+    box-shadow 0.2s,
+    border-color 0.2s;
+}
 
-	.form-label {
-		font-size: 0.875rem; /* text-sm */
-		font-weight: 500; /* font-medium */
-		color: #4b5563; /* text-gray-700 */
-		margin-bottom: 0.5rem; /* mb-2 */
-		display: grid;
-		grid-template-columns: 1fr;
-		gap: 1rem;
-	}
+.form-label {
+  font-size: 0.875rem; /* text-sm */
+  font-weight: 500; /* font-medium */
+  color: #4b5563; /* text-gray-700 */
+  margin-bottom: 0.5rem; /* mb-2 */
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
 
-		.form-row-3 {
-			display: grid;
-			grid-template-columns: 1fr;
-			gap: 1rem;
-		}
+.form-row-3 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
 
-		@media (width >= 768px) {
-			.form-row-3 {
-				grid-template-columns: repeat(2, 1fr);
-				gap: 1rem;
-			}
-		}
+@media (width >= 768px) {
+  .form-row-3 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+}
 
-		@media (width >= 1280px) {
-			.form-row-3 {
-				grid-template-columns: repeat(3, 1fr);
-			}
-		}
+@media (width >= 1280px) {
+  .form-row-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
 
-		.form-container {
-			display: flex;
-			flex-direction: column;
-			gap: 1.5rem; /* space-y-6 in Tailwind is 1.5rem */
-		}
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; /* space-y-6 in Tailwind is 1.5rem */
+}

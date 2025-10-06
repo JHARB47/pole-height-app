@@ -57,7 +57,7 @@ export function controllingGroundTarget(profile, segments, fallbackEnv) {
  */
 export function maxTargetFromCached(cachedMidspans, env, profile) {
   const list = Array.isArray(cachedMidspans) ? cachedMidspans : [];
-  const filtered = list.filter(m => (m?.environment || '') === env);
+  const filtered = list.filter((m) => (m?.environment || "") === env);
   let max = -Infinity;
   for (const m of filtered) {
     const v = Number(m?.targetFt);

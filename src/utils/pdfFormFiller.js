@@ -5,17 +5,17 @@
 // Overlay text values at absolute coordinates.
 export async function fillPdfWithFields(basePdfBytes, fields, layout) {
   // layout: [{ key, x, y, size?, pageIndex?, bold? }]
-  const { loadPdfLib } = await import('./pdfAsync');
+  const { loadPdfLib } = await import("./pdfAsync");
   const { PDFDocument, StandardFonts, rgb } = await loadPdfLib();
   const doc = await PDFDocument.load(basePdfBytes);
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const fontBold = await doc.embedFont(StandardFonts.HelveticaBold);
   const pages = doc.getPages();
-  for (const spec of (layout || [])) {
+  for (const spec of layout || []) {
     const page = pages[spec.pageIndex || 0];
     if (!page) continue;
     const value = fields[spec.key];
-    if (value == null || value === '') continue;
+    if (value == null || value === "") continue;
     page.drawText(String(value), {
       x: spec.x,
       y: spec.y,
@@ -30,9 +30,9 @@ export async function fillPdfWithFields(basePdfBytes, fields, layout) {
 // Fill AcroForm fields by name using normalized fields and a field name mapper.
 // This works when the official PDF is a fillable form.
 export async function fillAcroFormByName(basePdfBytes, env, fields) {
-  const { loadPdfLib } = await import('./pdfAsync');
+  const { loadPdfLib } = await import("./pdfAsync");
   const { PDFDocument } = await loadPdfLib();
-  const { mapFieldNameToKey } = await import('./pdfFieldMapper');
+  const { mapFieldNameToKey } = await import("./pdfFieldMapper");
   const doc = await PDFDocument.load(basePdfBytes);
   const form = doc.getForm();
   const acroFields = form.getFields();
@@ -42,7 +42,7 @@ export async function fillAcroFormByName(basePdfBytes, env, fields) {
       const key = mapFieldNameToKey(name, env);
       if (!key) continue;
       const val = fields[key];
-      if (val == null || val === '') continue;
+      if (val == null || val === "") continue;
       const s = String(val);
       if (f.setText) f.setText(s);
     } catch {
@@ -54,24 +54,32 @@ export async function fillAcroFormByName(basePdfBytes, env, fields) {
 
 // Lightweight PDF meta reader for layout selection
 export async function getPdfMeta(basePdfBytes) {
-  const { loadPdfLib } = await import('./pdfAsync');
+  const { loadPdfLib } = await import("./pdfAsync");
   const { PDFDocument } = await loadPdfLib();
   const doc = await PDFDocument.load(basePdfBytes);
   const pages = doc.getPages();
   const first = pages[0];
   const size = first ? first.getSize() : { width: 0, height: 0 };
-  return { pages: pages.length, firstPage: { width: size.width, height: size.height } };
+  return {
+    pages: pages.length,
+    firstPage: { width: size.width, height: size.height },
+  };
 }
 
 // Convenience: auto-pick a layout for an environment if none provided
 export async function fillPdfAuto(basePdfBytes, env, fields, explicitLayout) {
   let layout = explicitLayout;
   if (!layout || !layout.length) {
-    const { getLayoutFor } = await import('./pdfLayouts');
+    const { getLayoutFor } = await import("./pdfLayouts");
     const meta = await getPdfMeta(basePdfBytes);
     layout = getLayoutFor(env, meta);
   }
   return fillPdfWithFields(basePdfBytes, fields, layout);
 }
 
-export default { fillPdfWithFields, fillAcroFormByName, getPdfMeta, fillPdfAuto };
+export default {
+  fillPdfWithFields,
+  fillAcroFormByName,
+  getPdfMeta,
+  fillPdfAuto,
+};

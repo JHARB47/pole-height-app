@@ -3,7 +3,7 @@
  * Save, load, and manage custom CSV export templates
  */
 
-const STORAGE_KEY = 'poleplan_export_templates';
+const STORAGE_KEY = "poleplan_export_templates";
 const MAX_TEMPLATES = 20; // Limit to prevent localStorage bloat
 
 /**
@@ -11,11 +11,11 @@ const MAX_TEMPLATES = 20; // Limit to prevent localStorage bloat
  */
 export const BUILT_IN_TEMPLATES = {
   BASIC: {
-    id: 'basic',
-    name: 'Basic Export',
-    description: 'Essential pole information only',
-    framework: 'CUSTOM',
-    columns: ['id', 'height', 'latitude', 'longitude'],
+    id: "basic",
+    name: "Basic Export",
+    description: "Essential pole information only",
+    framework: "CUSTOM",
+    columns: ["id", "height", "latitude", "longitude"],
     options: {
       useTickMarks: false,
       decimalPrecision: 6,
@@ -23,20 +23,20 @@ export const BUILT_IN_TEMPLATES = {
     builtin: true,
   },
   NESC_FULL: {
-    id: 'nesc_full',
-    name: 'NESC Complete',
-    description: 'All NESC compliance fields',
-    framework: 'NESC',
+    id: "nesc_full",
+    name: "NESC Complete",
+    description: "All NESC compliance fields",
+    framework: "NESC",
     columns: [
-      'id',
-      'height',
-      'latitude',
-      'longitude',
-      'groundLineClearance',
-      'midspanClearance',
-      'verticalClearance',
-      'horizontalClearance',
-      'loadCalculation',
+      "id",
+      "height",
+      "latitude",
+      "longitude",
+      "groundLineClearance",
+      "midspanClearance",
+      "verticalClearance",
+      "horizontalClearance",
+      "loadCalculation",
     ],
     options: {
       useTickMarks: true,
@@ -45,18 +45,18 @@ export const BUILT_IN_TEMPLATES = {
     builtin: true,
   },
   CSA_STANDARD: {
-    id: 'csa_standard',
-    name: 'CSA Standard',
-    description: 'CSA C22.3 compliance fields',
-    framework: 'CSA',
+    id: "csa_standard",
+    name: "CSA Standard",
+    description: "CSA C22.3 compliance fields",
+    framework: "CSA",
     columns: [
-      'id',
-      'height',
-      'latitude',
-      'longitude',
-      'csaSagCalculation',
-      'csaClearanceVerification',
-      'groundLineClearance',
+      "id",
+      "height",
+      "latitude",
+      "longitude",
+      "csaSagCalculation",
+      "csaClearanceVerification",
+      "groundLineClearance",
     ],
     options: {
       useTickMarks: true,
@@ -65,11 +65,11 @@ export const BUILT_IN_TEMPLATES = {
     builtin: true,
   },
   GIS_EXPORT: {
-    id: 'gis_export',
-    name: 'GIS/Mapping',
-    description: 'Optimized for GIS software import',
-    framework: 'CUSTOM',
-    columns: ['id', 'latitude', 'longitude', 'height', 'elevation'],
+    id: "gis_export",
+    name: "GIS/Mapping",
+    description: "Optimized for GIS software import",
+    framework: "CUSTOM",
+    columns: ["id", "latitude", "longitude", "height", "elevation"],
     options: {
       useTickMarks: false,
       decimalPrecision: 8, // High precision for GIS
@@ -77,18 +77,18 @@ export const BUILT_IN_TEMPLATES = {
     builtin: true,
   },
   FIELD_COLLECTION: {
-    id: 'field_collection',
-    name: 'Field Collection',
-    description: 'Data collected during field surveys',
-    framework: 'CUSTOM',
+    id: "field_collection",
+    name: "Field Collection",
+    description: "Data collected during field surveys",
+    framework: "CUSTOM",
     columns: [
-      'id',
-      'latitude',
-      'longitude',
-      'height',
-      'collectedBy',
-      'collectionDate',
-      'notes',
+      "id",
+      "latitude",
+      "longitude",
+      "height",
+      "collectedBy",
+      "collectionDate",
+      "notes",
     ],
     options: {
       useTickMarks: true,
@@ -116,11 +116,11 @@ export function getUserTemplates() {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (!stored) return [];
-    
+
     const templates = JSON.parse(stored);
     return Array.isArray(templates) ? templates : [];
   } catch (error) {
-    console.error('Error loading export templates:', error);
+    console.error("Error loading export templates:", error);
     return [];
   }
 }
@@ -138,11 +138,11 @@ export function getUserTemplates() {
 export function saveTemplate(template) {
   // Validation
   if (!template.name || !template.name.trim()) {
-    return { success: false, error: 'Template name is required' };
+    return { success: false, error: "Template name is required" };
   }
 
   if (!template.columns || template.columns.length === 0) {
-    return { success: false, error: 'At least one column is required' };
+    return { success: false, error: "At least one column is required" };
   }
 
   try {
@@ -158,12 +158,12 @@ export function saveTemplate(template) {
 
     // Check for duplicate names
     const nameExists = userTemplates.some(
-      t => t.name.toLowerCase() === template.name.toLowerCase()
+      (t) => t.name.toLowerCase() === template.name.toLowerCase(),
     );
     if (nameExists) {
       return {
         success: false,
-        error: 'A template with this name already exists',
+        error: "A template with this name already exists",
       };
     }
 
@@ -171,8 +171,8 @@ export function saveTemplate(template) {
     const newTemplate = {
       id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       name: template.name.trim(),
-      description: template.description?.trim() || '',
-      framework: template.framework || 'CUSTOM',
+      description: template.description?.trim() || "",
+      framework: template.framework || "CUSTOM",
       columns: template.columns,
       options: {
         useTickMarks: template.options?.useTickMarks ?? false,
@@ -189,8 +189,8 @@ export function saveTemplate(template) {
 
     return { success: true, template: newTemplate };
   } catch (error) {
-    console.error('Error saving export template:', error);
-    return { success: false, error: 'Failed to save template' };
+    console.error("Error saving export template:", error);
+    return { success: false, error: "Failed to save template" };
   }
 }
 
@@ -202,17 +202,19 @@ export function saveTemplate(template) {
  */
 export function updateTemplate(templateId, updates) {
   // Can't update built-in templates (check by id property, not key)
-  const isBuiltIn = Object.values(BUILT_IN_TEMPLATES).some(t => t.id === templateId);
+  const isBuiltIn = Object.values(BUILT_IN_TEMPLATES).some(
+    (t) => t.id === templateId,
+  );
   if (isBuiltIn) {
-    return { success: false, error: 'Cannot modify built-in templates' };
+    return { success: false, error: "Cannot modify built-in templates" };
   }
 
   try {
     const userTemplates = getUserTemplates();
-    const templateIndex = userTemplates.findIndex(t => t.id === templateId);
+    const templateIndex = userTemplates.findIndex((t) => t.id === templateId);
 
     if (templateIndex === -1) {
-      return { success: false, error: 'Template not found' };
+      return { success: false, error: "Template not found" };
     }
 
     // Update template
@@ -227,8 +229,8 @@ export function updateTemplate(templateId, updates) {
 
     return { success: true, template: updatedTemplate };
   } catch (error) {
-    console.error('Error updating export template:', error);
-    return { success: false, error: 'Failed to update template' };
+    console.error("Error updating export template:", error);
+    return { success: false, error: "Failed to update template" };
   }
 }
 
@@ -239,24 +241,26 @@ export function updateTemplate(templateId, updates) {
  */
 export function deleteTemplate(templateId) {
   // Can't delete built-in templates (check by id property, not key)
-  const isBuiltIn = Object.values(BUILT_IN_TEMPLATES).some(t => t.id === templateId);
+  const isBuiltIn = Object.values(BUILT_IN_TEMPLATES).some(
+    (t) => t.id === templateId,
+  );
   if (isBuiltIn) {
-    return { success: false, error: 'Cannot delete built-in templates' };
+    return { success: false, error: "Cannot delete built-in templates" };
   }
 
   try {
     const userTemplates = getUserTemplates();
-    const filteredTemplates = userTemplates.filter(t => t.id !== templateId);
+    const filteredTemplates = userTemplates.filter((t) => t.id !== templateId);
 
     if (filteredTemplates.length === userTemplates.length) {
-      return { success: false, error: 'Template not found' };
+      return { success: false, error: "Template not found" };
     }
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(filteredTemplates));
     return { success: true };
   } catch (error) {
-    console.error('Error deleting export template:', error);
-    return { success: false, error: 'Failed to delete template' };
+    console.error("Error deleting export template:", error);
+    return { success: false, error: "Failed to delete template" };
   }
 }
 
@@ -267,14 +271,16 @@ export function deleteTemplate(templateId) {
  */
 export function getTemplateById(templateId) {
   // Check built-in templates first (search by id property, not key)
-  const builtInTemplate = Object.values(BUILT_IN_TEMPLATES).find(t => t.id === templateId);
+  const builtInTemplate = Object.values(BUILT_IN_TEMPLATES).find(
+    (t) => t.id === templateId,
+  );
   if (builtInTemplate) {
     return builtInTemplate;
   }
 
   // Check user templates
   const userTemplates = getUserTemplates();
-  return userTemplates.find(t => t.id === templateId) || null;
+  return userTemplates.find((t) => t.id === templateId) || null;
 }
 
 /**
@@ -297,7 +303,7 @@ export function importUserTemplates(jsonString, merge = true) {
     const importedTemplates = JSON.parse(jsonString);
 
     if (!Array.isArray(importedTemplates)) {
-      return { success: false, error: 'Invalid template format' };
+      return { success: false, error: "Invalid template format" };
     }
 
     const existingTemplates = merge ? getUserTemplates() : [];
@@ -305,7 +311,7 @@ export function importUserTemplates(jsonString, merge = true) {
 
     // Remove duplicates by name
     const uniqueTemplates = allTemplates.reduce((acc, template) => {
-      if (!acc.find(t => t.name === template.name)) {
+      if (!acc.find((t) => t.name === template.name)) {
         acc.push(template);
       }
       return acc;
@@ -322,7 +328,7 @@ export function importUserTemplates(jsonString, merge = true) {
       total: finalTemplates.length,
     };
   } catch (error) {
-    console.error('Error importing templates:', error);
-    return { success: false, error: 'Failed to import templates' };
+    console.error("Error importing templates:", error);
+    return { success: false, error: "Failed to import templates" };
   }
 }

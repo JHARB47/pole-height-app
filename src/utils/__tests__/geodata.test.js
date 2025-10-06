@@ -1,10 +1,10 @@
-import { buildGeoJSON } from '../geodata';
+import { buildGeoJSON } from "../geodata";
 
-describe('buildGeoJSON exports', () => {
-  it('includes bearings and PULL on pole features', () => {
+describe("buildGeoJSON exports", () => {
+  it("includes bearings and PULL on pole features", () => {
     const poles = [
       {
-        id: 'p1',
+        id: "p1",
         latitude: 34.1,
         longitude: -118.2,
         incomingBearingDeg: 10,
@@ -12,10 +12,10 @@ describe('buildGeoJSON exports', () => {
         PULL_ft: 12.34,
       },
     ];
-    const fc = buildGeoJSON({ poles, spans: [], job: { id: 'job-1' } });
+    const fc = buildGeoJSON({ poles, spans: [], job: { id: "job-1" } });
     expect(fc.features).toHaveLength(1);
     const f = fc.features[0];
-    expect(f.geometry.type).toBe('Point');
+    expect(f.geometry.type).toBe("Point");
     // @ts-ignore dynamic properties
     expect(f.properties.incomingBearingDeg).toBe(10);
     // @ts-ignore dynamic properties
@@ -24,25 +24,27 @@ describe('buildGeoJSON exports', () => {
     expect(f.properties.PULL_ft).toBe(12.34);
   });
 
-  it('includes bearings and PULL on span features when present', () => {
+  it("includes bearings and PULL on span features when present", () => {
     const poles = [
-      { id: 'a', latitude: 34.1, longitude: -118.2 },
-      { id: 'b', latitude: 34.2, longitude: -118.25 },
+      { id: "a", latitude: 34.1, longitude: -118.2 },
+      { id: "b", latitude: 34.2, longitude: -118.25 },
     ];
     const spans = [
       {
-        id: 's1',
-        fromId: 'a',
-        toId: 'b',
+        id: "s1",
+        fromId: "a",
+        toId: "b",
         incomingBearingDeg: 123,
         outgoingBearingDeg: 234,
         PULL_ft: 56,
       },
     ];
-    const fc = buildGeoJSON({ poles, spans, job: { id: 'job-2' } });
-    const spanFeature = fc.features.find((g) => g.geometry.type === 'LineString');
+    const fc = buildGeoJSON({ poles, spans, job: { id: "job-2" } });
+    const spanFeature = fc.features.find(
+      (g) => g.geometry.type === "LineString",
+    );
     expect(spanFeature).toBeTruthy();
-    if (!spanFeature) throw new Error('LineString feature missing');
+    if (!spanFeature) throw new Error("LineString feature missing");
     // @ts-ignore dynamic properties
     expect(spanFeature.properties.incomingBearingDeg).toBe(123);
     // @ts-ignore dynamic properties
