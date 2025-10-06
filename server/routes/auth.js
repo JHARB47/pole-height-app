@@ -281,7 +281,7 @@ router.post('/refresh', async (req, res) => {
 
     // Verify refresh token
     const jwt = await import('jsonwebtoken');
-    const decoded = jwt.verify(refresh_token, process.env.JWT_REFRESH_SECRET);
+    const decoded = jwt.verify(refresh_token, process.env.REFRESH_TOKEN_SECRET);
     
     if (decoded.type !== 'refresh') {
       return res.status(401).json({

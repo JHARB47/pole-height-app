@@ -1,4 +1,4 @@
-name: ci
+name: CI Robust
 on:
   pull_request:
     branches: [ main ]
@@ -45,8 +45,15 @@ jobs:
       - name: Audit (full tree, warn only)
         run: npm audit || true
 
-      - run: npm run verify
-      - run: npm run build
+      - name: Run comprehensive verification
+        run: npm run verify
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
+          
+      - name: Build production bundle
+        run: npm run build
 
       # Minimal export-path smoke (non-destructive)
       - name: KML export smoke (isolated path)

@@ -264,8 +264,8 @@ export class PassportConfig {
   static generateRefreshToken() {
     return jwt.sign(
       { type: 'refresh' },
-      process.env.JWT_REFRESH_SECRET,
-      { expiresIn: '7d' }
+      process.env.REFRESH_TOKEN_SECRET,
+      { expiresIn: process.env.REFRESH_TOKEN_TTL || '7d' }
     );
   }
 }
