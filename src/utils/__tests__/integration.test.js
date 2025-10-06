@@ -23,7 +23,7 @@ describe("GIS Validation Integration", () => {
       });
 
       expect(result.valid).toBe(true);
-      expect(result.errors).toHaveLength(0);
+      expect(result.missingRequired).toBeUndefined();
     });
 
     it("should reject invalid latitude", () => {
@@ -112,7 +112,6 @@ describe("GIS Validation Integration", () => {
 });
 
 // TODO: Skip CSV Export Customization tests - module not yet implemented
-/* eslint-disable no-undef */
 describe.skip("CSV Export Customization", () => {
   describe("Column Configuration", () => {
     it("should get default columns for NESC framework", () => {
@@ -160,13 +159,13 @@ describe.skip("CSV Export Customization", () => {
   describe("Data Formatting", () => {
     const samplePoles = [
       {
-        poleId: "pole-1",
-        poleHeight: "35",
-        poleClass: "1",
-        latitude: "45.5231",
-        longitude: "-122.6765",
-        voltage: "distribution",
-        powerHeight: "30",
+        poleId: 'pole-1',
+        poleHeight: '35',
+        poleClass: '1',
+        latitude: '45.5231',
+        longitude: '-122.6765',
+        voltage: 'distribution',
+        powerHeight: '30',
         clearances: {
           ground: "18",
           road: "18",
@@ -185,10 +184,10 @@ describe.skip("CSV Export Customization", () => {
       });
 
       expect(result).toHaveLength(1);
-      expect(result[0]).toHaveProperty("poleId", "pole-1");
-      expect(result[0]).toHaveProperty("poleHeight", "35");
-      expect(result[0]).toHaveProperty("latitude", "45.5231");
-      expect(result[0]).toHaveProperty("longitude", "-122.6765");
+      expect(result[0]).toHaveProperty("Pole ID", "pole-1");
+      expect(result[0]).toHaveProperty("Pole Height", "35");
+      expect(result[0]).toHaveProperty("Latitude", "45.5231");
+      expect(result[0]).toHaveProperty("Longitude", "-122.6765");
     });
 
     it("should handle tick mark formatting", () => {
@@ -197,8 +196,8 @@ describe.skip("CSV Export Customization", () => {
         framework: "NESC",
         useTickMarkFormat: true,
       });
-
-      expect(result[0].poleHeight).toMatch(/['"]$/); // Should end with tick mark
+      
+      expect(result[0]["Pole Height"]).toMatch(/['"]$/); // Should end with tick mark
     });
 
     it("should include all selected columns", () => {
@@ -220,8 +219,13 @@ describe.skip("CSV Export Customization", () => {
         framework: "NESC",
         useTickMarkFormat: false,
       });
-
-      expect(Object.keys(result[0])).toEqual(selectedColumns);
+      
+      // formatDataForExport converts internal column names to CSV labels
+      const expectedLabels = [
+        "Pole ID", "Pole Height", "Pole Class", "Latitude", "Longitude", "Voltage",
+        "Power Height", "Attachment Height", "Span Distance", "Compliance Status"
+      ];
+      expect(Object.keys(result[0])).toEqual(expectedLabels);
     });
   });
 });

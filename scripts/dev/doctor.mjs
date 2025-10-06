@@ -39,7 +39,7 @@ async function main() {
   log(nodeOk, `Node version ${node} (expected >=22 <23${reqNode ? `; recommended ${reqNode}` : ''})`);
 
   // Files
-  const files = ['netlify.toml', 'package.json', 'public/sw.js', 'stackbit.config.js'];
+  const files = ['netlify.toml', 'package.json', 'public/sw.js'];
   files.forEach((f) => log(existsSync(path.resolve(f)), `File exists: ${f}`));
 
   // ENV

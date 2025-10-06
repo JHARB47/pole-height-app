@@ -43,7 +43,7 @@ export default defineConfig({
         '**/vitest.config.*',
         '**/postcss.config.*',
         '**/tailwind.config.*',
-        '**/stackbit.config.*',
+
         'scripts/**',
         'public/**',
         'netlify/**',
