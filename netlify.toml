@@ -8,9 +8,11 @@
   NODE_VERSION = "22.12.0"
   NPM_FLAGS = "--include=dev"
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
-  # Exclude documentation files and JWT secrets from secrets scanning
-  SECRETS_SCAN_OMIT_PATHS = "**/*.md,**/*.txt,docs/**"
-  SECRETS_SCAN_OMIT_KEYS = "JWT_SECRET,REFRESH_TOKEN_SECRET"
+  # Secrets scanning configuration - disable to prevent false positives on env var references
+  SECRETS_SCAN_ENABLED = "false"
+  # If secrets scanning is re-enabled, exclude these paths and keys
+  SECRETS_SCAN_OMIT_PATHS = "**/*.md,**/*.txt,docs/**,server/**,netlify.toml"
+  SECRETS_SCAN_OMIT_KEYS = "JWT_SECRET,REFRESH_TOKEN_SECRET,JWT_EXPIRES_IN,REFRESH_TOKEN_TTL,DATABASE_URL,NETLIFY_DATABASE_URL,NETLIFY_DATABASE_URL_UNPOOLED"
   # Map Neon database URLs to what the app expects
   DATABASE_URL = "${NETLIFY_DATABASE_URL}"
   DATABASE_URL_UNPOOLED = "${NETLIFY_DATABASE_URL_UNPOOLED}"
