@@ -3,19 +3,32 @@
 import React from "react";
 import { useParams, Link } from "react-router-dom";
 import { setPageMeta } from "../utils/meta";
+import { stackbitData, fieldPath } from "../utils/stackbit";
 
-function HeroSection({ section }) {
+function HeroSection({ section, sectionIndex }) {
+  const basePath = `sections[${sectionIndex}]`;
   const bg = section.backgroundImage
     ? `url(${section.backgroundImage})`
     : "linear-gradient(135deg,#0ea5e9,#6366f1)";
   return (
-    <section style={{ background: bg, color: "white", padding: "48px 16px" }}>
+    <section
+      style={{ background: bg, color: "white", padding: "48px 16px" }}
+      {...stackbitData(basePath)}
+    >
       <div className="max-w-5xl mx-auto">
-        <h1 style={{ fontSize: 36, fontWeight: 800 }}>
+        <h1
+          style={{ fontSize: 36, fontWeight: 800 }}
+          {...stackbitData(basePath, fieldPath(basePath, "title"))}
+        >
           {section.title || "Welcome"}
         </h1>
         {section.subtitle && (
-          <p style={{ marginTop: 8, opacity: 0.9 }}>{section.subtitle}</p>
+          <p
+            style={{ marginTop: 8, opacity: 0.9 }}
+            {...stackbitData(basePath, fieldPath(basePath, "subtitle"))}
+          >
+            {section.subtitle}
+          </p>
         )}
         {section.ctaUrl && (
           <Link
@@ -29,6 +42,7 @@ function HeroSection({ section }) {
               borderRadius: 8,
               fontWeight: 600,
             }}
+            {...stackbitData(basePath, fieldPath(basePath, "ctaLabel"))}
           >
             {section.ctaLabel || "Get Started"}
           </Link>
@@ -38,56 +52,93 @@ function HeroSection({ section }) {
   );
 }
 
-function RichTextSection({ section }) {
+function RichTextSection({ section, sectionIndex }) {
+  const basePath = `sections[${sectionIndex}]`;
   return (
-    <section className="max-w-5xl mx-auto px-4 py-8">
-      <div style={{ whiteSpace: "pre-wrap" }}>{section.content}</div>
-    </section>
-  );
-}
-
-function FeatureSection({ section }) {
-  const items = section.features || [];
-  return (
-    <section className="max-w-5xl mx-auto px-4 py-8">
-      <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 16 }}>
-        {section.heading || "Features"}
-      </h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {items.map((f, i) => (
-          <div
-            key={i}
-            className="rounded-lg border border-slate-200 p-4 bg-white"
-          >
-            <div style={{ fontWeight: 700 }}>{f.title}</div>
-            <div style={{ opacity: 0.9, marginTop: 6 }}>{f.text}</div>
-          </div>
-        ))}
+    <section
+      className="max-w-5xl mx-auto px-4 py-8"
+      {...stackbitData(basePath)}
+    >
+      <div
+        style={{ whiteSpace: "pre-wrap" }}
+        {...stackbitData(basePath, fieldPath(basePath, "content"))}
+      >
+        {section.content}
       </div>
     </section>
   );
 }
 
-function CtaSection({ section }) {
+function FeatureSection({ section, sectionIndex }) {
+  const basePath = `sections[${sectionIndex}]`;
+  const items = section.features || [];
   return (
-    <section className="max-w-4xl mx-auto px-4 py-10 text-center">
-      <div style={{ fontSize: 20 }}>{section.text}</div>
-      {section.buttonUrl && (
-        <Link
-          to={section.buttonUrl}
-          style={{
-            display: "inline-block",
-            marginTop: 16,
-            background: "#0ea5e9",
-            color: "#042f2e",
-            padding: "10px 14px",
-            borderRadius: 8,
-            fontWeight: 700,
-          }}
+    <section
+      className="max-w-5xl mx-auto px-4 py-8"
+      {...stackbitData(basePath)}
+    >
+      <h2
+        style={{ fontSize: 24, fontWeight: 700, marginBottom: 16 }}
+        {...stackbitData(basePath, fieldPath(basePath, "heading"))}
+      >
+        {section.heading || "Features"}
+      </h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {items.map((f, i) => {
+          const itemPath = `${basePath}.features[${i}]`;
+          return (
+            <div
+              key={i}
+              className="rounded-lg border border-slate-200 p-4 bg-white"
+              {...stackbitData(itemPath)}
+            >
+              <div
+                style={{ fontWeight: 700 }}
+                {...stackbitData(itemPath, fieldPath(itemPath, "title"))}
+              >
+                {f.title}
+              </div>
+              <div
+                style={{ opacity: 0.9, marginTop: 6 }}
+                {...stackbitData(itemPath, fieldPath(itemPath, "text"))}
+              >
+                {f.text}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function CtaSection({ section, sectionIndex }) {
+  const basePath = `sections[${sectionIndex}]`;
+  return (
+    <section
+      className="max-w-5xl mx-auto px-4 py-8 text-center"
+      {...stackbitData(basePath)}
+    >
+      <div className="rounded-lg border border-slate-200 p-6 bg-white">
+        <p
+          style={{ fontSize: 18, marginBottom: 12, opacity: 0.9 }}
+          {...stackbitData(basePath, fieldPath(basePath, "text"))}
         >
-          {section.buttonLabel || "Continue"}
-        </Link>
-      )}
+          {section.text}
+        </p>
+        {section.buttonLabel && section.buttonUrl && (
+          <Link
+            to={section.buttonUrl}
+            className="inline-block px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700 transition"
+          >
+            <span
+              {...stackbitData(basePath, fieldPath(basePath, "buttonLabel"))}
+            >
+              {section.buttonLabel}
+            </span>
+          </Link>
+        )}
+      </div>
     </section>
   );
 }
@@ -125,7 +176,7 @@ export default function ContentPage({ slug: propSlug }) {
           Page not found
         </h1>
         <p className="mt-2">
-          We couldn’t find the requested page. Try the{" "}
+          We couldn't find the requested page. Try the{" "}
           <Link to="/">home page</Link> or launch the{" "}
           <Link to="/app">PolePlan Pro</Link>.
         </p>
@@ -139,10 +190,10 @@ export default function ContentPage({ slug: propSlug }) {
     description: page.seoDescription,
   });
   return (
-    <>
+    <div {...stackbitData("page")}>
       {sections.map((s, i) => {
         const Type = sectionRenderer[s.type] || RichTextSection;
-        return <Type key={i} section={s} />;
+        return <Type key={i} section={s} sectionIndex={i} />;
       })}
       <section className="max-w-5xl mx-auto px-4 py-10">
         <Link
@@ -159,6 +210,6 @@ export default function ContentPage({ slug: propSlug }) {
           Launch PolePlan Pro
         </Link>
       </section>
-    </>
+    </div>
   );
 }
