@@ -47,11 +47,6 @@ jobs:
 
       - name: Run comprehensive verification
         run: npm run verify
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
-          SKIP_INTEGRATION_TESTS: 'true'
           
       - name: Build production bundle
         run: npm run build
