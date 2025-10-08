@@ -45,17 +45,8 @@ jobs:
       - name: Audit (full tree, warn only)
         run: npm audit || true
 
-      - name: Run comprehensive verification (with secrets)
+      - name: Run comprehensive verification
         run: npm run verify
-        if: ${{ secrets.DATABASE_URL && secrets.JWT_SECRET && secrets.REFRESH_TOKEN_SECRET }}
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
-
-      - name: Run comprehensive verification (no secrets)
-        run: npm run verify
-        if: ${{ !secrets.DATABASE_URL || !secrets.JWT_SECRET || !secrets.REFRESH_TOKEN_SECRET }}
           
       - name: Build production bundle
         run: npm run build
@@ -66,11 +57,16 @@ jobs:
 
   deploy:
     needs: verify
-    if: github.ref == 'refs/heads/main' && secrets.NETLIFY_BUILD_HOOK_URL
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Netlify build hook
-        run: curl -sS -X POST "$NETLIFY_BUILD_HOOK_URL"
+        run: |
+          if [ -n "$NETLIFY_BUILD_HOOK_URL" ]; then
+            curl -sS -X POST "$NETLIFY_BUILD_HOOK_URL"
+          else
+            echo "NETLIFY_BUILD_HOOK_URL not configured, skipping deployment trigger"
+          fi
         env:
           NETLIFY_BUILD_HOOK_URL: ${{ secrets.NETLIFY_BUILD_HOOK_URL }}
 
