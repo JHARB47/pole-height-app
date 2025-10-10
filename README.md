@@ -100,7 +100,7 @@ nvm use 22.12.0
 
 ### GitHub Actions
 
-CI focuses on build, lint, and tests. Netlify performs deploys directly from `main`; disabled reference workflow files remain for historical context. If re-enabling automated Netlify deployments via Actions, restore secrets (`NETLIFY_AUTH_TOKEN`, `NETLIFY_SITE_ID`) and activate the workflow.
+CI focuses on build, lint, and tests, and now includes a staging-profile checklist run (`DEPLOY_ENV=staging`) so the deployment notes stay in sync with reality. Netlify performs deploys directly from `main`; disabled reference workflow files remain for historical context. If re-enabling automated Netlify deployments via Actions, restore secrets (`NETLIFY_AUTH_TOKEN`, `NETLIFY_SITE_ID`) and activate the workflow.
 
 ### Manual Deployment
 

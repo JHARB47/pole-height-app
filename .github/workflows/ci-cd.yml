@@ -32,6 +32,16 @@ jobs:
         env:
           SKIP_INSTALL: 'true'
 
+      - name: Build PWA bundle for Lighthouse
+        if: success()
+        run: |
+          rm -rf dist
+          VITE_ENABLE_SW=true npm run build
+
+      - name: Lighthouse PWA audit
+        if: success()
+        run: npx @lhci/cli@0.11.0 autorun --config=.lighthouserc.cjs
+
       - name: Upload dist artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -39,3 +49,36 @@ jobs:
           name: dist
           path: dist
           if-no-files-found: ignore
+
+  staging-profile:
+    name: Staging Profile Check
+    needs: verify
+    runs-on: ubuntu-latest
+    env:
+      CI: true
+      NODE_ENV: ci
+      DEPLOY_ENV: staging
+      SKIP_DEPLOY_CHECKS: postgres-ready,ssl-certificates,database-migration,run-tests,health-check
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --progress=false
+
+      - name: Prepare staging environment config
+        run: |
+          cat <<'ENV' > server/.env
+          JWT_SECRET=dummy
+          REFRESH_TOKEN_SECRET=dummy
+          DATABASE_URL=postgres://placeholder
+          ENV
+
+      - name: Run staging deployment checklist
+        run: node scripts/deploy/production-check.mjs
