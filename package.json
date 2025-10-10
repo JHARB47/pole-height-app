@@ -61,6 +61,7 @@
     "security:validate": "node scripts/security/validate.mjs",
     "security:full": "npm run security:audit && npm run security:scan && npm run security:validate",
     "verify:production": "node scripts/deploy/production-check.mjs",
+    "verify:staging": "cross-env DEPLOY_ENV=staging node scripts/deploy/production-check.mjs",
     "bundle:check": "node scripts/ci/check-bundle-size.mjs",
     "deploy:netlify": "npm run verify:production && NETLIFY_NEXT_PLUGIN_SKIP=true npx netlify deploy --prod --build --clearCache",
     "analyze": "cross-env VISUALIZE=true vite build && npx rollup-plugin-visualizer --template treemap --gzip --brotli --open dist/stats.html",

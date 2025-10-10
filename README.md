@@ -112,6 +112,15 @@ npm run build
 # (Use Netlify CLI or drag-and-drop deployment)
 ```
 
+### Deployment Checklists
+
+```bash
+npm run verify:staging      # relaxed gate for staging
+npm run verify:production   # full production gate
+```
+
+> Optional checks (database, SSL, API health, integration tests) are skipped automatically in staging. Set `RUN_OPTIONAL_CHECKS=true` if you want to exercise them anyway.
+
 ### Environment Variables
 
 Copy `.env.example` to `.env` for local development:

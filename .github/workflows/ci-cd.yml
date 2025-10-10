@@ -58,7 +58,6 @@ jobs:
       CI: true
       NODE_ENV: ci
       DEPLOY_ENV: staging
-      SKIP_DEPLOY_CHECKS: postgres-ready,ssl-certificates,database-migration,run-tests,health-check
     steps:
       - name: Checkout
         uses: actions/checkout@v4
