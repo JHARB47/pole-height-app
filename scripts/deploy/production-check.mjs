@@ -19,7 +19,7 @@ const RUN_OPTIONAL_CHECKS =
     .toString()
     .toLowerCase() === 'true';
 
-const REQUIRED_NODE_VERSION = process.env.REQUIRED_NODE_VERSION || 'v22.12.0';
+const REQUIRED_NODE_VERSION = process.env.REQUIRED_NODE_VERSION || 'v22.20.0';
 const POSTGRES_HOST = process.env.DATABASE_HOST || 'localhost';
 const POSTGRES_PORT = process.env.DATABASE_PORT || '5432';
 const ENV_FILE = process.env.DEPLOY_ENV_FILE || 'server/.env';

@@ -9,6 +9,7 @@ import { Logger } from './logger.js';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { Sentry } from '../instrument.js';
 
 const { Pool } = pg;
 const __filename = fileURLToPath(import.meta.url);
@@ -17,6 +18,11 @@ const __dirname = path.dirname(__filename);
 export class DatabaseService {
   constructor() {
     this.pool = null;
+    const span = Sentry.startSpan({
+      op: 'db.initialize',
+      name: 'DatabaseService.initialize',
+    });
+    span.setAttribute('environment', process.env.NODE_ENV || 'development');
     this.logger = new Logger();
     this.isInitialized = false;
   }
@@ -47,9 +53,15 @@ export class DatabaseService {
       await this.runMigrations();
       
       this.isInitialized = true;
+      span.setAttribute('poolMax', config.max);
+      span.setStatus({ code: 'ok' });
     } catch (error) {
       this.logger.error('Database initialization failed:', error);
+      span.setStatus({ code: 'error', message: error.message });
+      Sentry.captureException(error);
       throw error;
+    } finally {
+      span.end();
     }
   }
 
@@ -115,24 +127,33 @@ export class DatabaseService {
       throw new Error('Database not initialized');
     }
     
-    const start = Date.now();
-    try {
-      const result = await this.pool.query(text, params);
-      const duration = Date.now() - start;
-      
-      if (duration > 1000) {
-        this.logger.warn(`Slow query (${duration}ms):`, text.substring(0, 100));
+    return Sentry.startSpan({
+      op: 'db.query',
+      name: text.substring(0, 64) || 'db.query',
+    }, async (span) => {
+      span.setAttribute('paramCount', params.length);
+      const start = Date.now();
+      try {
+        const result = await this.pool.query(text, params);
+        const duration = Date.now() - start;
+        span.setAttribute('durationMs', duration);
+        
+        if (duration > 1000) {
+          this.logger.warn(`Slow query (${duration}ms):`, text.substring(0, 100));
+        }
+        
+        return result;
+      } catch (error) {
+        span.setStatus({ code: 'error', message: error.message });
+        this.logger.error('Database query error:', {
+          query: text.substring(0, 100),
+          params: params,
+          error: error.message
+        });
+        Sentry.captureException(error);
+        throw error;
       }
-      
-      return result;
-    } catch (error) {
-      this.logger.error('Database query error:', {
-        query: text.substring(0, 100),
-        params: params,
-        error: error.message
-      });
-      throw error;
-    }
+    });
   }
 
   /**
@@ -143,19 +164,26 @@ export class DatabaseService {
       throw new Error('Database not initialized');
     }
     
-    const client = await this.pool.connect();
-    
-    try {
-      await client.query('BEGIN');
-      const result = await callback(client);
-      await client.query('COMMIT');
-      return result;
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
-    }
+    return Sentry.startSpan({
+      op: 'db.transaction',
+      name: 'Database transaction',
+    }, async (span) => {
+      const client = await this.pool.connect();
+      try {
+        await client.query('BEGIN');
+        const result = await callback(client);
+        await client.query('COMMIT');
+        span.setStatus({ code: 'ok' });
+        return result;
+      } catch (error) {
+        span.setStatus({ code: 'error', message: error.message });
+        Sentry.captureException(error);
+        await client.query('ROLLBACK');
+        throw error;
+      } finally {
+        client.release();
+      }
+    });
   }
 
   /**

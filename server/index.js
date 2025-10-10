@@ -32,6 +32,7 @@ import { DatabaseService } from './services/database.js';
 import { Logger } from './services/logger.js';
 import { MetricsService } from './services/metrics.js';
 import { PassportConfig } from './config/passport.js';
+import { Sentry } from './instrument.js';
 
 // Load environment variables
 dotenv.config();
@@ -91,12 +92,38 @@ app.use(requestLogger);
 PassportConfig.initialize();
 app.use(passport.initialize());
 
+// Sentry request/trace instrumentation (must come before routes)
+app.use(Sentry.Handlers.requestHandler());
+if (typeof Sentry.Handlers.tracingHandler === 'function') {
+  app.use(Sentry.Handlers.tracingHandler());
+}
+
 // Health check route (must be before auth)
 app.use('/health', healthRouter);
 app.use('/api/health', healthRouter);
 
 // Authentication routes
 app.use('/auth', authRouter);
+
+// Sentry verification helper
+app.get('/debug-sentry', (req, res) => {
+  const { logger } = Sentry;
+  if (logger && typeof logger.info === 'function') {
+    logger.info('User triggered test error', {
+      action: 'test_error_endpoint',
+      ip: req.ip,
+    });
+  }
+
+  Sentry.startSpan({
+    op: 'debug.trigger',
+    name: 'manual debug-sentry invocation',
+  }, (span) => {
+    span.setAttribute('path', req.path);
+    span.setAttribute('method', req.method);
+    throw new Error('My first Sentry error!');
+  });
+});
 
 // API routes with middleware
 app.use('/api/v1', 
@@ -141,6 +168,7 @@ if (NODE_ENV === 'production') {
 }
 
 // Error handling
+app.use(Sentry.Handlers.errorHandler());
 app.use(errorHandler);
 
 // Graceful shutdown handler
@@ -159,13 +187,25 @@ process.on('SIGINT', async () => {
 // Start server
 async function startServer() {
   try {
-    // Initialize database
-    await db.initialize();
-    logger.info('Database connection established');
-    
+    // Initialize database with Sentry instrumentation
+    await Sentry.startSpan({
+      op: 'db.init',
+      name: 'Database initialization',
+    }, async (span) => {
+      await db.initialize();
+      span.setAttribute('poolMax', db.pool?.options?.max ?? 20);
+      span.setAttribute('environment', NODE_ENV);
+      logger.info('Database connection established');
+    });
+
     // Start metrics collection
-    metrics.start();
-    
+    await Sentry.startSpan({
+      op: 'metrics.start',
+      name: 'Metrics service start',
+    }, async () => {
+      metrics.start();
+    });
+
     app.listen(PORT, () => {
       logger.info(`PolePlan Pro Enterprise Server running on port ${PORT}`);
       logger.info(`Environment: ${NODE_ENV}`);
@@ -173,6 +213,7 @@ async function startServer() {
     });
   } catch (error) {
     logger.error('Failed to start server:', error);
+    Sentry.captureException(error);
     process.exit(1);
   }
 }

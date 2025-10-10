@@ -80,6 +80,8 @@
   },
   "dependencies": {
     "@node-saml/passport-saml": "^5.1.0",
+    "@sentry/node": "^10.19.0",
+    "@sentry/profiling-node": "^10.19.0",
     "@sentry/react": "^10.19.0",
     "@sentry/tracing": "^7.120.4",
     "@tmcw/togeojson": "^7.1.2",

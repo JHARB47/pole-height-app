@@ -1,0 +1,23 @@
+# Required Environment Variables for Netlify
+
+# Database (Neon PostgreSQL)
+DATABASE_URL=postgresql://user:password@host/database?sslmode=require
+DATABASE_URL_UNPOOLED=postgresql://user:password@host/database?sslmode=require
+
+# JWT Authentication
+JWT_SECRET=your-64-byte-hex-secret-here
+REFRESH_TOKEN_SECRET=your-64-byte-hex-secret-here
+JWT_EXPIRES_IN=15m
+REFRESH_TOKEN_TTL=7d
+
+# Security
+ALLOWED_ORIGINS=https://poleplanpro.com,https://www.poleplanpro.com
+
+# Monitoring (Sentry)
+SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
+VITE_SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
+
+# Application Settings
+SERVICE_NAME=poleplan-pro
+VITE_APP_PRIMARY_DOMAIN=poleplanpro.com
+VITE_NETLIFY_SITE_BASE=poleplanpro.netlify.app

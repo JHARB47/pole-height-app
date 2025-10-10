@@ -47,7 +47,7 @@ The application is optimized for Netlify deployment with the following configura
 
 - **Build Command**: `npm run build`
 - **Publish Directory**: `dist`
-- **Node Version**: 22.12.0 (pinned via `.nvmrc`, `netlify.toml`, and CI). Use `nvm use` or asdf to ensure consistency locally.
+- **Node Version**: 22.20.0 (pinned via `.nvmrc`, `netlify.toml`, and CI). Use `nvm use` or asdf to ensure consistency locally.
   - If you previously used Node 20, upgrade before contributing to avoid subtle polyfill differences.
   - CI now reads the version from `.nvmrc` to enforce a single source of truth.
 
@@ -83,11 +83,11 @@ npm run preview
 npm run lint
 ```
 
-If you see an engines warning locally, switch to Node 22.12.0:
+If you see an engines warning locally, switch to Node 22.20.0:
 
 ```bash
-nvm install 22.12.0 # if not already installed
-nvm use 22.12.0
+nvm install 22.20.0 # if not already installed
+nvm use 22.20.0
 ```
 
 ## 🌍 Deployment to Netlify
@@ -257,7 +257,7 @@ Best Practices:
 Run the site, Functions, and Visual Editor proxy together with Netlify Dev:
 
 ```bash
-nvm use 22.12.0
+nvm use 22.20.0
 npm ci
 npm run dev:netlify
 # Functions health check (no DB required)

@@ -3,7 +3,7 @@ import { createServer } from 'net';
 import { existsSync } from 'fs';
 import path from 'path';
 
-const reqNode = '24.9.0'; // Updated for Node 24 support
+const reqNode = '22.20.0'; // Updated for Node 22 support
 
 function compareVersions(a, b) {
   const pa = a.split('.').map(Number);
