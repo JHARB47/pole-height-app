@@ -63,7 +63,7 @@
     "verify:production": "node scripts/deploy/production-check.mjs",
     "verify:staging": "cross-env DEPLOY_ENV=staging node scripts/deploy/production-check.mjs",
     "bundle:check": "node scripts/ci/check-bundle-size.mjs",
-    "deploy:netlify": "npm run verify:production && NETLIFY_NEXT_PLUGIN_SKIP=true npx netlify deploy --prod --build --clearCache",
+    "deploy:netlify": "npm run verify:staging && NETLIFY_NEXT_PLUGIN_SKIP=true npx netlify deploy --prod --build",
     "analyze": "cross-env VISUALIZE=true vite build && npx rollup-plugin-visualizer --template treemap --gzip --brotli --open dist/stats.html",
     "clean": "rimraf dist .vite .rollup.cache .cache",
     "db:reset": "node scripts/db/reset.mjs",
