@@ -25,6 +25,10 @@ function checkPort(port) {
   });
 }
 
+/**
+ * @param {boolean} ok
+ * @param {string} msg
+ */
 function log(ok, msg) {
   const mark = ok ? '\u2705' : '\u274c';
   console.log(`${mark} ${msg}`);
@@ -52,6 +56,10 @@ async function main() {
   log(p8888Free, p8888Free ? 'Port 8888 is free (netlify dev can bind)' : 'Port 8888 is in use (netlify dev may already be running)');
   log(p5173Free, p5173Free ? 'Port 5173 is free (Vite can bind)' : 'Port 5173 is in use (Vite may already be running)');
 
+  // DB URL redacted check
+  const hasDb = !!process.env.DATABASE_URL || !!process.env.NETLIFY_DATABASE_URL || !!process.env.NETLIFY_DATABASE_URL_UNPOOLED;
+  log(hasDb, 'Database URL detected in environment (optional for health check)');
+
   // If 8888 is in use, attempt to probe the Netlify functions health endpoint
   if (!p8888Free && typeof fetch === 'function') {
     try {
@@ -69,13 +77,15 @@ async function main() {
         log(false, `Functions health responded with HTTP ${res.status}`);
       }
     } catch (e) {
-      log(false, `Could not reach http://127.0.0.1:8888/.netlify/functions/health (${e?.message || e})`);
+      let errMsg = '';
+      if (typeof e === 'object' && e !== null && Object.prototype.hasOwnProperty.call(e, 'message')) {
+        errMsg = e.message;
+      } else {
+        errMsg = String(e);
+      }
+      log(false, `Could not reach http://127.0.0.1:8888/.netlify/functions/health (${errMsg})`);
     }
   }
-
-  // DB URL redacted check
-  const hasDb = !!process.env.DATABASE_URL || !!process.env.NETLIFY_DATABASE_URL || !!process.env.NETLIFY_DATABASE_URL_UNPOOLED;
-  log(hasDb, 'Database URL detected in environment (optional for health check)');
 
   // Netlify CLI
   try {
