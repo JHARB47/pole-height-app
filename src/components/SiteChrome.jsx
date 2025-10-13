@@ -1,7 +1,9 @@
 import React from "react";
 import { Link, Outlet } from "react-router-dom";
 import site from "../../content/site.json";
-import { stackbitData, fieldPath } from "../utils/stackbit.js";
+import { stackbitData, stackbitObjectId } from "../utils/stackbit.js";
+
+const siteObjectId = stackbitObjectId("content/site.json");
 
 export default function SiteChrome() {
   const title = site?.siteTitle || "Pole Plan Pro";
@@ -15,7 +17,7 @@ export default function SiteChrome() {
         ];
 
   return (
-    <div {...stackbitData("site")}>
+    <div {...stackbitData(siteObjectId)}>
       <a href="#main-content" className="skip-link">
         Skip to main content
       </a>
@@ -26,21 +28,28 @@ export default function SiteChrome() {
             alt=""
             width="24"
             height="24"
-            {...stackbitData("site", fieldPath("site", "logo"))}
+            {...stackbitData(siteObjectId, "logo#@src")}
           />
           <span
             className="brand-title"
-            {...stackbitData("site", fieldPath("site", "siteTitle"))}
+            {...stackbitData(siteObjectId, "siteTitle")}
           >
             {title}
           </span>
         </Link>
         <nav aria-label="Primary navigation" className="nav-links">
           {nav.map((item, i) => {
-            const navPath = `site.navigation[${i}]`;
+            const navObjectId = stackbitObjectId(
+              "content/site.json",
+              `navigation[${i}]`,
+            );
             return (
-              <Link key={i} to={item.url} {...stackbitData(navPath)}>
-                <span {...stackbitData(navPath, fieldPath(navPath, "label"))}>
+              <Link
+                key={i}
+                to={item.url}
+                {...stackbitData(navObjectId, "url#@href")}
+              >
+                <span {...stackbitData(navObjectId, "label")}>
                   {item.label}
                 </span>
               </Link>

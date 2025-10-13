@@ -395,7 +395,7 @@ export default function ProposedLineCalculator() {
   return (
     <div className="p-3 md:p-4 space-y-4">
       {/* Workflow nav */}
-      <nav className="workflow-nav no-print">
+      <nav className="sticky top-0 z-40 border-b border-gray-200 bg-white/90 backdrop-blur-sm print:hidden">
         <div className="mx-auto max-w-6xl px-3 md:px-6 flex items-center gap-1 overflow-x-auto">
           {[
             { id: "job", label: "Job" },
@@ -409,12 +409,11 @@ export default function ProposedLineCalculator() {
               <a
                 href={`#${link.id}`}
                 aria-current={activeSection === link.id ? "step" : undefined}
-                className={
-                  `px-2 py-1 rounded whitespace-nowrap ` +
-                  (activeSection === link.id
-                    ? "bg-blue-50 text-blue-700 font-semibold"
-                    : "text-gray-700 hover:bg-gray-50")
-                }
+                className={`inline-flex items-center whitespace-nowrap rounded px-3 py-3 text-sm font-medium transition-colors duration-150 ease-in-out ${
+                  activeSection === link.id
+                    ? "bg-blue-50 text-blue-700"
+                    : "text-gray-700 hover:text-black hover:bg-gray-50"
+                }`}
               >
                 {link.label}
               </a>
@@ -454,13 +453,15 @@ export default function ProposedLineCalculator() {
         </div>
       </div>
       {/* Invisible anchor for #job and optional collapse */}
-      <div id="job" className="anchor-offset" />
+      <div id="job" className="scroll-mt-14" />
       {!showReport && (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 no-print app-section">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 print:hidden rounded-lg border border-gray-200 bg-white p-4 md:p-6 shadow-sm">
           <div className="flex items-start justify-between md:col-span-2 xl:col-span-3">
             <div>
-              <div className="section-title">Job Setup</div>
-              <div className="section-subtitle">
+              <div className="text-lg font-semibold text-gray-900 md:text-xl mb-3">
+                Job Setup
+              </div>
+              <div className="text-sm text-gray-600 leading-relaxed mb-4">
                 Project info, GPS, design parameters, and profiles.
               </div>
             </div>
@@ -803,11 +804,16 @@ export default function ProposedLineCalculator() {
 
       {!showReport && (
         <>
-          <div id="map" className="app-section anchor-offset">
+          <div
+            id="map"
+            className="rounded-lg border border-gray-200 bg-white p-4 md:p-6 shadow-sm scroll-mt-14"
+          >
             <div className="flex items-start justify-between">
               <div>
-                <div className="section-title">Import & Mapping</div>
-                <div className="section-subtitle">
+                <div className="text-lg font-semibold text-gray-900 md:text-xl mb-3">
+                  Import & Mapping
+                </div>
+                <div className="text-sm text-gray-600 leading-relaxed mb-4">
                   Load KML/KMZ/Shapefile or CSV, map attributes, and
                   batch-apply.
                 </div>
@@ -832,11 +838,16 @@ export default function ProposedLineCalculator() {
               <SectionSaveButton sectionKey="map" align="bottom" />
             ) : null}
           </div>
-          <div id="spans" className="app-section anchor-offset">
+          <div
+            id="spans"
+            className="rounded-lg border border-gray-200 bg-white p-4 md:p-6 shadow-sm scroll-mt-14"
+          >
             <div className="flex items-start justify-between">
               <div>
-                <div className="section-title">Spans</div>
-                <div className="section-subtitle">
+                <div className="text-lg font-semibold text-gray-900 md:text-xl mb-3">
+                  Spans
+                </div>
+                <div className="text-sm text-gray-600 leading-relaxed mb-4">
                   Per‑span environment, auto/manual length, and quick
                   calculations.
                 </div>
@@ -861,11 +872,16 @@ export default function ProposedLineCalculator() {
               <SectionSaveButton sectionKey="spans" align="bottom" />
             ) : null}
           </div>
-          <div id="existing" className="app-section anchor-offset">
+          <div
+            id="existing"
+            className="rounded-lg border border-gray-200 bg-white p-4 md:p-6 shadow-sm scroll-mt-14"
+          >
             <div className="flex items-start justify-between">
               <div>
-                <div className="section-title">Existing Lines</div>
-                <div className="section-subtitle">
+                <div className="text-lg font-semibold text-gray-900 md:text-xl mb-3">
+                  Existing Lines
+                </div>
+                <div className="text-sm text-gray-600 leading-relaxed mb-4">
                   Track existing attachments and make‑ready.
                 </div>
               </div>
@@ -889,11 +905,16 @@ export default function ProposedLineCalculator() {
               <SectionSaveButton sectionKey="existing" align="bottom" />
             ) : null}
           </div>
-          <div id="field" className="app-section anchor-offset">
+          <div
+            id="field"
+            className="rounded-lg border border-gray-200 bg-white p-4 md:p-6 shadow-sm scroll-mt-14"
+          >
             <div className="flex items-start justify-between">
               <div>
-                <div className="section-title">Field Collection</div>
-                <div className="section-subtitle">
+                <div className="text-lg font-semibold text-gray-900 md:text-xl mb-3">
+                  Field Collection
+                </div>
+                <div className="text-sm text-gray-600 leading-relaxed mb-4">
                   Mobile capture with GPS, photos, and Draft/Done workflow.
                 </div>
               </div>
@@ -929,7 +950,7 @@ export default function ProposedLineCalculator() {
         </>
       )}
 
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2 no-print">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 print:hidden">
         <ScenarioButtons />
         <ExportButtons />
         <button
@@ -959,11 +980,16 @@ export default function ProposedLineCalculator() {
         </button>
       </div>
 
-      <div id="results" className="app-section anchor-offset">
+      <div
+        id="results"
+        className="rounded-lg border border-gray-200 bg-white p-4 md:p-6 shadow-sm scroll-mt-14"
+      >
         <div className="flex items-start justify-between">
           <div>
-            <div className="section-title">Results</div>
-            <div className="section-subtitle">
+            <div className="text-lg font-semibold text-gray-900 md:text-xl mb-3">
+              Results
+            </div>
+            <div className="text-sm text-gray-600 leading-relaxed mb-4">
               Summary outputs, reports, and exports.
             </div>
           </div>
@@ -1923,7 +1949,7 @@ function ResultsPanel() {
           ) : null}
         </div>
       </div>
-      <div className="section-divider" />
+      <div className="border-t border-gray-200 mt-4 mb-4 md:mt-6 md:mb-6" />
       <div className="rounded border p-3">
         <div className="font-medium mb-2">Attachment & Span</div>
         <div className="text-sm text-gray-700">
@@ -1961,7 +1987,7 @@ function ResultsPanel() {
           ) : null}
         </div>
       </div>
-      <div className="section-divider" />
+      <div className="border-t border-gray-200 mt-4 mb-4 md:mt-6 md:mb-6" />
       <div className="rounded border p-3">
         <div className="font-medium mb-2">Clearances (targets)</div>
         <div className="text-sm text-gray-700 grid grid-cols-2 gap-x-4 gap-y-1">
@@ -2039,7 +2065,7 @@ function AgencyTemplatesPanel() {
   }, [store.spanEnvironment]);
   if (!items?.length) return null;
   return (
-    <div className="rounded border p-3 no-print">
+    <div className="rounded border p-3 print:hidden">
       <div className="font-medium mb-2">Agency Templates & Resources</div>
       <div className="text-xs text-gray-600 mb-2">
         Environment: {store.spanEnvironment}
@@ -2325,7 +2351,7 @@ function FormAutofillPanel() {
 
   if (!enabled) return null;
   return (
-    <div className="rounded border p-3 no-print">
+    <div className="rounded border p-3 print:hidden">
       <div className="font-medium mb-2">
         Form Autofill (Upload Official PDF)
       </div>
@@ -2680,7 +2706,7 @@ function PrintableReport() {
         </div>
       ) : null}
       <div className="font-semibold">Estimated Cost: ${costAnalysis ?? 0}</div>
-      <div className="no-print">
+      <div className="print:hidden">
         <button
           className="px-2 py-1 border rounded text-sm"
           onClick={() => window.print()}
@@ -4393,7 +4419,7 @@ function FieldCollection({ openHelp, showBottomActions = true }) {
   }, [store]);
 
   return (
-    <div className="rounded border p-3 no-print">
+    <div className="rounded border p-3 print:hidden">
       <div className="flex items-center justify-between mb-2">
         <div className="font-medium flex items-center gap-2">
           Field Collection
@@ -5213,7 +5239,7 @@ function BatchReport() {
   return (
     <div className="grid gap-6 text-left">
       {items.map((it, idx) => (
-        <div key={idx} className={idx > 0 ? "page-break" : ""}>
+        <div key={idx} className={idx > 0 ? "print:break-before-page" : ""}>
           <div className="flex items-end justify-between">
             <div>
               <h2 className="text-lg font-semibold">
@@ -5282,11 +5308,14 @@ function BatchReport() {
       ))}
       {/* Optional: pole profile sheets */}
       {store.importedPoles?.length ? (
-        <div className="page-break">
+        <div className="print:break-before-page">
           <h2 className="text-lg font-semibold mb-2">Pole Profile Sheets</h2>
           <div className="grid gap-4">
             {store.importedPoles.map((p, i) => (
-              <div key={p.id || i} className={i > 0 ? "page-break" : ""}>
+              <div
+                key={p.id || i}
+                className={i > 0 ? "print:break-before-page" : ""}
+              >
                 <div className="flex items-end justify-between">
                   <div>
                     <div className="font-medium">
@@ -5328,7 +5357,7 @@ function BatchReport() {
           </div>
         </div>
       ) : null}
-      <div className="no-print">
+      <div className="print:hidden">
         <button
           className="px-2 py-1 border rounded text-sm"
           onClick={() => window.print()}
@@ -5420,7 +5449,7 @@ function ImportPanel() {
   const update = (g, k, v) =>
     setMapping((prev) => ({ ...prev, [g]: { ...prev[g], [k]: v } }));
   return (
-    <div className="rounded border p-3 no-print">
+    <div className="rounded border p-3 print:hidden">
       <div className="font-medium mb-2">Import KML/KMZ/Shapefile</div>
       <div className="grid gap-2 md:grid-cols-3">
         <label className="text-sm text-gray-700 grid gap-1">

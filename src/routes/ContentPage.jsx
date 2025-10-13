@@ -3,29 +3,32 @@
 import React from "react";
 import { useParams, Link } from "react-router-dom";
 import { setPageMeta } from "../utils/meta";
-import { stackbitData, fieldPath } from "../utils/stackbit";
+import { stackbitData, stackbitObjectId } from "../utils/stackbit";
 
-function HeroSection({ section, sectionIndex }) {
-  const basePath = `sections[${sectionIndex}]`;
+function HeroSection({ section, sectionIndex, pageSource }) {
+  const sectionObjectId = stackbitObjectId(
+    pageSource,
+    `sections[${sectionIndex}]`,
+  );
   const bg = section.backgroundImage
     ? `url(${section.backgroundImage})`
     : "linear-gradient(135deg,#0ea5e9,#6366f1)";
   return (
     <section
       style={{ background: bg, color: "white", padding: "48px 16px" }}
-      {...stackbitData(basePath)}
+      {...stackbitData(sectionObjectId)}
     >
       <div className="max-w-5xl mx-auto">
         <h1
           style={{ fontSize: 36, fontWeight: 800 }}
-          {...stackbitData(basePath, fieldPath(basePath, "title"))}
+          {...stackbitData(sectionObjectId, "title")}
         >
           {section.title || "Welcome"}
         </h1>
         {section.subtitle && (
           <p
             style={{ marginTop: 8, opacity: 0.9 }}
-            {...stackbitData(basePath, fieldPath(basePath, "subtitle"))}
+            {...stackbitData(sectionObjectId, "subtitle")}
           >
             {section.subtitle}
           </p>
@@ -42,9 +45,11 @@ function HeroSection({ section, sectionIndex }) {
               borderRadius: 8,
               fontWeight: 600,
             }}
-            {...stackbitData(basePath, fieldPath(basePath, "ctaLabel"))}
+            {...stackbitData(sectionObjectId, "ctaUrl#@href")}
           >
-            {section.ctaLabel || "Get Started"}
+            <span {...stackbitData(sectionObjectId, "ctaLabel")}>
+              {section.ctaLabel || "Get Started"}
+            </span>
           </Link>
         )}
       </div>
@@ -52,16 +57,19 @@ function HeroSection({ section, sectionIndex }) {
   );
 }
 
-function RichTextSection({ section, sectionIndex }) {
-  const basePath = `sections[${sectionIndex}]`;
+function RichTextSection({ section, sectionIndex, pageSource }) {
+  const sectionObjectId = stackbitObjectId(
+    pageSource,
+    `sections[${sectionIndex}]`,
+  );
   return (
     <section
       className="max-w-5xl mx-auto px-4 py-8"
-      {...stackbitData(basePath)}
+      {...stackbitData(sectionObjectId)}
     >
       <div
         style={{ whiteSpace: "pre-wrap" }}
-        {...stackbitData(basePath, fieldPath(basePath, "content"))}
+        {...stackbitData(sectionObjectId, "content")}
       >
         {section.content}
       </div>
@@ -69,38 +77,44 @@ function RichTextSection({ section, sectionIndex }) {
   );
 }
 
-function FeatureSection({ section, sectionIndex }) {
-  const basePath = `sections[${sectionIndex}]`;
+function FeatureSection({ section, sectionIndex, pageSource }) {
+  const sectionObjectId = stackbitObjectId(
+    pageSource,
+    `sections[${sectionIndex}]`,
+  );
   const items = section.features || [];
   return (
     <section
       className="max-w-5xl mx-auto px-4 py-8"
-      {...stackbitData(basePath)}
+      {...stackbitData(sectionObjectId)}
     >
       <h2
         style={{ fontSize: 24, fontWeight: 700, marginBottom: 16 }}
-        {...stackbitData(basePath, fieldPath(basePath, "heading"))}
+        {...stackbitData(sectionObjectId, "heading")}
       >
         {section.heading || "Features"}
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {items.map((f, i) => {
-          const itemPath = `${basePath}.features[${i}]`;
+          const itemObjectId = stackbitObjectId(
+            pageSource,
+            `sections[${sectionIndex}].features[${i}]`,
+          );
           return (
             <div
               key={i}
               className="rounded-lg border border-slate-200 p-4 bg-white"
-              {...stackbitData(itemPath)}
+              {...stackbitData(itemObjectId)}
             >
               <div
                 style={{ fontWeight: 700 }}
-                {...stackbitData(itemPath, fieldPath(itemPath, "title"))}
+                {...stackbitData(itemObjectId, "title")}
               >
                 {f.title}
               </div>
               <div
                 style={{ opacity: 0.9, marginTop: 6 }}
-                {...stackbitData(itemPath, fieldPath(itemPath, "text"))}
+                {...stackbitData(itemObjectId, "text")}
               >
                 {f.text}
               </div>
@@ -112,17 +126,20 @@ function FeatureSection({ section, sectionIndex }) {
   );
 }
 
-function CtaSection({ section, sectionIndex }) {
-  const basePath = `sections[${sectionIndex}]`;
+function CtaSection({ section, sectionIndex, pageSource }) {
+  const sectionObjectId = stackbitObjectId(
+    pageSource,
+    `sections[${sectionIndex}]`,
+  );
   return (
     <section
       className="max-w-5xl mx-auto px-4 py-8 text-center"
-      {...stackbitData(basePath)}
+      {...stackbitData(sectionObjectId)}
     >
       <div className="rounded-lg border border-slate-200 p-6 bg-white">
         <p
           style={{ fontSize: 18, marginBottom: 12, opacity: 0.9 }}
-          {...stackbitData(basePath, fieldPath(basePath, "text"))}
+          {...stackbitData(sectionObjectId, "text")}
         >
           {section.text}
         </p>
@@ -130,10 +147,9 @@ function CtaSection({ section, sectionIndex }) {
           <Link
             to={section.buttonUrl}
             className="inline-block px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700 transition"
+            {...stackbitData(sectionObjectId, "buttonUrl#@href")}
           >
-            <span
-              {...stackbitData(basePath, fieldPath(basePath, "buttonLabel"))}
-            >
+            <span {...stackbitData(sectionObjectId, "buttonLabel")}>
               {section.buttonLabel}
             </span>
           </Link>
@@ -156,17 +172,21 @@ const pages = import.meta.glob("../../content/pages/*.json", {
   import: "default",
 });
 
-function getPageBySlug(slug) {
-  const key = Object.keys(pages).find((k) => k.endsWith(`/${slug}.json`));
-  return key ? pages[key] : null;
+function getPageEntry(slug) {
+  for (const [key, data] of Object.entries(pages)) {
+    if (key.endsWith(`/${slug}.json`)) {
+      return { page: data, source: key };
+    }
+  }
+  return null;
 }
 
 export default function ContentPage({ slug: propSlug }) {
   const params = useParams();
   const slug = propSlug || params.slug || "home";
-  const page = getPageBySlug(slug);
+  const entry = getPageEntry(slug);
 
-  if (!page) {
+  if (!entry) {
     return (
       <section
         className="max-w-4xl mx-auto px-4 py-10"
@@ -184,16 +204,35 @@ export default function ContentPage({ slug: propSlug }) {
     );
   }
 
+  const { page, source } = entry;
   const sections = page.sections || [];
+  const pageObjectId = stackbitObjectId(source);
+
   setPageMeta({
     title: page.title || "Pole Plan Pro",
     description: page.seoDescription,
   });
+
   return (
-    <div {...stackbitData("page")}>
+    <div {...stackbitData(pageObjectId)}>
+      {page.title ? (
+        <span className="sr-only" {...stackbitData(pageObjectId, "title")}>
+          {page.title}
+        </span>
+      ) : null}
+      {page.seoDescription ? (
+        <span
+          className="sr-only"
+          {...stackbitData(pageObjectId, "seoDescription")}
+        >
+          {page.seoDescription}
+        </span>
+      ) : null}
       {sections.map((s, i) => {
         const Type = sectionRenderer[s.type] || RichTextSection;
-        return <Type key={i} section={s} sectionIndex={i} />;
+        return (
+          <Type key={i} section={s} sectionIndex={i} pageSource={source} />
+        );
       })}
       <section className="max-w-5xl mx-auto px-4 py-10">
         <Link

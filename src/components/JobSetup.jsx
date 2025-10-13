@@ -312,14 +312,19 @@ export default function JobSetup() {
   };
 
   return (
-    <div id="job" className="app-section anchor-offset">
+    <div
+      id="job"
+      className="rounded-lg border border-gray-200 bg-white p-4 md:p-6 shadow-sm scroll-mt-14"
+    >
       <div className="flex items-center justify-between">
-        <div className="section-title">Job Setup</div>
+        <div className="text-lg font-semibold text-gray-900 md:text-xl mb-3">
+          Job Setup
+        </div>
         <div className="text-xs text-gray-600">
           Jobs: {(store.jobs || []).length}
         </div>
       </div>
-      <div className="section-grid mt-2 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:gap-6 mt-2 sm:grid-cols-2 lg:grid-cols-4">
         <label className="grid gap-1 text-sm">
           <span className="font-medium">Select Job</span>
           <div className="flex gap-2 items-center">
@@ -425,7 +430,7 @@ export default function JobSetup() {
         </label>
 
         {/* Job-level Standards/Profile */}
-        <div className="sm:col-span-2 lg:col-span-4 border rounded p-2 vertical-rhythm">
+        <div className="sm:col-span-2 lg:col-span-4 border rounded p-2 space-y-4">
           <div className="font-medium text-sm">
             Job Standards & Export Profile
           </div>
@@ -568,7 +573,7 @@ export default function JobSetup() {
           />
         </label>
       </div>
-      <div className="section-divider" />
+      <div className="border-t border-gray-200 mt-4 mb-4 md:mt-6 md:mb-6" />
       <div className="mt-2 flex flex-wrap gap-2">
         <button className="px-3 py-1 border rounded" onClick={onCreate}>
           Create

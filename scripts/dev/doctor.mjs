@@ -5,6 +5,18 @@ import path from 'path';
 
 const reqNode = '22.20.0'; // Updated for Node 22 support
 
+/**
+ * @typedef {Object} VersionCompareArgs
+ * @property {string} a
+ * @property {string} b
+ */
+
+/**
+ * Compare two semantic version strings.
+ * @param {string} a
+ * @param {string} b
+ * @returns {number}
+ */
 function compareVersions(a, b) {
   const pa = a.split('.').map(Number);
   const pb = b.split('.').map(Number);
@@ -16,6 +28,11 @@ function compareVersions(a, b) {
   return 0;
 }
 
+/**
+ * Check if a port is free.
+ * @param {number} port
+ * @returns {Promise<boolean>}
+ */
 function checkPort(port) {
   return new Promise((resolve) => {
     const server = createServer();
@@ -25,11 +42,21 @@ function checkPort(port) {
   });
 }
 
+/**
+ * Log a message with a checkmark or cross.
+ * @param {boolean} ok
+ * @param {string} msg
+ * @returns {void}
+ */
 function log(ok, msg) {
   const mark = ok ? '\u2705' : '\u274c';
   console.log(`${mark} ${msg}`);
 }
 
+/**
+ * Main doctor routine.
+ * @returns {Promise<void>}
+ */
 async function main() {
   console.log('Local env doctor\n');
 
@@ -45,6 +72,9 @@ async function main() {
   // ENV
   const skip = process.env.NETLIFY_NEXT_PLUGIN_SKIP === 'true' || process.env.NETLIFY_NEXT_PLUGIN_SKIP === '1';
   log(skip, 'NETLIFY_NEXT_PLUGIN_SKIP is set for this shell');
+
+  // DB URL redacted check
+  const hasDb = !!process.env.DATABASE_URL || !!process.env.NETLIFY_DATABASE_URL || !!process.env.NETLIFY_DATABASE_URL_UNPOOLED;
 
   // Ports
   const p8888Free = await checkPort(8888);
@@ -69,12 +99,11 @@ async function main() {
         log(false, `Functions health responded with HTTP ${res.status}`);
       }
     } catch (e) {
-      log(false, `Could not reach http://127.0.0.1:8888/.netlify/functions/health (${e?.message || e})`);
+      const msg = typeof e === 'object' && e !== null && 'message' in e && typeof (e).message === 'string' ? (e).message : String(e);
+      log(false, `Could not reach http://127.0.0.1:8888/.netlify/functions/health (${msg})`);
     }
   }
 
-  // DB URL redacted check
-  const hasDb = !!process.env.DATABASE_URL || !!process.env.NETLIFY_DATABASE_URL || !!process.env.NETLIFY_DATABASE_URL_UNPOOLED;
   log(hasDb, 'Database URL detected in environment (optional for health check)');
 
   // Netlify CLI

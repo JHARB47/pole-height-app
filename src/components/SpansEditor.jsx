@@ -617,7 +617,7 @@ export default function SpansEditor() {
   };
 
   return !spans.length ? null : (
-    <div className="rounded border p-3 no-print">
+    <div className="rounded border p-3 print:hidden">
       <div className="font-medium mb-2">
         Spans (Per‑span Environment & Quick Calc)
       </div>
