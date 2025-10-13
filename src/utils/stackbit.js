@@ -5,8 +5,8 @@
 
 /**
  * Generate data attributes for Stackbit visual editing
- * @param {string} objectId - The content object ID (e.g., "page", "section-0")
- * @param {string} [fieldPath] - Optional field path within the object (e.g., "title", "sections[0].title")
+ * @param {string} objectId - The content object ID (e.g., content/pages/home.json)
+ * @param {string} [fieldPath] - Optional field path within the object (e.g., "title")
  * @returns {Object} Data attributes object to spread on elements
  */
 export function stackbitData(objectId, fieldPath) {
@@ -19,6 +19,18 @@ export function stackbitData(objectId, fieldPath) {
   }
 
   return attrs;
+}
+
+/**
+ * Build a Stackbit object identifier from a content source.
+ * @param {string} source - Path such as "../../content/pages/home.json"
+ * @param {string} [pointer] - Optional pointer, e.g., "sections[0]"
+ * @returns {string}
+ */
+export function stackbitObjectId(source, pointer) {
+  if (!source) return pointer || "";
+  const normalized = source.replace(/^[./]+/, "");
+  return pointer ? `${normalized}:${pointer}` : normalized;
 }
 
 /**
@@ -36,14 +48,4 @@ export function isStackbitActive() {
  */
 export function sectionId(index) {
   return `section-${index}`;
-}
-
-/**
- * Generate field path for nested content
- * @param {string} basePath - Base path (e.g., "sections[0]")
- * @param {string} field - Field name (e.g., "title")
- * @returns {string}
- */
-export function fieldPath(basePath, field) {
-  return field ? `${basePath}.${field}` : basePath;
 }

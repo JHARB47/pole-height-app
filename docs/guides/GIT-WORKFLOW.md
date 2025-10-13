@@ -88,6 +88,15 @@ npm test -- geodata           # Test geospatial features
 4. **Build**: Vite production build verification
 5. **PWA**: Service worker generation validation
 
+### Branch Protection & Automation
+
+- **Required status**: GitHub branch protection for `main` must require the `Required Checks / Verify Core Gates` workflow to succeed before merge. Configure this under *Settings → Branches → Branch protection rules*.
+- **Reviews & pushes**: Enable “Require pull request reviews before merging” (minimum 1 approval) and “Restrict who can push to matching branches” to block direct pushes to `main`.
+- **Staging deploy hook**: Optionally provision a Netlify staging site and add its build-hook URL as `NETLIFY_STAGING_BUILD_HOOK_URL` in repository secrets. Pull requests automatically trigger the staging deploy via `.github/workflows/ci.yml`.
+- **Secrets hygiene**: The staging job logs a skip when the secret is absent; production deploys rely on the hook managed by `ci-robust.yml`. Rotate hooks immediately if exposed.
+- **Reproducible builds**: Keep `.nvmrc` and `package-lock.json` in sync on `main`. Update both when bumping Node or dependencies to ensure GitHub Actions and Netlify use identical environments.
+
+
 ## Feature Area Guidelines
 
 ### Web View/UI Components

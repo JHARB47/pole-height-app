@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
 
 /**
  * Return a chunk name for the given module id.
@@ -87,7 +88,8 @@ function chunkForId(id) {
 export default defineConfig({
   base: '/',
   plugins: [
-    react()
+    tailwindcss(),
+    react(),
   ],
   resolve: {
     alias: [

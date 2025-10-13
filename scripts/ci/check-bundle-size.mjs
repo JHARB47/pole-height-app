@@ -9,6 +9,10 @@ import { join } from 'path';
 const dist = 'dist';
 const BUDGET_KB = 1450; // 1.45 MB combined (realistic for enterprise PDF + GIS features)
 
+/**
+ * @returns {string[]}
+ * @param {string} dir
+ */
 function walk(dir) {
   return readdirSync(dir).flatMap(f => {
     const p = join(dir, f);
@@ -28,7 +32,8 @@ try {
     detail.push({ f, size });
   }
 } catch (e) {
-  console.error('Bundle size check failed to read dist:', e.message);
+  const msg = typeof e === 'object' && e !== null && 'message' in e ? e.message : String(e);
+  console.error('Bundle size check failed to read dist:', msg);
   process.exit(1);
 }
 
