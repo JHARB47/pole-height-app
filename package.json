@@ -217,5 +217,6 @@
     "defaults",
     "not op_mini all",
     "maintained node versions"
-  ]
+  ],
+  "packageManager": "npm@10"
 }
