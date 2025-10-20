@@ -84,7 +84,7 @@ export async function handler(event) {
   let payload;
   try {
     payload = JSON.parse(payloadRaw);
-  } catch (err) {
+  } catch (_err) {
     return { statusCode: 400, headers, body: JSON.stringify({ ok: false, error: 'Invalid JSON payload' }) };
   }
 

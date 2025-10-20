@@ -77,7 +77,7 @@ try {
 // Test 5: Performance monitoring
 console.log('\n5. Testing Performance Monitoring...');
 try {
-  const perfResponse = execSync('curl -s "https://poleplanpro.com" | grep -o "web-vitals\|performance"', { encoding: 'utf8' });
+  const perfResponse = execSync('curl -s "https://poleplanpro.com" | grep -o "web-vitals|performance"', { encoding: 'utf8' });
 
   if (perfResponse.trim()) {
     console.log('✅ Performance monitoring code detected in response');

@@ -18,7 +18,7 @@ export default async (req, _context) => {
       });
     }
 
-    const token = authHeader.substring(7); // Remove 'Bearer '
+    const _token = authHeader.substring(7); // Remove 'Bearer '
     // TODO: Validate token against a secure store
 
     const result = await runMigrations();

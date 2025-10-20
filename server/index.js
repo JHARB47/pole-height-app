@@ -3,7 +3,6 @@
  * PolePlan Pro Enterprise Server
  * Main Express.js server with comprehensive enterprise features
  */
-import * as Sentry from "@sentry/node";
 import express from 'express';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
@@ -37,20 +36,6 @@ import { Sentry } from './instrument.js';
 
 // Load environment variables
 dotenv.config();
-
-// Initialize Sentry for server-side error tracking
-Sentry.init({
-  dsn: process.env.SENTRY_DSN,
-  environment: process.env.NODE_ENV || 'development',
-  integrations: [
-    // HTTP calls tracing
-    new Sentry.Integrations.Http({ tracing: true }),
-  ],
-  // Performance monitoring
-  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
-  // Release tracking
-  release: process.env.npm_package_version || '1.0.0',
-});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -109,12 +94,6 @@ app.use(passport.initialize());
 
 // Sentry request handler (must be before all routes)
 app.use(Sentry.Handlers.requestHandler());
-
-// Sentry request/trace instrumentation (must come before routes)
-app.use(Sentry.Handlers.requestHandler());
-if (typeof Sentry.Handlers.tracingHandler === 'function') {
-  app.use(Sentry.Handlers.tracingHandler());
-}
 
 // Health check route (must be before auth)
 app.use('/health', healthRouter);
@@ -189,9 +168,6 @@ if (NODE_ENV === 'production') {
 app.use(Sentry.Handlers.errorHandler());
 app.use(errorHandler);
 
-// Sentry error handler (must be after all routes)
-app.use(Sentry.Handlers.errorHandler());
-
 // Graceful shutdown handler
 process.on('SIGTERM', async () => {
   logger.info('SIGTERM received, shutting down gracefully');
@@ -210,34 +186,16 @@ process.on('SIGINT', async () => {
 // Start server
 async function startServer() {
   try {
-  // Initialize database
-  await db.initialize();
-  app.locals.db = db;
-  app.locals.metrics = metrics;
-  logger.info('Database connection established');
-    
-    // Initialize database with Sentry instrumentation
-    await Sentry.startSpan({
-      op: 'db.init',
-      name: 'Database initialization',
-    }, async (span) => {
-      await db.initialize();
-      span.setAttribute('poolMax', db.pool?.options?.max ?? 20);
-      span.setAttribute('environment', NODE_ENV);
-      logger.info('Database connection established');
-    });
+    // Initialize database
+    await db.initialize();
+    app.locals.db = db;
+    app.locals.metrics = metrics;
+    logger.info('Database connection established');
 
     // Start metrics collection
     metrics.start();
-  // Provide shared metrics instance to request logger middleware
-  try { setRequestLoggerMetrics(metrics); } catch { /* ignore */ }
-    
-    await Sentry.startSpan({
-      op: 'metrics.start',
-      name: 'Metrics service start',
-    }, async () => {
-      metrics.start();
-    });
+    // Provide shared metrics instance to request logger middleware
+    try { setRequestLoggerMetrics(metrics); } catch { /* ignore */ }
 
     app.listen(PORT, () => {
       logger.info(`PolePlan Pro Enterprise Server running on port ${PORT}`);
@@ -246,7 +204,6 @@ async function startServer() {
     });
   } catch (error) {
     logger.error('Failed to start server:', error);
-    Sentry.captureException(error);
     process.exit(1);
   }
 }

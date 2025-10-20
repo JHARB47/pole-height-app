@@ -115,7 +115,7 @@ export default function TemplateManager() {
       let parsedPayload;
       try {
         parsedPayload = JSON.parse(createForm.payload || "{}");
-      } catch (parseErr) {
+      } catch (_parseErr) {
         throw new Error("Payload must be valid JSON");
       }
 
@@ -158,7 +158,7 @@ export default function TemplateManager() {
       let parsedPayload;
       try {
         parsedPayload = JSON.parse(versionPayload || "{}");
-      } catch (parseErr) {
+      } catch (_parseErr) {
         throw new Error("Version payload must be valid JSON");
       }
 

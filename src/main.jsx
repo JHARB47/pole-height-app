@@ -1,6 +1,4 @@
-/// <reference types="vite/client" />
 import * as Sentry from "@sentry/react";
-import { BrowserTracing } from "@sentry/tracing";
 import React, { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
@@ -17,15 +15,13 @@ Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
   environment: import.meta.env.MODE,
   integrations: [
-    new BrowserTracing({
-      routingInstrumentation: Sentry.reactRouterV6Instrumentation(
-        React.useEffect,
-        React.useLocation,
-        React.useNavigationType,
-        createBrowserRouter,
-        React.createRoutesFromChildren,
-        React.matchRoutes
-      ),
+    Sentry.browserTracingIntegration(),
+    Sentry.reactRouterV6BrowserTracingIntegration({
+      useEffect: React.useEffect,
+      useLocation: React.useLocation,
+      useNavigationType: React.useNavigationType,
+      createRoutesFromChildren: React.createRoutesFromChildren,
+      matchRoutes: React.matchRoutes,
     }),
   ],
   // Performance monitoring
@@ -69,12 +65,10 @@ const router = createBrowserRouter([
   }
 ]);
 
-const sentryRouter = Sentry.withSentryReactRouterV6(router);
-
 createRoot(container).render(
   <StrictMode>
     <ErrorBoundary>
-      <RouterProvider router={sentryRouter} />
+      <RouterProvider router={router} />
     </ErrorBoundary>
   </StrictMode>,
 );

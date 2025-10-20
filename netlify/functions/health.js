@@ -1,5 +1,5 @@
 /* eslint-env node */
-export async function handler(event, context) {
+export async function handler(_event, _context) {
   const startTime = Date.now();
   const ts = new Date().toISOString();
   const inNetlify = !!process.env.NETLIFY;

@@ -1,13 +1,13 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 describe('Critical Risk Mitigations', () => {
   let originalLocalStorage;
   let mockLocalStorage;
-  
+
   beforeEach(() => {
     // Save original localStorage
-    originalLocalStorage = global.localStorage;
-    
+    originalLocalStorage = globalThis.localStorage;
+
     // Create mock localStorage that can simulate corruption
     mockLocalStorage = {
       getItem: (key) => {
@@ -20,19 +20,19 @@ describe('Critical Risk Mitigations', () => {
       removeItem: () => {}
     };
   });
-  
+
   afterEach(() => {
     // Restore original localStorage
-    global.localStorage = originalLocalStorage;
+    globalThis.localStorage = originalLocalStorage;
   });
 
   describe('localStorage Corruption Handling', () => {
     it('should handle corrupted JSON gracefully', () => {
-      global.localStorage = mockLocalStorage;
-      
+      globalThis.localStorage = mockLocalStorage;
+
       // Import the store module
-      const { default: createStorage } = require('zustand/middleware');
-      
+      const { default: createStorage } = await import('zustand/middleware');
+
       // This should not throw even with corrupted data
       expect(() => {
         try {
@@ -44,20 +44,20 @@ describe('Critical Risk Mitigations', () => {
         }
       }).not.toThrow();
     });
-    
+
     it('should validate localStorage structure before using', () => {
       const mockInvalidStructure = {
         getItem: () => JSON.stringify({ invalidStructure: true }),
         setItem: () => {},
         removeItem: () => {}
       };
-      
-      global.localStorage = mockInvalidStructure;
-      
+
+      globalThis.localStorage = mockInvalidStructure;
+
       // Our fix should validate structure and reject invalid data
       const result = mockInvalidStructure.getItem('test');
       const parsed = JSON.parse(result);
-      
+
       // Should not have valid state structure
       expect(parsed.state).toBeUndefined();
     });
@@ -66,7 +66,7 @@ describe('Critical Risk Mitigations', () => {
   describe('Route Fallback', () => {
     it('should have NotFoundPage component available', async () => {
       // Dynamic import to test component exists
-      const { default: NotFoundPage } = await import('../components/NotFoundPage.jsx');
+      const { default: NotFoundPage } = await import('../../components/NotFoundPage.jsx');
       expect(NotFoundPage).toBeDefined();
       expect(typeof NotFoundPage).toBe('function');
     });
@@ -74,30 +74,30 @@ describe('Critical Risk Mitigations', () => {
 
   describe('CDN Fallback (Already Robust)', () => {
     it('should have exportShapefile with fallback logic', async () => {
-      const { exportShapefile } = await import('../utils/geodata.js');
+      const { exportShapefile } = await import('../../utils/geodata.js');
       expect(exportShapefile).toBeDefined();
       expect(typeof exportShapefile).toBe('function');
     });
     
     it('should handle CDN failure gracefully', async () => {
       // Mock window without shpwrite
-      const originalWindow = global.window;
-      global.window = { ...originalWindow };
-      delete global.window.shpwrite;
-      
-      const { exportShapefile } = await import('../utils/geodata.js');
-      
+      const originalWindow = globalThis.window;
+      globalThis.window = { ...originalWindow };
+      delete globalThis.window.shpwrite;
+
+      const { exportShapefile } = await import('../../utils/geodata.js');
+
       // Should not throw even when CDN is unavailable
       const testFeatureCollection = {
         type: 'FeatureCollection',
         features: []
       };
-      
+
       // This should fallback to GeoJSON without throwing
       await expect(exportShapefile(testFeatureCollection, 'test.zip', false))
         .resolves.toBeInstanceOf(Blob);
-      
-      global.window = originalWindow;
+
+      globalThis.window = originalWindow;
     });
   });
 

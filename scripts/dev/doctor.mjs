@@ -7,12 +7,6 @@ import { config as loadEnv } from 'dotenv';
 const reqNode = '22.20.0'; // Updated for Node 22 support
 
 /**
- * @typedef {Object} VersionCompareArgs
- * @property {string} a
- * @property {string} b
- */
-
-/**
  * Compare two semantic version strings.
  * @param {string} a
  * @param {string} b
@@ -67,6 +61,7 @@ async function main() {
     console.log('\u2139\ufe0f  Loaded environment from .env');
   }
   const node = process.versions.node;
+  const nodeOk = compareVersions(node, '22.0.0') >= 0 && compareVersions(node, '25.0.0') < 0;
   log(nodeOk, `Node version ${node} (expected >=22 <25${reqNode ? `; recommended ${reqNode}` : ''})`);
 
   // Files
