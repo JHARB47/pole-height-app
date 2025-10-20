@@ -1,0 +1,27 @@
+{
+  "action": "opened",
+  "number": 1,
+  "pull_request": {
+    "number": 1,
+    "html_url": "https://github.com/JHARB47/pole-height-app/pull/1",
+    "head": {
+      "ref": "feature/sample-branch",
+      "sha": "1111111111111111111111111111111111111111"
+    },
+    "base": {
+      "ref": "main"
+    }
+  },
+  "repository": {
+    "id": 123456789,
+    "name": "pole-height-app",
+    "full_name": "JHARB47/pole-height-app",
+    "owner": {
+      "login": "JHARB47",
+      "id": 987654321
+    }
+  },
+  "installation": {
+    "id": 99999999
+  }
+}

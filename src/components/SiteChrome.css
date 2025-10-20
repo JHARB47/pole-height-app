@@ -1,0 +1,95 @@
+/* Skip link for keyboard navigation */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.skip-link:focus {
+  position: fixed;
+  left: 16px;
+  top: 16px;
+  width: auto;
+  height: auto;
+  padding: 8px 12px;
+  background: #111827;
+  color: #fff;
+  border-radius: 6px;
+  z-index: 10000;
+}
+
+/* Top navigation bar */
+.top-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: saturate(180%) blur(6px);
+  z-index: 9999;
+}
+
+.top-nav .brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #0f172a;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.top-nav .nav-links {
+  display: flex;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.top-nav a {
+  color: #0f172a;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* Body offset for fixed nav */
+body {
+  padding-top: 44px;
+}
+
+/* Preview banner (non-blocking) */
+.preview-banner {
+  position: fixed;
+  top: 44px;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  background: #fff7ed; /* warm orange tint */
+  color: #7c2d12; /* dark amber */
+  border-bottom: 1px solid #fed7aa;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  z-index: 9998;
+}
+
+.preview-banner__dismiss {
+  appearance: none;
+  border: 1px solid #fdba74;
+  background: #fff;
+  color: #7c2d12;
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .preview-banner { font-size: 14px; }
+}

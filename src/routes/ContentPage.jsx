@@ -1,7 +1,8 @@
 // @ts-nocheck
 
 import React from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import SafeLink from "../components/SafeLink.jsx";
 import { setPageMeta } from "../utils/meta";
 import { stackbitData, stackbitObjectId } from "../utils/stackbit";
 
@@ -14,12 +15,12 @@ function HeroSection({ section, sectionIndex, pageSource }) {
     ? `url(${section.backgroundImage})`
     : "linear-gradient(135deg,#0ea5e9,#6366f1)";
   return (
-    <section
+    <section 
       style={{ background: bg, color: "white", padding: "48px 16px" }}
       {...stackbitData(sectionObjectId)}
     >
       <div className="max-w-5xl mx-auto">
-        <h1
+        <h1 
           style={{ fontSize: 36, fontWeight: 800 }}
           {...stackbitData(sectionObjectId, "title")}
         >
@@ -34,7 +35,7 @@ function HeroSection({ section, sectionIndex, pageSource }) {
           </p>
         )}
         {section.ctaUrl && (
-          <Link
+          <SafeLink
             to={section.ctaUrl}
             style={{
               display: "inline-block",
@@ -50,7 +51,7 @@ function HeroSection({ section, sectionIndex, pageSource }) {
             <span {...stackbitData(sectionObjectId, "ctaLabel")}>
               {section.ctaLabel || "Get Started"}
             </span>
-          </Link>
+          </SafeLink>
         )}
       </div>
     </section>
@@ -144,7 +145,7 @@ function CtaSection({ section, sectionIndex, pageSource }) {
           {section.text}
         </p>
         {section.buttonLabel && section.buttonUrl && (
-          <Link
+          <SafeLink
             to={section.buttonUrl}
             className="inline-block px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700 transition"
             {...stackbitData(sectionObjectId, "buttonUrl#@href")}
@@ -152,7 +153,7 @@ function CtaSection({ section, sectionIndex, pageSource }) {
             <span {...stackbitData(sectionObjectId, "buttonLabel")}>
               {section.buttonLabel}
             </span>
-          </Link>
+          </SafeLink>
         )}
       </div>
     </section>
@@ -197,8 +198,8 @@ export default function ContentPage({ slug: propSlug }) {
         </h1>
         <p className="mt-2">
           We couldn't find the requested page. Try the{" "}
-          <Link to="/">home page</Link> or launch the{" "}
-          <Link to="/app">PolePlan Pro</Link>.
+          <SafeLink to="/">home page</SafeLink> or launch the{" "}
+          <SafeLink to="/app">PolePlan Pro</SafeLink>.
         </p>
       </section>
     );
@@ -235,7 +236,7 @@ export default function ContentPage({ slug: propSlug }) {
         );
       })}
       <section className="max-w-5xl mx-auto px-4 py-10">
-        <Link
+        <SafeLink
           to="/app"
           style={{
             display: "inline-block",
@@ -247,7 +248,7 @@ export default function ContentPage({ slug: propSlug }) {
           }}
         >
           Launch PolePlan Pro
-        </Link>
+        </SafeLink>
       </section>
     </div>
   );

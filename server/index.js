@@ -3,6 +3,7 @@
  * PolePlan Pro Enterprise Server
  * Main Express.js server with comprehensive enterprise features
  */
+import * as Sentry from "@sentry/node";
 import express from 'express';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
@@ -16,8 +17,8 @@ import dotenv from 'dotenv';
 import { authRouter } from './routes/auth.js';
 import { apiRouter } from './routes/api.js';
 import { healthRouter } from './routes/health.js';
-import { adminRouter } from './routes/admin.js';
-import { geospatialRouter } from './routes/geospatial.js';
+// import { adminRouter } from './routes/admin.js'; // TODO: Create admin routes
+// import { geospatialRouter } from './routes/geospatial.js'; // TODO: Create geospatial routes
 import { projectsRouter } from './routes/projects.js';
 
 // Import middleware
@@ -25,7 +26,7 @@ import { authMiddleware } from './middleware/auth.js';
 import { rbacMiddleware } from './middleware/rbac.js';
 import { auditMiddleware } from './middleware/audit.js';
 import { errorHandler } from './middleware/errorHandler.js';
-import { requestLogger } from './middleware/requestLogger.js';
+import { requestLogger, setRequestLoggerMetrics } from './middleware/requestLogger.js';
 
 // Import services
 import { DatabaseService } from './services/database.js';
@@ -36,6 +37,20 @@ import { Sentry } from './instrument.js';
 
 // Load environment variables
 dotenv.config();
+
+// Initialize Sentry for server-side error tracking
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  environment: process.env.NODE_ENV || 'development',
+  integrations: [
+    // HTTP calls tracing
+    new Sentry.Integrations.Http({ tracing: true }),
+  ],
+  // Performance monitoring
+  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+  // Release tracking
+  release: process.env.npm_package_version || '1.0.0',
+});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -92,6 +107,9 @@ app.use(requestLogger);
 PassportConfig.initialize();
 app.use(passport.initialize());
 
+// Sentry request handler (must be before all routes)
+app.use(Sentry.Handlers.requestHandler());
+
 // Sentry request/trace instrumentation (must come before routes)
 app.use(Sentry.Handlers.requestHandler());
 if (typeof Sentry.Handlers.tracingHandler === 'function') {
@@ -132,21 +150,21 @@ app.use('/api/v1',
   apiRouter
 );
 
-// Admin routes with RBAC
-app.use('/api/admin',
-  authMiddleware,
-  rbacMiddleware(['admin', 'super_admin']),
-  auditMiddleware,
-  adminRouter
-);
+// Admin routes with RBAC (TODO: Implement admin routes)
+// app.use('/api/admin',
+//   authMiddleware,
+//   rbacMiddleware(['admin', 'super_admin']),
+//   auditMiddleware,
+//   adminRouter
+// );
 
-// Geospatial data routes
-app.use('/api/geospatial',
-  authMiddleware,
-  rbacMiddleware(['user', 'engineer', 'admin']),
-  auditMiddleware, 
-  geospatialRouter
-);
+// Geospatial data routes (TODO: Implement geospatial routes)
+// app.use('/api/geospatial',
+//   authMiddleware,
+//   rbacMiddleware(['user', 'engineer', 'admin']),
+//   auditMiddleware, 
+//   geospatialRouter
+// );
 
 // Project management routes
 app.use('/api/projects',
@@ -171,15 +189,20 @@ if (NODE_ENV === 'production') {
 app.use(Sentry.Handlers.errorHandler());
 app.use(errorHandler);
 
+// Sentry error handler (must be after all routes)
+app.use(Sentry.Handlers.errorHandler());
+
 // Graceful shutdown handler
 process.on('SIGTERM', async () => {
   logger.info('SIGTERM received, shutting down gracefully');
+  try { metrics.stop(); } catch { /* ignore */ }
   await db.close();
   process.exit(0);
 });
 
 process.on('SIGINT', async () => {
   logger.info('SIGINT received, shutting down gracefully');
+  try { metrics.stop(); } catch { /* ignore */ }
   await db.close();
   process.exit(0);
 });
@@ -187,6 +210,12 @@ process.on('SIGINT', async () => {
 // Start server
 async function startServer() {
   try {
+  // Initialize database
+  await db.initialize();
+  app.locals.db = db;
+  app.locals.metrics = metrics;
+  logger.info('Database connection established');
+    
     // Initialize database with Sentry instrumentation
     await Sentry.startSpan({
       op: 'db.init',
@@ -199,6 +228,10 @@ async function startServer() {
     });
 
     // Start metrics collection
+    metrics.start();
+  // Provide shared metrics instance to request logger middleware
+  try { setRequestLoggerMetrics(metrics); } catch { /* ignore */ }
+    
     await Sentry.startSpan({
       op: 'metrics.start',
       name: 'Metrics service start',

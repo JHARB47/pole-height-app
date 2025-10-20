@@ -7,6 +7,9 @@ import express from 'express';
 const createTestServer = () => {
   const app = express();
   
+  // Add JSON middleware
+  app.use(express.json());
+  
   // Health endpoint
   app.get('/health', (req, res) => {
     res.json({ 

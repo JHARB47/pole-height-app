@@ -23,12 +23,14 @@ npm audit
 **19 packages have updates available**, but none are critical:
 
 ### Major Updates Available (Wait)
+
 - React 18.3.1 → 19.2.0 (breaking changes)
 - Vitest 1.6.1 → 3.2.4 (breaking changes)
 - Tailwind 3.4.18 → 4.1.14 (major rewrite)
 - React Router 6.30.1 → 7.9.3 (breaking changes)
 
 ### Safe to Update Now
+
 - ESLint 9.36.0 → 9.37.0 (minor)
 - @types/node 22.18.8 → 24.6.2 (types only)
 

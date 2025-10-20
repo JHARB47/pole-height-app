@@ -28,6 +28,9 @@ export default defineConfig({
     testTimeout: 20_000,
     globals: true,
     environment: 'jsdom',
+    environmentMatchGlobs: [
+      ['server/**', 'node'],
+    ],
     setupFiles: resolve(__dirname, 'src/testSetup.js'),
     coverage: {
       provider: 'v8',
@@ -51,10 +54,10 @@ export default defineConfig({
       reporter: ['text', 'html', 'lcov'],
       reportsDirectory: './coverage',
       thresholds: {
-        lines: 45,
-        statements: 45,
-        functions: 27,
-        branches: 49,
+        lines: 60,
+        statements: 60,
+        functions: 55,
+        branches: 50,
       },
     },
   },

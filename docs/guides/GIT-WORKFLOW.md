@@ -56,6 +56,16 @@ npm run build     # Vite production build
 npm run dev       # Development server verification
 ```
 
+### 2a. Branch Hygiene Guardrails
+
+- **Run `npm run check:hygiene`** before pushing. This command verifies that no build output (`dist/`), coverage artefacts, or nested repository copies (`pole-height-app/`) are tracked and that core documentation (deployment, workflow, API references) remains present.
+- The hygiene check now runs automatically inside `npm run verify`; failing early keeps branches easy to diff, test, and merge.
+- If the command fails:
+  - Remove generated folders with `npm run clean` (or `rm -rf dist coverage`).
+  - Restore deleted docs via `git checkout main -- <path>`.
+  - Re-run `npm run check:hygiene` until it passes before continuing with other verification steps.
+- Keep feature branches focused: prefer a dedicated branch per dependency upgrade, UX enhancement, or bug fix so hygiene failures stay quick to resolve.
+
 ### 3. Pull Request Process
 
 1. **Create PR** using the GitHub template (automatically loaded)

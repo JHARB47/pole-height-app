@@ -1,37 +1,11 @@
-# Node
+## Build artefacts
 node_modules/
 dist/
+dist-ssr/
 .parcel-cache/
 .cache/
 
-# Env files (do not commit secrets)
-.env
-.env.*
-!.env.example
-
-# Netlify
-.netlify/
-
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# Coverage & reports
-coverage/
-*.lcov
-
-# OS/editor
-.DS_Store
-*.swp
-.vscode/node_modules/
-dist/
-.DS_Store
-coverage/
-*.log
-.env
-.env.*# Logs
+## Logs
 logs
 *.log
 npm-debug.log*
@@ -40,32 +14,35 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-.netlify/
-package-lock 2.json
+## Coverage & reports
+coverage/
+*.lcov
 
-# Editor directories and files
+## Environment files (keep examples only)
+.env
+.env.*
+!.env.example
+*-secrets.txt
+*-secrets.md
+NETLIFY-ADD-THESE.txt
+GITHUB-ADD-THESE.txt
+
+## Netlify
+.netlify/
+
+## Editor & OS
+.DS_Store
+*.swp
+.vscode/node_modules/
 .vscode/*
 !.vscode/extensions.json
 .idea
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+*.local
 
-# Env files (keep examples only)
-.env
-.env.*
-!.env.example
-
-# Secret reference files (contain actual secret values)
-NETLIFY-ADD-THESE.txt
-GITHUB-ADD-THESE.txt
-.env.netlify
-*-secrets.txt
-*-secrets.md
+## Misc
+package-lock 2.json

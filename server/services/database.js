@@ -32,6 +32,15 @@ export class DatabaseService {
    */
   async initialize() {
     try {
+      // Validate required environment variables
+      if (!process.env.DATABASE_URL) {
+        throw new Error(
+          'DATABASE_URL environment variable is required. ' +
+          'Please check your .env file or environment configuration. ' +
+          'For local development: cp server/.env.example server/.env'
+        );
+      }
+      
       const config = {
         connectionString: process.env.DATABASE_URL,
         ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
@@ -49,6 +58,12 @@ export class DatabaseService {
       
       this.logger.info('Database pool initialized successfully');
       
+  // Mark service as initialized BEFORE running migrations so internal
+  // query()/transaction() calls inside runMigrations are allowed
+  this.isInitialized = true;
+
+  // Run migrations (uses this.query/transaction)
+  await this.runMigrations();
       // Run migrations
       await this.runMigrations();
       

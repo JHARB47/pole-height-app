@@ -125,10 +125,10 @@
         </div>
 
         <div style="text-align: center; margin: 30px 0;">
-            <button onclick="clearAll()" id="clearBtn">
+            <button id="clearBtn">
                 🗑️ Clear All Storage & Fix Error
             </button>
-            <button onclick="diagnose()" class="secondary" id="diagnoseBtn">
+            <button class="secondary" id="diagnoseBtn">
                 🔍 Diagnose Issue First
             </button>
         </div>
@@ -298,14 +298,22 @@
                 reloadBtn.style.textAlign = 'center';
                 reloadBtn.style.marginTop = '20px';
                 reloadBtn.innerHTML = `
-                    <button onclick="window.location.href='/'" style="background: #10b981; font-size: 18px;">
+                    <button id="reloadBtn" style="background: #10b981; font-size: 18px;">
                         🔄 Reload Application
                     </button>
-                    <button onclick="window.location.href='http://localhost:5173'" class="secondary">
+                    <button id="devBtn" class="secondary">
                         🏠 Go to Dev Server
                     </button>
                 `;
                 resultsDiv.appendChild(reloadBtn);
+                
+                // Add event listeners for the new buttons
+                document.getElementById('reloadBtn').addEventListener('click', () => {
+                    window.location.href = '/';
+                });
+                document.getElementById('devBtn').addEventListener('click', () => {
+                    window.location.href = 'http://localhost:5173';
+                });
             } else {
                 showResult(
                     `<strong>⚠️ Partial success</strong><br>` +
@@ -330,6 +338,10 @@
                 }
             }, 100);
         });
+
+        // Add event listeners for buttons
+        document.getElementById('clearBtn').addEventListener('click', clearAll);
+        document.getElementById('diagnoseBtn').addEventListener('click', diagnose);
     </script>
 </body>
 </html>

@@ -1,4 +1,9 @@
 {
-    "chat.agent.maxRequests": 150
+    "chat.agent.maxRequests": 150,
+    "inlineChat.notebookAgent": true,
+    "inlineChat.lineEmptyHint": true,
+    "inlineChat.hideOnRequest": true,
+    "inlineChat.finishOnType": true,
+    "inlineChat.enableV2": true
 
 }

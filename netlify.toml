@@ -1,22 +1,44 @@
 [build]
   base = "."
   publish = "dist"
-  command = "git submodule deinit --all -f 2>/dev/null || true && NETLIFY_NEXT_PLUGIN_SKIP=true npm run build"
+  command = "npm run build"
   ignore = "git diff --quiet HEAD^ HEAD -- . ':(exclude)docs/**' ':(exclude)**/*.md'"
 
+[build.processing]
+  skip_processing = false
+[build.processing.css]
+  bundle = true
+  minify = true
+[build.processing.js]
+  bundle = true
+  minify = true
+[build.processing.html]
+  pretty_urls = true
+
 [build.environment]
-  NODE_VERSION = "22"
+  NODE_VERSION = "22.20.0"
   NPM_FLAGS = "--include=dev"
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
+  # Server-side hint for computing default preview URLs (used by webhook functions)
+  NETLIFY_SITE_BASE = "poleplanpro.netlify.app"
+  # Secrets scanning configuration - disable to prevent false positives on env var references
   SECRETS_SCAN_ENABLED = "false"
+  # If secrets scanning is re-enabled, exclude these paths and keys
   SECRETS_SCAN_OMIT_PATHS = "**/*.md,**/*.txt,docs/**,server/**,netlify.toml"
   SECRETS_SCAN_OMIT_KEYS = "JWT_SECRET,REFRESH_TOKEN_SECRET,JWT_EXPIRES_IN,REFRESH_TOKEN_TTL,DATABASE_URL,NETLIFY_DATABASE_URL,NETLIFY_DATABASE_URL_UNPOOLED"
+  # Map Neon database URLs to what the app expects
   DATABASE_URL = "${NETLIFY_DATABASE_URL}"
   DATABASE_URL_UNPOOLED = "${NETLIFY_DATABASE_URL_UNPOOLED}"
   JWT_SECRET = "${JWT_SECRET}"
   REFRESH_TOKEN_SECRET = "${REFRESH_TOKEN_SECRET}"
   JWT_EXPIRES_IN = "${JWT_EXPIRES_IN}"
   REFRESH_TOKEN_TTL = "${REFRESH_TOKEN_TTL}"
+  # Error tracking
+  SENTRY_DSN = "${SENTRY_DSN}"
+  VITE_SENTRY_DSN = "${VITE_SENTRY_DSN}"
+  # Ensure client uses correct domain hints in production as well
+  VITE_APP_PRIMARY_DOMAIN = "poleplanpro.com"
+  VITE_NETLIFY_SITE_BASE = "poleplanpro.netlify.app"
 
 [context.production.environment]
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
@@ -27,6 +49,10 @@
   REFRESH_TOKEN_SECRET = "${REFRESH_TOKEN_SECRET}"
   ALLOWED_ORIGINS = "https://poleplanpro.com"
   LOG_LEVEL = "info"
+  # Ensure client uses correct domain hints in production as well
+  VITE_APP_PRIMARY_DOMAIN = "poleplanpro.com"
+  VITE_NETLIFY_SITE_BASE = "poleplanpro.netlify.app"
+  NETLIFY_SITE_BASE = "poleplanpro.netlify.app"
 
 [context.deploy-preview.environment]
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
@@ -36,6 +62,13 @@
   JWT_SECRET = "${JWT_SECRET}"
   REFRESH_TOKEN_SECRET = "${REFRESH_TOKEN_SECRET}"
   LOG_LEVEL = "debug"
+  # Preview environment flags (frontend)
+  VITE_APP_PRIMARY_DOMAIN = "poleplanpro.com"
+  VITE_NETLIFY_SITE_BASE = "poleplanpro.netlify.app"
+  NETLIFY_SITE_BASE = "poleplanpro.netlify.app"
+  # Enforce preview behavior automatically
+  VITE_DISABLE_PREVIEW_AUTH = "true"
+  DISABLE_PREVIEW_AUTH = "true"
 
 [context.branch-deploy.environment]
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
@@ -45,7 +78,15 @@
   JWT_SECRET = "${JWT_SECRET}"
   REFRESH_TOKEN_SECRET = "${REFRESH_TOKEN_SECRET}"
   LOG_LEVEL = "debug"
+  # Branch deploy flags (frontend)
+  VITE_APP_PRIMARY_DOMAIN = "poleplanpro.com"
+  VITE_NETLIFY_SITE_BASE = "poleplanpro.netlify.app"
+  NETLIFY_SITE_BASE = "poleplanpro.netlify.app"
+  # Enforce preview behavior automatically
+  VITE_DISABLE_PREVIEW_AUTH = "true"
+  DISABLE_PREVIEW_AUTH = "true"
 
+# Canonical domain redirects and HTTP->HTTPS
 [[redirects]]
   from = "http://poleplanpro.com/*"
   to = "https://poleplanpro.com/:splat"
@@ -64,11 +105,13 @@
   status = 301
   force = true
 
+# SPA routing - serve index.html for all routes
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
+# Custom headers for security and caching
 [[headers]]
   for = "/*"
   [headers.values]
@@ -81,11 +124,6 @@
     X-Content-Type-Options = "nosniff"
     X-Frame-Options = "DENY"
     X-XSS-Protection = "1; mode=block"
-
-[[headers]]
-  for = "/*"
-  [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self' https://unpkg.com https://cdn.jsdelivr.net blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https:; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
 
 [[headers]]
   for = "/sw.js"
@@ -179,14 +217,14 @@
 [[headers]]
   for = "/*"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tile.openstreetmap.org https://*.tile.openstreetmap.org; font-src 'self' data:; connect-src 'self' https://poleplanpro.com https://www.poleplanpro.com https://api.poleplanpro.com https://unpkg.com; worker-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tile.openstreetmap.org https://*.tile.openstreetmap.org; font-src 'self' data:; connect-src 'self' ws: wss: https://poleplanpro.com https://www.poleplanpro.com https://api.poleplanpro.com https://unpkg.com https://cdn.jsdelivr.net https:; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
     Permissions-Policy = "geolocation=(), microphone=()"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
     X-Content-Type-Options = "nosniff"
     X-Frame-Options = "DENY"
 
+# Netlify Functions configuration
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
-  external_node_modules = ["pg"]
