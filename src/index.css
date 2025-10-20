@@ -26,10 +26,7 @@
 .safe-pb {
   padding-bottom: env(safe-area-inset-bottom);
 }
-<<<<<<< HEAD
-=======
-
-.anchor-offset {
+<<<<<<< HEAD ======= .anchor-offset {
   scroll-margin-top: 56px;
 }
 
@@ -240,4 +237,3 @@
   flex-direction: column;
   gap: 1.5rem; /* space-y-6 in Tailwind is 1.5rem */
 }
->>>>>>> chore/full-stack-alignment
