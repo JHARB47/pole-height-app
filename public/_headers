@@ -14,9 +14,9 @@
 
 /*
   # CSP updated: allow unpkg CDN for runtime shapefile export (shp-write) while retaining existing constraints.
-  # Inline scripts are disallowed globally; debug/test pages below have tailored overrides to allow inline scripts.
+  # Inline scripts are allowed for Vite CSS loading optimization (onload handlers)
   # 'unsafe-eval' was removed (2025-09-24). If a regression occurs (e.g., a dependency requires eval in production build), restore by adding 'unsafe-eval' to script-src.
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://unpkg.com https://cdn.jsdelivr.net blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https:; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https:; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
 
 /sw.js
   Cache-Control: no-cache, no-store, must-revalidate
