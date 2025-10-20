@@ -81,6 +81,7 @@ async function main() {
   const p5173Free = await checkPort(5173);
   log(p8888Free, p8888Free ? 'Port 8888 is free (netlify dev can bind)' : 'Port 8888 is in use (netlify dev may already be running)');
   log(p5173Free, p5173Free ? 'Port 5173 is free (Vite can bind)' : 'Port 5173 is in use (Vite may already be running)');
+  log(hasDb, 'Database URL detected in environment (optional for health check)');
 
   // If 8888 is in use, attempt to probe the Netlify functions health endpoint
   if (!p8888Free && typeof fetch === 'function') {
@@ -99,13 +100,17 @@ async function main() {
         log(false, `Functions health responded with HTTP ${res.status}`);
       }
     } catch (e) {
-      const msg = typeof e === 'object' && e !== null && 'message' in e && typeof (e).message === 'string' ? (e).message : String(e);
-      log(false, `Could not reach http://127.0.0.1:8888/.netlify/functions/health (${msg})`);
+      let errMsg = '';
+      if (typeof e === 'object' && e !== null && 'message' in e && typeof (e).message === 'string') {
+        errMsg = e.message;
+      } else {
+        errMsg = String(e);
+      }
+      log(false, `Could not reach http://127.0.0.1:8888/.netlify/functions/health (${errMsg})`);
     }
   }
 
   log(hasDb, 'Database URL detected in environment (optional for health check)');
-
   // Netlify CLI
   try {
     const { execSync } = await import('node:child_process');

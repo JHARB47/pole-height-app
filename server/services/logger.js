@@ -1,177 +1,117 @@
 // @ts-nocheck
-/**
- * Comprehensive Logging Service
- * Winston-based logging with multiple transports and structured logging
- */
-import winston from 'winston';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import pino from "pino";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const nodeEnv = process.env.NODE_ENV || "development";
+const logLevel = process.env.LOG_LEVEL || "info";
+const serviceName = process.env.SERVICE_NAME || "poleplan-pro-api";
+
+const baseLogger = pino({
+  name: serviceName,
+  level: logLevel,
+  transport:
+    nodeEnv === "development"
+      ? {
+          target: "pino-pretty",
+          options: {
+            colorize: true,
+            translateTime: "HH:MM:ss",
+            ignore: "pid,hostname",
+          },
+        }
+      : undefined,
+});
+
+function enrich(meta = {}) {
+  const enriched = { environment: nodeEnv, service: serviceName, ...meta };
+  if (enriched.timestamp == null) {
+    enriched.timestamp = new Date().toISOString();
+  }
+  return enriched;
+}
 
 export class Logger {
-  constructor() {
-    this.logger = this.createLogger();
-  }
-
-  createLogger() {
-    const logLevel = process.env.LOG_LEVEL || 'info';
-    const nodeEnv = process.env.NODE_ENV || 'development';
-
-    // Custom format for structured logging
-    const logFormat = winston.format.combine(
-      winston.format.timestamp({
-        format: 'YYYY-MM-DD HH:mm:ss.SSS'
-      }),
-      winston.format.errors({ stack: true }),
-      winston.format.json(),
-      winston.format.printf(({ timestamp, level, message, stack, ...meta }) => {
-        const logEntry = {
-          timestamp,
-          level,
-          message,
-          service: 'poleplan-pro-api',
-          environment: nodeEnv,
-          ...(stack && { stack }),
-          ...meta
-        };
-        return JSON.stringify(logEntry);
-      })
-    );
-
-    // Console format for development
-    const consoleFormat = winston.format.combine(
-      winston.format.timestamp({ format: 'HH:mm:ss' }),
-      winston.format.colorize(),
-      winston.format.printf(({ timestamp, level, message, ...meta }) => {
-        const metaStr = Object.keys(meta).length ? JSON.stringify(meta) : '';
-        return `${timestamp} [${level}]: ${message} ${metaStr}`;
-      })
-    );
-
-    const transports = [];
-
-    // Console transport for all environments
-    transports.push(new winston.transports.Console({
-      level: logLevel,
-      format: nodeEnv === 'production' ? logFormat : consoleFormat
-    }));
-
-    // File transports for production
-    if (nodeEnv === 'production') {
-      // Application logs
-      transports.push(new winston.transports.File({
-        filename: path.join(__dirname, '../logs/app.log'),
-        level: 'info',
-        format: logFormat,
-        maxsize: 10 * 1024 * 1024, // 10MB
-        maxFiles: 5
-      }));
-
-      // Error logs
-      transports.push(new winston.transports.File({
-        filename: path.join(__dirname, '../logs/error.log'),
-        level: 'error',
-        format: logFormat,
-        maxsize: 10 * 1024 * 1024, // 10MB
-        maxFiles: 5
-      }));
-
-      // Audit logs (separate file for compliance)
-      transports.push(new winston.transports.File({
-        filename: path.join(__dirname, '../logs/audit.log'),
-        level: 'info',
-        format: logFormat,
-        maxsize: 50 * 1024 * 1024, // 50MB
-        maxFiles: 10,
-        tailable: true
-      }));
-    }
-
-    return winston.createLogger({
-      level: logLevel,
-      format: logFormat,
-      transports,
-      // Don't exit on handled exceptions
-      exitOnError: false
-    });
+  constructor(bindings = {}) {
+    this.logger = baseLogger.child(bindings);
   }
 
   info(message, meta = {}) {
-    this.logger.info(message, meta);
+    this.logger.info(enrich(meta), message);
   }
 
   warn(message, meta = {}) {
-    this.logger.warn(message, meta);
+    this.logger.warn(enrich(meta), message);
   }
 
   error(message, error = null, meta = {}) {
-    const errorMeta = {
-      ...meta,
-      ...(error && {
-        error: {
-          message: error.message,
-          stack: error.stack,
-          name: error.name
-        }
-      })
-    };
-    this.logger.error(message, errorMeta);
+    const errorMeta = enrich(meta);
+    if (error) {
+      errorMeta.error = {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      };
+    }
+    this.logger.error(errorMeta, message);
   }
 
   debug(message, meta = {}) {
-    this.logger.debug(message, meta);
+    this.logger.debug(enrich(meta), message);
   }
 
-  // Specialized logging methods
   auditLog(action, userId, resource, details = {}) {
-    this.logger.info('AUDIT', {
-      audit: true,
-      action,
-      userId,
-      resource,
-      details,
-      timestamp: new Date().toISOString()
-    });
+    this.logger.info(
+      enrich({
+        audit: true,
+        action,
+        userId,
+        resource,
+        details,
+      }),
+      "AUDIT",
+    );
   }
 
   securityLog(event, details = {}) {
-    this.logger.warn('SECURITY', {
-      security: true,
-      event,
-      details,
-      timestamp: new Date().toISOString()
-    });
+    this.logger.warn(
+      enrich({
+        security: true,
+        event,
+        details,
+      }),
+      "SECURITY",
+    );
   }
 
   performanceLog(operation, duration, details = {}) {
-    this.logger.info('PERFORMANCE', {
-      performance: true,
-      operation,
-      duration_ms: duration,
-      details,
-      timestamp: new Date().toISOString()
-    });
+    this.logger.info(
+      enrich({
+        performance: true,
+        operation,
+        duration_ms: duration,
+        details,
+      }),
+      "PERFORMANCE",
+    );
   }
 
   httpLog(req, res, responseTime) {
-    const logData = {
+    const payload = enrich({
       http: true,
       method: req.method,
       url: req.originalUrl,
       status: res.statusCode,
       response_time_ms: responseTime,
       ip: req.ip,
-      user_agent: req.get('User-Agent'),
+      user_agent: req.get?.("User-Agent"),
       user_id: req.user?.id,
-      timestamp: new Date().toISOString()
-    };
+    });
 
     if (res.statusCode >= 400) {
-      this.logger.warn('HTTP_ERROR', logData);
+      this.logger.warn(payload, "HTTP_ERROR");
     } else {
-      this.logger.info('HTTP_REQUEST', logData);
+      this.logger.info(payload, "HTTP_REQUEST");
     }
   }
 }
+
+export const logger = new Logger();
