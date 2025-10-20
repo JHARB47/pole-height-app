@@ -1,5 +1,7 @@
 /// <reference types="vite/client" />
-import { StrictMode } from "react";
+import * as Sentry from "@sentry/react";
+import { BrowserTracing } from "@sentry/tracing";
+import React, { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.jsx";
@@ -8,34 +10,86 @@ import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import ContentPage from "./routes/ContentPage.jsx";
 import SiteChrome from "./components/SiteChrome.jsx";
+import NotFoundPage from "./components/NotFoundPage.jsx";
+import { measureWebVitals } from "./utils/performance.js";
+
+Sentry.init({
+  dsn: import.meta.env.VITE_SENTRY_DSN,
+  environment: import.meta.env.MODE,
+  integrations: [
+    new BrowserTracing({
+      routingInstrumentation: Sentry.reactRouterV6Instrumentation(
+        React.useEffect,
+        React.useLocation,
+        React.useNavigationType,
+        createBrowserRouter,
+        React.createRoutesFromChildren,
+        React.matchRoutes
+      ),
+    }),
+  ],
+  // Performance monitoring
+  tracesSampleRate: import.meta.env.PROD ? 0.1 : 1.0,
+  // Release tracking
+  release: import.meta.env.VITE_APP_VERSION || "1.0.0",
+  // Only send errors in production, but allow all in development
+  beforeSend: (event, hint) => {
+    if (import.meta.env.DEV) {
+      console.error("Sentry Error:", event, hint);
+    }
+    return event;
+  },
+});
 
 const container = document.getElementById("root");
 if (!container) throw new Error("Root element not found");
 
 const router = createBrowserRouter([
-  { path: "/", element: <App /> },
-  { path: "/home", element: <ContentPage slug="home" /> },
-  { path: "/:slug", element: <ContentPage /> },
+  {
+    path: "/",
+    element: <SiteChrome />,
+    children: [
+      { 
+        index: true,
+        element: <App />
+      },
+      { 
+        path: "home", 
+        element: <ContentPage slug="home" />
+      },
+      { 
+        path: ":slug", 
+        element: <ContentPage />
+      },
+      {
+        path: "*",
+        element: <NotFoundPage />
+      }
+    ]
+  }
 ]);
+
+const sentryRouter = Sentry.withSentryReactRouterV6(router);
 
 createRoot(container).render(
   <StrictMode>
     <ErrorBoundary>
-      <SiteChrome>
-        <RouterProvider router={router} />
-      </SiteChrome>
+      <RouterProvider router={sentryRouter} />
     </ErrorBoundary>
   </StrictMode>,
 );
 
+// Initialize performance monitoring
+measureWebVitals();
+
 // Register service worker and show a user-facing update toast when a new version is available
-const swEnabled = import.meta.env?.VITE_ENABLE_SW === "true";
-if (
-  import.meta.env &&
+const swEnabled =
+  typeof navigator !== "undefined" &&
+  "serviceWorker" in navigator &&
   import.meta.env.PROD &&
-  swEnabled &&
-  "serviceWorker" in navigator
-) {
+  import.meta.env.VITE_ENABLE_SW !== "false";
+
+if (swEnabled) {
   const showUpdateToast = (reg) => {
     // Create toast container
     const container = document.createElement("div");
@@ -102,27 +156,25 @@ if (
     dismissBtn?.addEventListener("click", cleanup);
   };
 
-  window.addEventListener("load", () => {
-    // Ensure we register at root scope to control the entire app
-    navigator.serviceWorker
-      .register("/sw.js", { scope: "/" })
-      .then((reg) => {
-        if (reg.waiting) {
-          showUpdateToast(reg);
-        }
-        reg.addEventListener("updatefound", () => {
-          const sw = reg.installing;
-          if (!sw) return;
-          sw.addEventListener("statechange", () => {
-            if (sw.state === "installed" && reg.waiting) {
-              showUpdateToast(reg);
-            }
-          });
+  // Ensure we register at root scope to control the entire app
+  navigator.serviceWorker
+    .register("/sw.js", { scope: "/" })
+    .then((reg) => {
+      if (reg.waiting) {
+        showUpdateToast(reg);
+      }
+      reg.addEventListener("updatefound", () => {
+        const sw = reg.installing;
+        if (!sw) return;
+        sw.addEventListener("statechange", () => {
+          if (sw.state === "installed" && reg.waiting) {
+            showUpdateToast(reg);
+          }
         });
-      })
-      .catch((e) => {
-        if (import.meta?.env?.DEV)
-          console.warn("Service worker registration failed", e);
       });
-  });
+    })
+    .catch((e) => {
+      if (import.meta?.env?.DEV)
+        console.warn("Service worker registration failed", e);
+    });
 }

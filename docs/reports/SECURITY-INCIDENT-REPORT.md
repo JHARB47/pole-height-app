@@ -11,11 +11,13 @@
 
 ### What Happened
 JWT secrets were accidentally committed to the repository in plain text documentation files:
+
 - `NETLIFY-ADD-THESE.txt` - Contained `JWT_SECRET` value
 - `GITHUB-ADD-THESE.txt` - Contained `REFRESH_TOKEN_SECRET` value
 
 ### How It Was Detected
 Netlify's automated secrets scanning blocked the deployment with error:
+
 ```
 Secret env var "JWT_SECRET"'s value detected:
   found value at line 14 in netlify.toml
@@ -32,11 +34,13 @@ The secrets weren't in `netlify.toml` (which correctly used `${JWT_SECRET}` refe
 ## ✅ Immediate Actions Taken
 
 ### 1. Removed Exposed Secrets from Repository
+
 ```bash
 git rm NETLIFY-ADD-THESE.txt GITHUB-ADD-THESE.txt
 ```
 
 ### 2. Added Files to .gitignore
+
 ```gitignore
 # Secret reference files (contain actual secret values)
 NETLIFY-ADD-THESE.txt
@@ -47,11 +51,13 @@ GITHUB-ADD-THESE.txt
 ```
 
 ### 3. Created Secure Template
+
 - Created `SECRETS-SETUP-TEMPLATE.md` with instructions to generate secrets
 - Template does NOT contain actual secret values
 - Provides step-by-step setup guide for Netlify and GitHub
 
 ### 4. Committed and Pushed Fix
+
 - Commit: `48bd42f`
 - Removed secrets from main branch
 - Deployment will now proceed without secrets scanning error
@@ -111,6 +117,7 @@ node -e "console.log('REFRESH_TOKEN_SECRET=' + require('crypto').randomBytes(32)
 ### Step 4: Trigger Redeploy
 
 After updating secrets in Netlify:
+
 1. Go to: https://app.netlify.com/sites/poleplanpro/deploys
 2. Click **Trigger deploy** → **Deploy site**
 3. Monitor build to ensure it completes successfully
@@ -120,6 +127,7 @@ After updating secrets in Netlify:
 ## 📊 Security Impact Assessment
 
 ### Exposure Level
+
 - **Duration**: Approximately 2-3 hours (from commit 7e9de60 to 48bd42f)
 - **Visibility**: Public repository on GitHub
 - **Affected Commits**:
@@ -129,6 +137,7 @@ After updating secrets in Netlify:
 ### Risk Level: HIGH
 
 **Potential Threats**:
+
 1. ✅ **Mitigated**: Secrets removed from current branch
 2. ⚠️ **Active**: Secrets still in git history
 3. ⚠️ **Active**: Secrets may have been indexed by GitHub/search engines
@@ -137,6 +146,7 @@ After updating secrets in Netlify:
 **Recommendation**: **ROTATE SECRETS IMMEDIATELY**
 
 ### What Was NOT Compromised
+
 - ✅ Database connection strings (were already configured in Netlify, not exposed)
 - ✅ User passwords (stored as bcrypt hashes)
 - ✅ Production database (secrets not used maliciously)
@@ -176,6 +186,7 @@ After updating secrets in Netlify:
 ## 📚 Lessons Learned
 
 ### What Went Wrong
+
 1. **Documentation files with actual secrets were committed to repository**
    - Created reference files for user convenience
    - Didn't realize secrets scanner would detect them
@@ -187,6 +198,7 @@ After updating secrets in Netlify:
    - Relied on Netlify's deployment-time scanning (which worked!)
 
 ### What Went Right
+
 1. ✅ **Netlify secrets scanning worked perfectly**
    - Detected secrets in build
    - Blocked deployment automatically
@@ -208,6 +220,7 @@ After updating secrets in Netlify:
 
 ### 1. .gitignore Updated
 Added patterns to prevent future secret file commits:
+
 ```gitignore
 NETLIFY-ADD-THESE.txt
 GITHUB-ADD-THESE.txt
@@ -218,12 +231,14 @@ GITHUB-ADD-THESE.txt
 
 ### 2. Secure Template Created
 `SECRETS-SETUP-TEMPLATE.md`:
+
 - Shows setup process without exposing secrets
 - Provides commands to generate secrets
 - Includes security best practices
 - Can be safely committed to repository
 
 ### 3. Documentation Review
+
 - Reviewed all existing documentation files
 - Confirmed no other secrets are exposed
 - Updated deployment guides to reference template
@@ -233,18 +248,21 @@ GITHUB-ADD-THESE.txt
 ## 📋 Future Recommendations
 
 ### Immediate (This Deployment)
+
 - [ ] Rotate JWT_SECRET in Netlify and GitHub
 - [ ] Rotate REFRESH_TOKEN_SECRET in Netlify and GitHub
 - [ ] Verify new secrets work in production
 - [ ] Monitor logs for suspicious activity
 
 ### Short-term (Next Sprint)
+
 - [ ] Add git-secrets or gitleaks to pre-commit hooks
 - [ ] Configure secret scanning in GitHub repository settings
 - [ ] Create incident response playbook
 - [ ] Set up automated secret rotation schedule
 
 ### Long-term (Next Quarter)
+
 - [ ] Implement HashiCorp Vault or similar secret management
 - [ ] Set up automated secret expiration and rotation
 - [ ] Add security scanning to CI/CD pipeline
@@ -264,6 +282,7 @@ GITHUB-ADD-THESE.txt
 ## ✅ Resolution Checklist
 
 ### Completed
+
 - [x] Removed secret files from repository
 - [x] Added files to .gitignore
 - [x] Created secure template
@@ -271,6 +290,7 @@ GITHUB-ADD-THESE.txt
 - [x] Documented incident and resolution
 
 ### Pending (USER ACTION REQUIRED)
+
 - [ ] Generate new JWT_SECRET
 - [ ] Generate new REFRESH_TOKEN_SECRET
 - [ ] Update secrets in Netlify (6 variables total)
@@ -291,6 +311,7 @@ GITHUB-ADD-THESE.txt
 4. **User Sessions Invalid**: This is expected - users will need to log in again
 
 **For immediate assistance:**
+
 - Check `SECRETS-SETUP-TEMPLATE.md` for setup instructions
 - Review deployment logs in Netlify dashboard
 - Test locally with new secrets in `.env` file

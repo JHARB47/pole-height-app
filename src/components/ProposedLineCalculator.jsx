@@ -187,6 +187,7 @@ export default function ProposedLineCalculator() {
       setPoleLongitude: s.setPoleLongitude,
     })),
   );
+
   const [showReport, setShowReport] = React.useState(false);
   const [showBatchReport, setShowBatchReport] = React.useState(false);
   const [showHelp, setShowHelp] = React.useState(false);
@@ -427,11 +428,14 @@ export default function ProposedLineCalculator() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h1 className="text-lg md:text-xl font-semibold">PolePlan Pro</h1>
-          <span className="hidden sm:inline text-xs text-gray-600">Job:</span>
+          <label htmlFor="job-selector" className="hidden sm:inline text-xs text-gray-600">Job:</label>
           <select
+            id="job-selector"
+            name="current-job"
             className="hidden sm:inline text-sm border rounded px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             value={currentJobId || ""}
             onChange={(e) => setCurrentJobId(e.target.value)}
+            aria-label="Select current job"
           >
             <option value="">-- None --</option>
             {(jobs || []).map((j) => (
@@ -613,11 +617,13 @@ export default function ProposedLineCalculator() {
               />
               {/* Quick profile tuning */}
               <ProfileTuner />
-              <label className="text-sm text-gray-700 grid gap-2">
+              <label htmlFor="job-owner-input" className="text-sm text-gray-700 grid gap-2">
                 <span className="font-medium whitespace-nowrap text-left">
                   Owner (utility)
                 </span>
                 <input
+                  id="job-owner-input"
+                  name="job-owner"
                   list="wv-power-companies-inline"
                   className="border rounded px-3 py-2 min-w-0 w-full text-base leading-normal bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   value={jobOwner}
@@ -1570,10 +1576,13 @@ function FieldActionsCompact() {
   return (
     <div className="flex items-center gap-2 text-xs">
       <label
+        htmlFor="include-photos-checkbox"
         className="inline-flex items-center gap-1"
         title="Include photos when available in ZIP exports"
       >
         <input
+          id="include-photos-checkbox"
+          name="include-photos"
           type="checkbox"
           checked={includePhotos}
           onChange={(e) => setIncludePhotos(e.target.checked)}
@@ -1725,11 +1734,17 @@ AutoMapPreviewModal.propTypes = {
   onApply: PropTypes.func.isRequired,
 };
 
-function Input({ label, ...props }) {
+function Input({ label, id, name, ...props }) {
+  // Generate a unique ID if not provided
+  const inputId = id || `input-${name || label.toLowerCase().replace(/\s+/g, '-')}`;
+  const inputName = name || inputId;
+  
   return (
-    <label className="text-sm text-gray-700 grid gap-2">
+    <label htmlFor={inputId} className="text-sm text-gray-700 grid gap-2">
       <span className="font-medium whitespace-nowrap text-left">{label}</span>
       <input
+        id={inputId}
+        name={inputName}
         className="border rounded px-3 py-2 min-w-0 w-full text-base leading-normal bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         {...props}
       />
@@ -1739,13 +1754,21 @@ function Input({ label, ...props }) {
 
 Input.propTypes = {
   label: PropTypes.string.isRequired,
+  id: PropTypes.string,
+  name: PropTypes.string,
 };
 
-function Select({ label, options, ...props }) {
+function Select({ label, options, id, name, ...props }) {
+  // Generate a unique ID if not provided
+  const selectId = id || `select-${name || label.toLowerCase().replace(/\s+/g, '-')}`;
+  const selectName = name || selectId;
+  
   return (
-    <label className="text-sm text-gray-700 grid gap-2">
+    <label htmlFor={selectId} className="text-sm text-gray-700 grid gap-2">
       <span className="font-medium whitespace-nowrap text-left">{label}</span>
       <select
+        id={selectId}
+        name={selectName}
         className="border rounded px-3 py-2 min-w-0 w-full text-base leading-normal bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         {...props}
       >
@@ -1767,12 +1790,20 @@ Select.propTypes = {
       label: PropTypes.string.isRequired,
     }),
   ).isRequired,
+  id: PropTypes.string,
+  name: PropTypes.string,
 };
 
-function Checkbox({ label, ...props }) {
+function Checkbox({ label, id, name, ...props }) {
+  // Generate a unique ID if not provided
+  const checkboxId = id || `checkbox-${name || label.toLowerCase().replace(/\s+/g, '-')}`;
+  const checkboxName = name || checkboxId;
+  
   return (
-    <label className="text-sm text-gray-700 inline-flex items-center gap-3 mt-6 cursor-pointer">
+    <label htmlFor={checkboxId} className="text-sm text-gray-700 inline-flex items-center gap-3 mt-6 cursor-pointer">
       <input
+        id={checkboxId}
+        name={checkboxName}
         type="checkbox"
         className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
         {...props}
@@ -1784,6 +1815,8 @@ function Checkbox({ label, ...props }) {
 
 Checkbox.propTypes = {
   label: PropTypes.string.isRequired,
+  id: PropTypes.string,
+  name: PropTypes.string,
 };
 
 function ProfileTuner() {

@@ -9,7 +9,7 @@ import tailwindcss from '@tailwindcss/vite'
  * the previous chunking behavior extracted from the original function.
  */
 function isExternalId(id) {
-  const external = new Set(['tokml', 'shpjs']);
+  const external = new Set(['tokml', 'shpjs', 'pdf-lib']);
   return external.has(id);
 }
 
@@ -26,8 +26,11 @@ function chunkForSimple(id) {
   if (id.includes('react-dom')) return 'react-dom';
   if (id.includes('react') && !id.includes('react-dom')) return 'react';
   if (id.includes('zustand')) return 'state-vendor';
+  if (id.includes('lucide-react')) return 'iconography';
   if (['clsx', 'tailwind', 'postcss'].some(s => id.includes(s))) return 'ui-vendor';
   if (id.includes('moment') || id.includes('date-fns')) return 'date-vendor';
+  if (id.includes('@octokit') || id.includes('octokit')) return 'github-sdk';
+  if (id.includes('passport') || id.includes('@node-saml')) return 'auth-vendor';
   return undefined;
 }
 
@@ -91,10 +94,20 @@ export default defineConfig({
     tailwindcss(),
     react(),
   ],
+  optimizeDeps: {
+    exclude: ['pdf-lib'],
+  },
   resolve: {
     alias: [
       { find: '@', replacement: '/src' },
     ],
+  },
+  server: {
+    headers: {
+      // Relax CSP for development to allow Vite's HMR inline scripts
+      // Production CSP is strictly enforced via public/_headers
+      'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' ws: wss: https:; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+    }
   },
   build: {
     target: 'es2019', // Ensure compatibility with evergreen browsers & Netlify CDN edge
@@ -102,7 +115,7 @@ export default defineConfig({
     manifest: true,
     treeshake: true,
     rollupOptions: {
-      external: [],
+      external: ['pdf-lib'],
       output: {
         manualChunks: (id) => chunkForId(id)
       }

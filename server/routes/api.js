@@ -9,6 +9,7 @@ import { projectsRouter } from './projects.js';
 import { geospatialRouter } from './geospatial.js';
 import { calculationsRouter } from './calculations.js';
 import { rbacMiddleware } from '../middleware/rbac.js';
+import { templatesRouter } from './templates.js';
 
 const router = express.Router();
 
@@ -17,6 +18,7 @@ router.use('/api-keys', apiKeysRouter);
 router.use('/projects', projectsRouter);
 router.use('/geospatial', geospatialRouter);
 router.use('/calculations', calculationsRouter);
+router.use('/templates', templatesRouter);
 
 // User profile endpoints
 router.get('/user/me', rbacMiddleware(['user']), (req, res) => {

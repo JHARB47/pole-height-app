@@ -12,20 +12,24 @@ Five tests experienced timeout failures (timing out at exactly 20 seconds). Thes
 **Status:** Skipped
 
 **Issue:**
+
 - Test times out even with synchronous assertions
 - Suggests test environment issue with React Router or lazy loading
 
 **Attempted Fixes:**
+
 - ✗ Simplified from async to sync assertions
 - ✗ Removed 15s timeout on findByText
 - ✗ Changed to immediate getByText calls
 
 **Root Cause (Suspected):**
+
 - Test environment not properly handling React Router
 - Lazy component loading not working in jsdom
 
 ### 2-4. useDebounce.test.js - Hook Tests (3 tests)
 **Tests:**
+
 - `should debounce value updates`
 - `should cancel previous timeout on rapid changes`
 - `should use custom delay`
@@ -34,10 +38,12 @@ Five tests experienced timeout failures (timing out at exactly 20 seconds). Thes
 **Status:** Skipped
 
 **Issue:**
+
 - Tests using `vi.useFakeTimers()` with `renderHook` from React Testing Library
 - Fake timers don't advance React hook state properly
 
 **Root Cause (Suspected):**
+
 - Vitest fake timers don't properly integrate with React hooks
 - `renderHook` + fake timers combination is problematic
 
@@ -47,6 +53,7 @@ Five tests experienced timeout failures (timing out at exactly 20 seconds). Thes
 **Status:** Skipped
 
 **Issue:**
+
 - Mock of `document.createElement` doesn't properly trigger error handler
 - CDN fallback mechanism not testable with current approach
 
@@ -57,6 +64,7 @@ All problematic test suites have been skipped using `describe.skip()` which prev
 ## Test Suite Status
 
 ### After Skipping
+
 ```
 Test Files: 40 passed | 2 skipped (42)
 Tests: 210 passed | 14 skipped (224)

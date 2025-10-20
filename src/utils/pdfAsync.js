@@ -37,9 +37,11 @@ async function loadPdfLibFromCDN() {
     return await loadPromise;
   } catch (error) {
     console.warn("CDN load failed, falling back to dynamic import:", error);
-    // Fallback to dynamic import if CDN fails
+    // Fallback to ESM bundle via dynamic import to keep bundler externals clean
     try {
-      const mod = await import("pdf-lib");
+      const mod = await import(
+        /* @vite-ignore */ "https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.esm.min.js"
+      );
       pdfLibCache = mod;
       return mod;
     } catch (importError) {

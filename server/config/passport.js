@@ -6,6 +6,7 @@
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import { Strategy as GitHubStrategy } from 'passport-github2';
 import { Strategy as AzureAdOAuth2Strategy } from 'passport-azure-ad-oauth2';
 import { Strategy as SamlStrategy } from 'passport-saml';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
@@ -134,6 +135,77 @@ export class PassportConfig {
           return done(error);
         }
       }));
+    }
+
+    // GitHub OAuth Strategy
+    if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
+      passport.use(
+        new GitHubStrategy(
+          {
+            clientID: process.env.GITHUB_CLIENT_ID,
+            clientSecret: process.env.GITHUB_CLIENT_SECRET,
+            callbackURL: '/auth/github/callback',
+            scope: ['user:email'],
+          },
+          async (accessToken, refreshToken, profile, done) => {
+            try {
+              // GitHub may not provide email in profile, get from emails array
+              const email =
+                profile.emails && profile.emails.length > 0
+                  ? profile.emails[0].value
+                  : null;
+
+              if (!email) {
+                return done(
+                  new Error('GitHub account must have a verified email address')
+                );
+              }
+
+              let user = await db.query(
+                'SELECT * FROM users WHERE github_id = $1 OR email = $2',
+                [profile.id, email]
+              );
+
+              if (user.rows.length > 0) {
+                user = user.rows[0];
+                // Update GitHub ID if not set
+                if (!user.github_id) {
+                  await db.query(
+                    'UPDATE users SET github_id = $1, last_login_at = NOW() WHERE id = $2',
+                    [profile.id, user.id]
+                  );
+                } else {
+                  await db.query(
+                    'UPDATE users SET last_login_at = NOW() WHERE id = $1',
+                    [user.id]
+                  );
+                }
+              } else {
+                // Create new user
+                const userData = {
+                  email: email,
+                  github_id: profile.id,
+                  first_name: profile.displayName
+                    ? profile.displayName.split(' ')[0]
+                    : profile.username,
+                  last_name: profile.displayName
+                    ? profile.displayName.split(' ').slice(1).join(' ')
+                    : '',
+                  email_verified: true,
+                  role: 'user',
+                };
+
+                user = await db.createUser(userData);
+              }
+
+              return done(null, user);
+            } catch (error) {
+              logger.error('GitHub OAuth error:', error);
+              return done(error);
+            }
+          }
+        )
+      );
     }
 
     // Azure AD OAuth Strategy

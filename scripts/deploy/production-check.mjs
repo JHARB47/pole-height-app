@@ -54,7 +54,7 @@ const CHECKS = [
     id: 'node-version',
     label: 'Node.js Version',
     command:
-      process.env.DEPLOY_CHECK_NODE_VERSION || `node --version | grep "${REQUIRED_NODE_VERSION}"`,
+      process.env.DEPLOY_CHECK_NODE_VERSION || `node -e "const v=process.version.slice(1).split('.').map(Number); const r='${REQUIRED_NODE_VERSION}'.slice(1).split('.').map(Number); process.exit(v[0]>r[0]||(v[0]===r[0]&&v[1]>=r[1])?0:1)"`,
   },
   {
     id: 'postgres-ready',

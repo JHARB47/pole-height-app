@@ -1,0 +1,24 @@
+{
+  "action": "requested_action",
+  "requested_action": { "identifier": "retry" },
+  "check_run": {
+    "id": 1234567890,
+    "head_sha": "1111111111111111111111111111111111111111",
+    "check_suite": {
+      "id": 987654321,
+      "head_branch": "feature/sample-branch"
+    }
+  },
+  "repository": {
+    "id": 123456789,
+    "name": "pole-height-app",
+    "full_name": "JHARB47/pole-height-app",
+    "owner": {
+      "login": "JHARB47",
+      "id": 987654321
+    }
+  },
+  "installation": {
+    "id": 99999999
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "deploy_12345",
+  "site_id": "site_abcde",
+  "state": "ready",
+  "branch": "feature/sample-branch",
+  "commit_ref": "1111111111111111111111111111111111111111",
+  "url": "https://feature-sample-branch--poleplanpro.netlify.app",
+  "deploy_ssl_url": "https://feature-sample-branch--poleplanpro.netlify.app",
+  "build_info": {
+    "repo_path": "JHARB47/pole-height-app"
+  }
+}

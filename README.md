@@ -1,12 +1,16 @@
 # PolePlan Pro
 
-[![Live Site](https://img.shields.io/website?url=https%3A%2F%2Fmrejointuse.netlify.app&label=live%20site&up_message=online&down_message=offline)](https://mrejointuse.netlify.app)
-[![CI](https://github.com/JHARB47/pole-height-app/actions/workflows/ci.yml/badge.svg)](https://github.com/JHARB47/pole-height-app/actions/workflows/ci.yml)
+[![Live Site](https://img.shields.io/website?url=https%3A%2F%2Fpoleplanpro.com&label=live%20site&up_message=online&down_message=offline)](https://poleplanpro.com)
+[![CI/CD](https://github.com/JHARB47/pole-height-app/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/JHARB47/pole-height-app/actions/workflows/ci-cd.yml)
+[![CI Robust](https://github.com/JHARB47/pole-height-app/actions/workflows/ci-robust.yml/badge.svg)](https://github.com/JHARB47/pole-height-app/actions/workflows/ci-robust.yml)
 [![Netlify Status](https://api.netlify.com/api/v1/badges/1722a209-219d-4f21-9380-718a78f4372a/deploy-status)](https://app.netlify.com/projects/poleplanpro/deploys)
+[![Security](https://img.shields.io/badge/security-0%20vulnerabilities-brightgreen)](https://github.com/JHARB47/pole-height-app/security)
+[![Build Size](https://img.shields.io/badge/bundle-1388.4%20KB%20%2F%201450%20KB-success)](https://github.com/JHARB47/pole-height-app/actions)
 
-Live URL: <https://mrejointuse.netlify.app>
+**Live URL**: <https://poleplanpro.com>  
+**Status**: Production | Node 22.20.0 | React 18 | Vite 7.1.8
 
-A comprehensive web application for calculating NESC-compliant pole attachment heights and span-level pull (tension surrogate) using bearing-derived geometry, optimized for lightweight builds and resilient geospatial export.
+A comprehensive web application for calculating NESC-compliant pole attachment heights and span-level pull (tension surrogate) using bearing-derived geometry, with enterprise-grade authentication, database integration, and resilient geospatial export capabilities.
 
 ## 🚀 Features
 
@@ -30,12 +34,44 @@ A comprehensive web application for calculating NESC-compliant pole attachment h
 
 ## 🛠 Technology Stack
 
-- **Frontend**: React 18 + Vite 5
-- **Styling**: TailwindCSS with responsive design and print optimization
-- **State Management**: Zustand with localStorage persistence
-- **Testing**: Vitest with comprehensive test coverage
-- **Geospatial**: shpjs, @tmcw/togeojson for file import; CDN-loaded @mapbox/shp-write only at export time
+### Frontend
+
+- **Framework**: React 18.2 with Vite 7.1.8
+- **Styling**: TailwindCSS 3.4 with responsive design and print optimization
+- **State Management**: Zustand with localStorage persistence and corruption recovery
 - **Icons**: Lucide React icon library
+
+### Backend & Database
+
+- **Runtime**: Node.js 22.20.0 (LTS)
+- **Server**: Express 4.21 with Helmet security middleware
+- **Database**: PostgreSQL 17.5 (Neon serverless)
+  - Pooled connections for app runtime
+  - Unpooled connections for migrations
+  - Full schema with users, organizations, projects, API keys
+- **Authentication**: JWT + Refresh tokens with Passport.js
+  - Local strategy (email/password)
+  - GitHub OAuth 2.0 ✨ NEW
+  - Azure AD OAuth2
+  - Google OAuth
+  - SAML support
+
+### DevOps & Quality
+
+- **CI/CD**: GitHub Actions with multi-stage pipeline
+  - Security scanning (CodeQL, Snyk, Trivy)
+  - Automated testing (193/203 passing)
+  - Bundle size monitoring (1388.4 KB / 1450 KB)
+  - Docker builds with multi-platform support
+- **Testing**: Vitest + Playwright for E2E
+- **Deployment**: Netlify with environment-specific configs
+- **Monitoring**: Pino structured logging
+
+### Geospatial
+
+- **Import**: shpjs, @tmcw/togeojson for KML/Shapefile
+- **Export**: CDN-loaded @mapbox/shp-write (runtime only)
+- **Formats**: CSV, GeoJSON, KML, KMZ, Shapefile
 
 ## 🏗 Build Configuration
 
@@ -47,6 +83,12 @@ The application is optimized for Netlify deployment with the following configura
 
 - **Build Command**: `npm run build`
 - **Publish Directory**: `dist`
+- **Node Version**: 22.20.0 (enforced via `.nvmrc`)
+  - All CI workflows use `node-version-file: '.nvmrc'`
+  - Local development: `nvm use` or `asdf install`
+- **Bundle Size**: 1388.4 KB / 1450 KB limit (95.8% utilized)
+- **Build Time**: ~2.2 seconds (optimized)
+- **Dependencies**: 1624 packages, 0 production vulnerabilities
 - **Node Version**: 22.20.0 (pinned via `.nvmrc`, `netlify.toml`, and CI). Use `nvm use` or asdf to ensure consistency locally.
   - If you previously used Node 20, upgrade before contributing to avoid subtle polyfill differences.
   - CI now reads the version from `.nvmrc` to enforce a single source of truth.
@@ -63,29 +105,71 @@ The build avoids bundling heavy shapefile generation libraries. `@mapbox/shp-wri
 
 ## 📦 Installation & Development
 
-```bash
-# Install dependencies
-npm install
+### Prerequisites
 
-# Start development server
+- **Node.js**: 22.20.0 (enforced - see `.nvmrc`)
+- **npm**: 10.x or later
+- **PostgreSQL**: 17.5+ (for backend development)
+
+### Quick Start
+
+```bash
+# Use correct Node version
+nvm use  # Reads from .nvmrc (22.20.0)
+
+# Install dependencies (deterministic)
+npm ci
+
+# Start frontend development server
 npm run dev
 
-# Run tests
-npm test
+# Start backend + frontend together
+npm run dev:full
 
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
-
-# Lint code
-npm run lint
+# Start with Netlify Functions
+npm run dev:netlify
 ```
 
+### Development Commands
+
+```bash
+# Testing
+npm test                    # Run all tests
+npm run test:watch          # Watch mode
+npm run test:coverage       # Generate coverage report
+npm run test:api            # Backend API tests only
+npm run test:calc           # Focused calculation + permit logic suite
+npm run test:e2e            # Playwright E2E tests
+
+# Building
+npm run build               # Production build
+npm run build:no-sw         # Build without service worker
+npm run preview             # Preview production build
+
+# Quality Checks
+npm run lint                # ESLint + all linters
+npm run lint:css            # Stylelint for CSS
+npm run format:check        # Prettier check
+npm run verify              # Full CI pipeline locally
+
+# Database (Backend)
+npm run db:migrate          # Run pending migrations
+cd server && node test-connection.mjs  # Test DB connection
+
+# Docker
+npm run docker:dev          # Start dev environment
+npm run docker:prod         # Start production environment
+```
+
+### Environment Setup
 If you see an engines warning locally, switch to Node 22.20.0:
 
 ```bash
+# Frontend (.env)
+cp .env.example .env
+
+# Backend (server/.env) - contains secrets, DO NOT COMMIT
+# See SECRETS-CHECKLIST.md for required variables
 nvm install 22.20.0 # if not already installed
 nvm use 22.20.0
 ```
@@ -100,7 +184,34 @@ nvm use 22.20.0
 
 ### GitHub Actions
 
+**Active Workflows:**
 CI focuses on build, lint, and tests, and now includes a staging-profile checklist run (`DEPLOY_ENV=staging`) so the deployment notes stay in sync with reality. Netlify performs deploys directly from `main`; disabled reference workflow files remain for historical context. If re-enabling automated Netlify deployments via Actions, restore secrets (`NETLIFY_AUTH_TOKEN`, `NETLIFY_SITE_ID`) and activate the workflow.
+
+- `ci-cd.yml` - Full CI/CD pipeline with security scanning, testing, building, and deployment
+- `ci-robust.yml` - Robust verification workflow with weekly hygiene checks
+- `release.yml` - Automated release management
+
+**Pipeline Stages:**
+
+1. **Security** - CodeQL, npm audit, Snyk scanning
+2. **Lint** - ESLint, Stylelint, Prettier
+3. **Test** - Unit tests on Node 22.x & 24.x with PostgreSQL
+4. **E2E** - Playwright browser tests
+5. **Build** - Bundle analysis and artifact generation
+6. **Docker** - Multi-platform builds with Trivy scanning
+7. **Deploy** - Automated Netlify deployments
+8. **Staging Profile Check** - Exercises `scripts/deploy/production-check.mjs` with `DEPLOY_ENV=staging` to ensure staging guidance stays accurate
+
+**Required Secrets:**
+
+- `DATABASE_URL` - PostgreSQL connection (for CI tests)
+- `JWT_SECRET` - Authentication secret
+- `REFRESH_TOKEN_SECRET` - Refresh token secret
+- `NETLIFY_BUILD_HOOK_URL` - Deployment webhook
+- `CODECOV_TOKEN` - Code coverage reporting (optional)
+- `SNYK_TOKEN` - Security scanning (optional)
+
+See `SECRETS-CHECKLIST.md` for complete setup guide.
 
 ### Manual Deployment
 
@@ -123,18 +234,51 @@ npm run verify:production   # full production gate
 
 ### Environment Variables
 
-Copy `.env.example` to `.env` for local development:
+#### Frontend (`.env`)
 
 ```bash
-cp .env.example .env
+VITE_APP_NAME=PolePlan Pro
+VITE_APP_VERSION=0.1.0
+VITE_DEBUG_MODE=false
+VITE_ENABLE_SW=true  # Service worker
 ```
 
-Available environment variables:
+> Need to sync environment variables to Netlify? Run `npm run deploy:netlify:env-template` to print ready-to-paste `netlify env:set` commands.
 
-- `VITE_APP_NAME` - Application name
-- `VITE_APP_VERSION` - Version number
-- `VITE_DEBUG_MODE` - Enable debug features
-- `VITE_ENABLE_*` - Feature flags
+#### Backend (`server/.env`) - **DO NOT COMMIT**
+
+```bash
+# Database (from Neon Console)
+DATABASE_URL=postgresql://...                    # Pooled
+DATABASE_URL_UNPOOLED=postgresql://...           # Unpooled (migrations)
+
+# Authentication (generate secure 32+ byte secrets)
+JWT_SECRET=<generate-random-hex-64-chars>
+REFRESH_TOKEN_SECRET=<generate-different-hex-64-chars>
+JWT_EXPIRES_IN=15m
+REFRESH_TOKEN_TTL=7d
+
+# Server Config
+NODE_ENV=development
+PORT=3001
+ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
+LOG_LEVEL=debug
+
+# Optional: SSO Configuration
+AZURE_AD_TENANT_ID=
+AZURE_AD_CLIENT_ID=
+AZURE_AD_CLIENT_SECRET=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+```
+
+**Generate Production Secrets:**
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+See `SECRETS-CHECKLIST.md` for complete configuration guide.
 
 ## 📋 Configuration
 
@@ -155,24 +299,43 @@ Available environment variables:
 
 ## 🧪 Testing
 
-Comprehensive test suite covering:
+**Test Coverage**: 193/203 tests passing (95%)
 
-- Calculation engine accuracy
-- Format parsing and conversion
-- Integration testing
-- Reliability testing with edge cases
+### Test Suites
+
+- **Unit Tests**: Calculation engine, utilities, components
+- **Integration Tests**: Database operations, API endpoints
+- **E2E Tests**: Playwright browser automation
+- **Reliability Tests**: Edge cases, error handling
+
+### Test Execution
 
 ```bash
-# Run all tests
-npm test
+# All tests (Vitest)
+npm test                       # Run once
+npm run test:watch             # Watch mode
+npm run test:coverage          # Generate coverage
 
-# Run tests in watch mode
-npm run test:watch
+# Backend API tests
+npm run test:api               # Server tests with PostgreSQL
+
+# E2E tests (Playwright)
+npm run test:e2e               # Browser automation
+
+# Full test suite
+npm run test:full              # Frontend + Backend
+npm run test:coverage:full     # Combined coverage
 ```
+
+### Test Environment
+
+- **Database**: PostgreSQL 16 (Docker service in CI)
+- **Node Versions**: 22.x and 24.x (matrix testing)
+- **Coverage**: Uploaded to Codecov on main branch
 
 ## 📚 Usage
 
-### Quick Start
+### Application Quick Start
 
 1. Enter basic pole and span information
 2. Configure existing utilities and proposed attachments
@@ -218,23 +381,91 @@ Offline enhancement implemented: Service worker now pre-caches the Shapefile CDN
 
 ## 🔧 Troubleshooting
 
-### Common Build Issues
+### Build Issues
 
-**Buffer/Node.js Module Errors**:
+**Node Version Mismatch**
 
-- The vite.config.js includes polyfills for browser compatibility
-- Geospatial libraries require Node.js modules that are automatically handled
+```bash
+# Solution: Use Node 22.20.0
+nvm install 22.20.0
+nvm use 22.20.0
+```
 
-**Large Bundle Warnings**:
+**Bundle Size Exceeded**
 
-- Heavy shapefile libraries excluded from bundle; verify no regressions reintroduce them.
+- Current: 1388.4 KB / 1450 KB limit
+- Shapefile libraries loaded via CDN (not bundled)
+- Check `npm run bundle:check` for details
 
-**Netlify Deployment Issues**:
+**Database Connection Errors**
 
-- Ensure Node.js version is 22 (matches `netlify.toml`)
-- Confirm canonical redirects working (`poleplanpro.com`)
-- Verify service worker updates after deployment (hard refresh if stale)
-- If `npm ci` fails locally, run `npm install` then commit updated lockfile only if intentional updates
+```bash
+# Test connection
+cd server && node test-connection.mjs
+
+# Run migrations
+npm run db:migrate
+
+# Check schema
+node scripts/db/check-schema.mjs
+```
+
+### Deployment Troubleshooting
+
+**Netlify Build Failures**
+
+1. Verify Node version in Netlify: Settings → Build & deploy → Environment → Node.js version
+2. Check environment variables: All secrets configured?
+3. Review build logs for specific errors
+
+**GitHub Actions Failures**
+
+1. Check workflow status: https://github.com/JHARB47/pole-height-app/actions
+2. Verify repository secrets are set correctly
+3. Ensure no trailing whitespace in secret values
+
+**Database Migration Issues**
+
+- ✅ Use `scripts/db/run-migrations.mjs` (working)
+- ❌ Avoid `scripts/db/migrate.mjs` (removed - was corrupted)
+- See `MIGRATE-FILE-NOTE.md` for details
+
+### Common Development Issues
+
+**Port Already in Use**
+
+```bash
+# Frontend (5173)
+lsof -ti:5173 | xargs kill -9
+
+# Backend (3001)
+lsof -ti:3001 | xargs kill -9
+```
+
+**Service Worker Caching Issues**
+
+- Hard refresh: Cmd/Ctrl + Shift + R
+- Disable in DevTools: Application → Service Workers → Unregister
+- Production: New deployments update SW automatically
+
+**Test Failures**
+
+```bash
+# Clear cache and reinstall
+rm -rf node_modules package-lock.json
+npm install
+npm test
+```
+
+### Getting Help
+
+**Documentation**
+
+- `SYNC-STATUS-REPORT.md` - Repository sync verification
+- `SECRETS-CHECKLIST.md` - Environment setup guide
+- `DATABASE-CONNECTION-SUCCESS.md` - Database setup details
+- `docs/DATABASE-CONNECTION-GUIDE.md` - Complete database guide
+- `docs/TECHNICAL_GUIDE.md` - Architecture documentation
 
 ## Visual Editor (Netlify Create) Readiness
 

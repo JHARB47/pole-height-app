@@ -24,7 +24,7 @@ try {
 
 const useAppStore = create(
   persist(
-    (set) => ({
+  (set, get) => ({
       // User and Organization Context
       currentUser: null, // { id, email, name, role, organization_id }
       setCurrentUser: (user) => set({ currentUser: user }),
@@ -34,6 +34,23 @@ const useAppStore = create(
       setCurrentClient: (client) => set({ currentClient: client }),
       isAuthenticated: false,
       setIsAuthenticated: (value) => set({ isAuthenticated: value }),
+
+      // Feature flags (Phase 3 foundation)
+      featureFlags: {
+        templateSharing: true,
+        analyticsDashboard: false,
+        batchOperations: false,
+        smartValidation: false,
+        collaboration: false,
+      },
+      setFeatureFlags: (flags) =>
+        set((state) => ({
+          featureFlags: {
+            ...(state.featureFlags || {}),
+            ...(flags || {}),
+          },
+        })),
+      isFeatureEnabled: (flagKey) => !!get().featureFlags?.[flagKey],
 
       // UI: per-section last saved timestamps
       uiSectionSaved: {}, // e.g., { map: ISO, spans: ISO, existing: ISO, field: ISO }
@@ -537,6 +554,13 @@ const useAppStore = create(
       // Reset all state
       reset: () =>
         set({
+          featureFlags: {
+            templateSharing: true,
+            analyticsDashboard: false,
+            batchOperations: false,
+            smartValidation: false,
+            collaboration: false,
+          },
           uiSectionSaved: {},
           poleHeight: "",
           poleClass: "",
@@ -710,7 +734,54 @@ const useAppStore = create(
     }),
     {
       name: "pole-height-store",
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => ({
+        getItem: (name) => {
+          try {
+            const item = localStorage.getItem(name);
+            if (!item) return null;
+            
+            // Parse and validate the stored data
+            const parsed = JSON.parse(item);
+            
+            // Basic structure validation - ensure it's an object
+            if (typeof parsed !== 'object' || parsed === null) {
+              console.warn('Invalid store structure, resetting to defaults');
+              return null;
+            }
+            
+            // Validate required structure exists
+            if (parsed.state && typeof parsed.state === 'object') {
+              return item;
+            }
+            
+            console.warn('Store structure validation failed, resetting');
+            return null;
+          } catch (error) {
+            console.warn('localStorage corrupted, clearing invalid data:', error);
+            try {
+              localStorage.removeItem(name);
+            } catch (e) {
+              console.error('Failed to clear corrupted localStorage:', e);
+            }
+            return null;
+          }
+        },
+        setItem: (name, value) => {
+          try {
+            localStorage.setItem(name, value);
+          } catch (error) {
+            console.error('Failed to save to localStorage:', error);
+            // Could implement fallback to sessionStorage or in-memory storage
+          }
+        },
+        removeItem: (name) => {
+          try {
+            localStorage.removeItem(name);
+          } catch (error) {
+            console.error('Failed to remove from localStorage:', error);
+          }
+        }
+      })),
     },
   ),
 );

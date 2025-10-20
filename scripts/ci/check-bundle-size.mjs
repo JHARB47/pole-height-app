@@ -7,7 +7,7 @@ import { readdirSync, statSync } from 'fs';
 import { join } from 'path';
 
 const dist = 'dist';
-const BUDGET_KB = 1450; // 1.45 MB combined (realistic for enterprise PDF + GIS features)
+const BUDGET_KB = 1200; // 1.2 MB combined (prod budget enforced by engineering requirements)
 
 /**
  * @returns {string[]}

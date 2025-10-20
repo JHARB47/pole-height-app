@@ -1,3 +1,7 @@
+############################################################
+# Netlify Environment Variables Template
+# Copy these to your Netlify site environment variables
+############################################################
 # Required Environment Variables for Netlify
 
 # Database (Neon PostgreSQL)
@@ -21,3 +25,4 @@ VITE_SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
 SERVICE_NAME=poleplan-pro
 VITE_APP_PRIMARY_DOMAIN=poleplanpro.com
 VITE_NETLIFY_SITE_BASE=poleplanpro.netlify.app
+

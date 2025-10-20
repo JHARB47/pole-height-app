@@ -40,11 +40,11 @@ npm run verify          # Full CI pipeline locally (lint + test + build + bundle
 npm run build           # Vite build with chunking
 npm run dev:netlify     # Local dev with Netlify Functions
 ```
-- **Node version**: Pinned to 22.12.0 (see `.nvmrc`, `netlify.toml`, CI)
+- **Node version**: Pinned to 22.20.0 (see `.nvmrc`, `netlify.toml`, CI)
 - **Build optimization**: Bundle size monitoring via `scripts/ci/check-bundle-size.mjs`
 
 ### Environment Setup
-- **Required**: Node 22.12.0 (`nvm use` respects `.nvmrc`)
+- **Required**: Node 22.20.0 (`nvm use` respects `.nvmrc`)
 - **Engines warning**: Upgrade from Node 20 to avoid polyfill differences
 - **Local Netlify**: Use `npm run dev:netlify` for Functions testing
 

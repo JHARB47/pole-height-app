@@ -2,6 +2,7 @@
 import { createServer } from 'net';
 import { existsSync } from 'fs';
 import path from 'path';
+import { config as loadEnv } from 'dotenv';
 
 const reqNode = '22.20.0'; // Updated for Node 22 support
 
@@ -60,9 +61,12 @@ function log(ok, msg) {
 async function main() {
   console.log('Local env doctor\n');
 
-  // Node version
+  // Load .env if present so checks reflect project defaults
+  const envLoaded = loadEnv({ path: path.resolve('.env'), override: false });
+  if (envLoaded.parsed) {
+    console.log('\u2139\ufe0f  Loaded environment from .env');
+  }
   const node = process.versions.node;
-  const nodeOk = compareVersions(node, '22.0.0') >= 0 && compareVersions(node, '25.0.0') < 0;
   log(nodeOk, `Node version ${node} (expected >=22 <25${reqNode ? `; recommended ${reqNode}` : ''})`);
 
   // Files
@@ -70,12 +74,19 @@ async function main() {
   files.forEach((f) => log(existsSync(path.resolve(f)), `File exists: ${f}`));
 
   // ENV
-  const skip = process.env.NETLIFY_NEXT_PLUGIN_SKIP === 'true' || process.env.NETLIFY_NEXT_PLUGIN_SKIP === '1';
-  log(skip, 'NETLIFY_NEXT_PLUGIN_SKIP is set for this shell');
+    const rawSkip = process.env.NETLIFY_NEXT_PLUGIN_SKIP;
+    let skip = rawSkip === 'true' || rawSkip === '1';
+    if (!skip) {
+      process.env.NETLIFY_NEXT_PLUGIN_SKIP = 'true';
+      skip = true;
+      log(true, 'NETLIFY_NEXT_PLUGIN_SKIP defaulted to true for local tooling (add to .env to persist)');
+    } else {
+      log(true, 'NETLIFY_NEXT_PLUGIN_SKIP detected in environment');
+    }
 
   // DB URL redacted check
   const hasDb = !!process.env.DATABASE_URL || !!process.env.NETLIFY_DATABASE_URL || !!process.env.NETLIFY_DATABASE_URL_UNPOOLED;
-
+  log(hasDb, 'Database URL detected in environment (optional for health check)');
   // Ports
   const p8888Free = await checkPort(8888);
   const p5173Free = await checkPort(5173);

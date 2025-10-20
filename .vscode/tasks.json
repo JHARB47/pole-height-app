@@ -1,15 +1,112 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558 
-    // for the documentation about the tasks.json format
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "Preflight: Environment & Node Check",
             "type": "shell",
-            "id": "shell,swa,start,http://localhost:3000,--run,npm start,--devserver-timeout=90000,",
+            "command": "node -v && echo Checking .env file... && test -f .env || echo '⚠️ Missing .env file'",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "silent",
+                "clear": true
+            }
+        },
+        {
+            "label": "Lint: Code Quality",
+            "type": "shell",
+            "command": "npm run lint",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "silent",
+                "clear": true
+            }
+        },
+        {
+            "label": "Test: Unit Tests",
+            "type": "shell",
+            "command": "npm run test",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "silent",
+                "clear": true
+            }
+        },
+        {
+            "label": "Build: Production Bundle",
+            "type": "shell",
+            "command": "npm run build",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "silent",
+                "clear": true
+            }
+        },
+        {
+            "label": "DB: Verify Schema",
+            "type": "shell",
+            "command": "npx drizzle-kit introspect || echo 'Skipping DB schema check (tool not installed)'",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "silent",
+                "clear": true
+            }
+        },
+        {
+            "label": "Deploy: Netlify CLI",
+            "type": "shell",
+            "command": "npx netlify deploy --prod",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
+            }
+        },
+        {
+            "label": "Pole Height App: Full Integrity Check",
+            "type": "shell",
+            "dependsOn": [
+                "Preflight: Environment & Node Check",
+                "Lint: Code Quality",
+                "Test: Unit Tests",
+                "Build: Production Bundle",
+                "DB: Verify Schema",
+                "Deploy: Netlify CLI"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
+            }
+        },
+        {
+            "type": "shell",
             "problemMatcher": [
                 "$swa-watch"
             ],
             "label": "swa: start pole-height-app"
+        },
+        {
+            "type": "shell",
+            "problemMatcher": [
+                "$swa-watch"
+            ],
+            "label": "swa: start pole-height-app",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "command": "npx swa start http://localhost:3000 --run \"npm start\" --devserver-timeout=90000",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
+            }
         }
     ]
 }
