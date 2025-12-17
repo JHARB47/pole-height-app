@@ -1,4 +1,9 @@
 /* eslint-env node */
+/**
+ * @param {any} _event
+ * @param {any} _context
+ * @returns {Promise<{statusCode: number, headers: Record<string, string>, body: string}>}
+ */
 export async function handler(_event, _context) {
   const { Client } = await import("pg");
   const headers = {
@@ -43,7 +48,10 @@ export async function handler(_event, _context) {
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ ok: false, error: err.message }),
+      body: JSON.stringify({
+        ok: false,
+        error: err instanceof Error ? err.message : String(err),
+      }),
     };
   } finally {
     try {
