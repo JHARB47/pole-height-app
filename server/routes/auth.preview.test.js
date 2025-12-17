@@ -1,16 +1,22 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
-import app from '../index.js';
+
+let app;
 
 describe('Preview auth gating', () => {
   const prevEnv = process.env.DISABLE_PREVIEW_AUTH;
+  const prevSentry = process.env.DISABLE_SENTRY;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     process.env.DISABLE_PREVIEW_AUTH = 'true';
+    process.env.DISABLE_SENTRY = 'true';
+    const mod = await import('../index.js');
+    app = mod.default;
   });
 
   afterAll(() => {
     process.env.DISABLE_PREVIEW_AUTH = prevEnv;
+    process.env.DISABLE_SENTRY = prevSentry;
   });
 
   it('returns 403 on GitHub auth start for Netlify branch host when disabled', async () => {

@@ -44,6 +44,7 @@ import { validatePoleCoordinates } from "../utils/gisValidation";
 import { useDebounce } from "../hooks/useDebounce";
 // Geodata utilities are imported dynamically in onPermit to keep geospatial libs lazy-loaded
 import SpansEditor from "./SpansEditor";
+import "./ProposedLineCalculator.css";
 
 export default function ProposedLineCalculator() {
   const {
@@ -428,7 +429,12 @@ export default function ProposedLineCalculator() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h1 className="text-lg md:text-xl font-semibold">PolePlan Pro</h1>
-          <label htmlFor="job-selector" className="hidden sm:inline text-xs text-gray-600">Job:</label>
+          <label
+            htmlFor="job-selector"
+            className="hidden sm:inline text-xs text-gray-600"
+          >
+            Job:
+          </label>
           <select
             id="job-selector"
             name="current-job"
@@ -617,7 +623,10 @@ export default function ProposedLineCalculator() {
               />
               {/* Quick profile tuning */}
               <ProfileTuner />
-              <label htmlFor="job-owner-input" className="text-sm text-gray-700 grid gap-2">
+              <label
+                htmlFor="job-owner-input"
+                className="text-sm text-gray-700 grid gap-2"
+              >
                 <span className="font-medium whitespace-nowrap text-left">
                   Owner (utility)
                 </span>
@@ -1736,9 +1745,10 @@ AutoMapPreviewModal.propTypes = {
 
 function Input({ label, id, name, ...props }) {
   // Generate a unique ID if not provided
-  const inputId = id || `input-${name || label.toLowerCase().replace(/\s+/g, '-')}`;
+  const inputId =
+    id || `input-${name || label.toLowerCase().replace(/\s+/g, "-")}`;
   const inputName = name || inputId;
-  
+
   return (
     <label htmlFor={inputId} className="text-sm text-gray-700 grid gap-2">
       <span className="font-medium whitespace-nowrap text-left">{label}</span>
@@ -1760,9 +1770,10 @@ Input.propTypes = {
 
 function Select({ label, options, id, name, ...props }) {
   // Generate a unique ID if not provided
-  const selectId = id || `select-${name || label.toLowerCase().replace(/\s+/g, '-')}`;
+  const selectId =
+    id || `select-${name || label.toLowerCase().replace(/\s+/g, "-")}`;
   const selectName = name || selectId;
-  
+
   return (
     <label htmlFor={selectId} className="text-sm text-gray-700 grid gap-2">
       <span className="font-medium whitespace-nowrap text-left">{label}</span>
@@ -1796,11 +1807,15 @@ Select.propTypes = {
 
 function Checkbox({ label, id, name, ...props }) {
   // Generate a unique ID if not provided
-  const checkboxId = id || `checkbox-${name || label.toLowerCase().replace(/\s+/g, '-')}`;
+  const checkboxId =
+    id || `checkbox-${name || label.toLowerCase().replace(/\s+/g, "-")}`;
   const checkboxName = name || checkboxId;
-  
+
   return (
-    <label htmlFor={checkboxId} className="text-sm text-gray-700 inline-flex items-center gap-3 mt-6 cursor-pointer">
+    <label
+      htmlFor={checkboxId}
+      className="text-sm text-gray-700 inline-flex items-center gap-3 mt-6 cursor-pointer"
+    >
       <input
         id={checkboxId}
         name={checkboxName}
@@ -2103,9 +2118,9 @@ function AgencyTemplatesPanel() {
       <div className="text-xs text-gray-600 mb-2">
         Environment: {store.spanEnvironment}
       </div>
-      <div className="grid md:grid-cols-2 gap-3 text-sm">
+      <div className="resource-grid text-sm">
         {items.map((a) => (
-          <div key={a.key} className="border rounded p-2">
+          <div key={a.key} className="resource-card border rounded p-3">
             <div className="font-medium mb-1">{a.name}</div>
             {a.resources?.length ? (
               <ul className="list-disc pl-5">
@@ -4740,7 +4755,7 @@ function FieldCollection({ openHelp, showBottomActions = true }) {
         {midspanChecks.length ? (
           <div className="mb-3 rounded border p-2">
             <div className="font-medium mb-1">Midspan Verification</div>
-            <table className="w-full text-xs">
+            <table className="data-table midspan-table w-full text-xs">
               <thead>
                 <tr className="text-left text-gray-600">
                   <th className="p-1">Span</th>
@@ -4820,7 +4835,7 @@ function FieldCollection({ openHelp, showBottomActions = true }) {
           </div>
         </div>
 
-        <table className="w-full text-sm min-w-[920px]">
+        <table className="data-table data-table-wide w-full text-sm">
           <thead>
             <tr className="text-left text-gray-600">
               <th className="p-2">ID</th>

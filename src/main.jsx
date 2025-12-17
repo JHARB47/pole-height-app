@@ -9,7 +9,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import ContentPage from "./routes/ContentPage.jsx";
 import SiteChrome from "./components/SiteChrome.jsx";
 import NotFoundPage from "./components/NotFoundPage.jsx";
-import { measureWebVitals } from "./utils/performance.js";
+import { handleWebVitalMetric, reportWebVitals } from "./utils/performance.js";
 
 // Only initialize Sentry if a valid DSN is provided
 if (
@@ -48,41 +48,46 @@ if (
 const container = document.getElementById("root");
 if (!container) throw new Error("Root element not found");
 
-const router = createBrowserRouter([
+const router = createBrowserRouter(
+  [
+    {
+      path: "/",
+      element: <SiteChrome />,
+      children: [
+        {
+          index: true,
+          element: <App />,
+        },
+        {
+          path: "home",
+          element: <ContentPage slug="home" />,
+        },
+        {
+          path: ":slug",
+          element: <ContentPage />,
+        },
+        {
+          path: "*",
+          element: <NotFoundPage />,
+        },
+      ],
+    },
+  ],
   {
-    path: "/",
-    element: <SiteChrome />,
-    children: [
-      {
-        index: true,
-        element: <App />,
-      },
-      {
-        path: "home",
-        element: <ContentPage slug="home" />,
-      },
-      {
-        path: ":slug",
-        element: <ContentPage />,
-      },
-      {
-        path: "*",
-        element: <NotFoundPage />,
-      },
-    ],
+    future: { v7_startTransition: true },
   },
-]);
+);
 
 createRoot(container).render(
   <StrictMode>
     <ErrorBoundary>
-      <RouterProvider router={router} />
+      <RouterProvider router={router} future={{ v7_startTransition: true }} />
     </ErrorBoundary>
   </StrictMode>,
 );
 
 // Initialize performance monitoring
-measureWebVitals();
+reportWebVitals(handleWebVitalMetric);
 
 // Register service worker and show a user-facing update toast when a new version is available
 const swEnabled =

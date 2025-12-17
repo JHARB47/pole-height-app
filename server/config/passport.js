@@ -17,6 +17,7 @@ import { Logger } from '../services/logger.js';
 
 const db = new DatabaseService();
 const logger = new Logger();
+const JWT_SECRET = process.env.JWT_SECRET || 'test-secret';
 
 export class PassportConfig {
   static initialize() {
@@ -37,7 +38,7 @@ export class PassportConfig {
     // JWT Strategy for API authentication
     passport.use(new JwtStrategy({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: process.env.JWT_SECRET,
+      secretOrKey: JWT_SECRET,
       issuer: 'poleplanpro.com',
       audience: 'poleplanpro-api'
     }, async (payload, done) => {

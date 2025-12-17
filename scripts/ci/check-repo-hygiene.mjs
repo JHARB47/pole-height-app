@@ -4,7 +4,8 @@ import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
-const repoRoot = dirname(dirname(fileURLToPath(new URL("../../package.json", import.meta.url))));
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const repoRoot = join(__dirname, "../..");
 
 function runGit(args) {
   try {

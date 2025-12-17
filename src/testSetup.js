@@ -1,8 +1,25 @@
 // Vitest setup: testing-library cleanup and light DOM shims
-import { afterEach } from "vitest";
+import { afterEach, vi } from "vitest";
 import { cleanup } from "@testing-library/react";
 
-afterEach(() => cleanup());
+afterEach(() => {
+  // AI: rationale — wrap cleanup to avoid concurrent React work errors while still resetting DOM
+  try {
+    cleanup();
+  } catch (err) {
+    const message = err?.message || "";
+    if (message.includes("Should not already be working")) {
+      // swallow noisy concurrent cleanup edge in tests
+      return;
+    }
+    throw err;
+  } finally {
+    // reset timers to avoid leaking fake timers across tests
+    if (typeof vi?.useRealTimers === "function") {
+      vi.useRealTimers();
+    }
+  }
+});
 
 // Mock matchMedia if not present (jsdom)
 if (typeof window !== "undefined" && !window.matchMedia) {

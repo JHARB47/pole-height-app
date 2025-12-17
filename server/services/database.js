@@ -18,11 +18,12 @@ const __dirname = path.dirname(__filename);
 export class DatabaseService {
   constructor() {
     this.pool = null;
-    const span = Sentry.startSpan({
+    // AI: rationale — use manual span to avoid Sentry OTEL callback requirement in tests
+    this.initSpan = Sentry.startSpanManual({
       op: 'db.initialize',
       name: 'DatabaseService.initialize',
     });
-    span.setAttribute('environment', process.env.NODE_ENV || 'development');
+    this.initSpan.setAttribute('environment', process.env.NODE_ENV || 'development');
     this.logger = new Logger();
     this.isInitialized = false;
   }
@@ -68,15 +69,15 @@ export class DatabaseService {
       await this.runMigrations();
       
       this.isInitialized = true;
-      span.setAttribute('poolMax', config.max);
-      span.setStatus({ code: 'ok' });
+      this.initSpan.setAttribute('poolMax', config.max);
+      this.initSpan.setStatus({ code: 'ok' });
     } catch (error) {
       this.logger.error('Database initialization failed:', error);
-      span.setStatus({ code: 'error', message: error.message });
+      this.initSpan.setStatus({ code: 'error', message: error.message });
       Sentry.captureException(error);
       throw error;
     } finally {
-      span.end();
+      this.initSpan.end();
     }
   }
 

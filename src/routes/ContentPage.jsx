@@ -15,12 +15,12 @@ function HeroSection({ section, sectionIndex, pageSource }) {
     ? `url(${section.backgroundImage})`
     : "linear-gradient(135deg,#0ea5e9,#6366f1)";
   return (
-    <section 
+    <section
       style={{ background: bg, color: "white", padding: "48px 16px" }}
       {...stackbitData(sectionObjectId)}
     >
       <div className="max-w-5xl mx-auto">
-        <h1 
+        <h1
           style={{ fontSize: 36, fontWeight: 800 }}
           {...stackbitData(sectionObjectId, "title")}
         >

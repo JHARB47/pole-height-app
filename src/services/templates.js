@@ -9,7 +9,9 @@ function handleResponse(response) {
       .json()
       .catch(() => ({}))
       .then((payload) => {
-        const error = new Error(payload?.error || "Template API request failed");
+        const error = new Error(
+          payload?.error || "Template API request failed",
+        );
         error.details = payload;
         error.status = response.status;
         throw error;
@@ -28,9 +30,12 @@ class TemplateService {
   }
 
   async getTemplate(templateId) {
-    const res = await authService.apiRequest(`/api/v1/templates/${templateId}`, {
-      method: "GET",
-    });
+    const res = await authService.apiRequest(
+      `/api/v1/templates/${templateId}`,
+      {
+        method: "GET",
+      },
+    );
     return handleResponse(res);
   }
 
@@ -43,18 +48,24 @@ class TemplateService {
   }
 
   async updateTemplate(templateId, payload) {
-    const res = await authService.apiRequest(`/api/v1/templates/${templateId}`, {
-      method: "PATCH",
-      body: JSON.stringify(payload),
-    });
+    const res = await authService.apiRequest(
+      `/api/v1/templates/${templateId}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      },
+    );
     return handleResponse(res);
   }
 
   async createVersion(templateId, payload) {
-    const res = await authService.apiRequest(`/api/v1/templates/${templateId}/versions`, {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
+    const res = await authService.apiRequest(
+      `/api/v1/templates/${templateId}/versions`,
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      },
+    );
     return handleResponse(res);
   }
 }

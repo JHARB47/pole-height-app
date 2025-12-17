@@ -89,13 +89,6 @@
             "problemMatcher": [
                 "$swa-watch"
             ],
-            "label": "swa: start pole-height-app"
-        },
-        {
-            "type": "shell",
-            "problemMatcher": [
-                "$swa-watch"
-            ],
             "label": "swa: start pole-height-app",
             "group": {
                 "kind": "build",

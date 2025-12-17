@@ -207,7 +207,8 @@ async function startServer() {
     process.exit(1);
   }
 }
-
-startServer();
+if (NODE_ENV !== 'test') {
+  startServer();
+}
 
 export default app;

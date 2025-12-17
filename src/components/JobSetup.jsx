@@ -2,6 +2,7 @@ import React from "react";
 import { WV_COMPANIES } from "../utils/constants";
 import useAppStore from "../utils/store";
 import { EXPORT_PRESETS } from "../utils/exporters";
+import "./JobSetup.css";
 
 export default function JobSetup() {
   const store = useAppStore();
@@ -314,7 +315,7 @@ export default function JobSetup() {
   return (
     <div
       id="job"
-      className="rounded-lg border border-gray-200 bg-white p-4 md:p-6 shadow-sm scroll-mt-14"
+      className="job-setup-panel rounded-lg border border-gray-200 bg-white p-4 md:p-6 shadow-sm scroll-mt-14"
     >
       <div className="flex items-center justify-between">
         <div className="text-lg font-semibold text-gray-900 md:text-xl mb-3">
@@ -430,11 +431,11 @@ export default function JobSetup() {
         </label>
 
         {/* Job-level Standards/Profile */}
-        <div className="sm:col-span-2 lg:col-span-4 border rounded p-2 space-y-4">
+        <div className="job-standards-card sm:col-span-2 lg:col-span-4 border rounded p-2 space-y-4">
           <div className="font-medium text-sm">
             Job Standards & Export Profile
           </div>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="job-standards-grid">
             <label className="grid gap-1 text-sm">
               <span className="font-medium">Submission Profile</span>
               <select
@@ -463,8 +464,11 @@ export default function JobSetup() {
                 ))}
               </select>
             </label>
-            <label className="grid gap-1 text-sm">
-              <span className="font-medium">Override Comm→Power (in)</span>
+            <label className="job-override-field text-sm">
+              <div className="job-override-head">
+                <span className="font-medium">Override Comm→Power</span>
+                <span className="job-override-unit">in</span>
+              </div>
               <input
                 className="border rounded px-2 py-1"
                 value={overrideCommToPowerIn}
@@ -472,8 +476,11 @@ export default function JobSetup() {
                 placeholder="blank = use profile"
               />
             </label>
-            <label className="grid gap-1 text-sm">
-              <span className="font-medium">Override Min Top Space (ft)</span>
+            <label className="job-override-field text-sm">
+              <div className="job-override-head">
+                <span className="font-medium">Override Min Top Space</span>
+                <span className="job-override-unit">ft</span>
+              </div>
               <input
                 className="border rounded px-2 py-1"
                 value={overrideMinTopSpaceFt}
@@ -481,8 +488,11 @@ export default function JobSetup() {
                 placeholder="blank = use profile"
               />
             </label>
-            <label className="grid gap-1 text-sm">
-              <span className="font-medium">Override Road Clearance (ft)</span>
+            <label className="job-override-field text-sm">
+              <div className="job-override-head">
+                <span className="font-medium">Override Road Clearance</span>
+                <span className="job-override-unit">ft</span>
+              </div>
               <input
                 className="border rounded px-2 py-1"
                 value={overrideRoadClearanceFt}
@@ -490,10 +500,11 @@ export default function JobSetup() {
                 placeholder="blank = use profile"
               />
             </label>
-            <label className="grid gap-1 text-sm">
-              <span className="font-medium">
-                Override Road Midspan Target (ft)
-              </span>
+            <label className="job-override-field text-sm">
+              <div className="job-override-head">
+                <span className="font-medium">Road Midspan Target</span>
+                <span className="job-override-unit">ft</span>
+              </div>
               <input
                 className="border rounded px-2 py-1"
                 value={overrideEnvRoadFt}
@@ -501,10 +512,11 @@ export default function JobSetup() {
                 placeholder="blank = use profile"
               />
             </label>
-            <label className="grid gap-1 text-sm">
-              <span className="font-medium">
-                Override Residential Midspan Target (ft)
-              </span>
+            <label className="job-override-field text-sm">
+              <div className="job-override-head">
+                <span className="font-medium">Residential Midspan Target</span>
+                <span className="job-override-unit">ft</span>
+              </div>
               <input
                 className="border rounded px-2 py-1"
                 value={overrideEnvResidentialFt}
@@ -512,10 +524,11 @@ export default function JobSetup() {
                 placeholder="blank = use profile"
               />
             </label>
-            <label className="grid gap-1 text-sm">
-              <span className="font-medium">
-                Override Pedestrian Midspan Target (ft)
-              </span>
+            <label className="job-override-field text-sm">
+              <div className="job-override-head">
+                <span className="font-medium">Pedestrian Midspan Target</span>
+                <span className="job-override-unit">ft</span>
+              </div>
               <input
                 className="border rounded px-2 py-1"
                 value={overrideEnvPedestrianFt}
@@ -523,8 +536,11 @@ export default function JobSetup() {
                 placeholder="blank = use profile"
               />
             </label>
-            <label className="grid gap-1 text-sm">
-              <span className="font-medium">Min Comm Attach Height (ft)</span>
+            <label className="job-override-field text-sm">
+              <div className="job-override-head">
+                <span className="font-medium">Min Comm Attach Height</span>
+                <span className="job-override-unit">ft</span>
+              </div>
               <input
                 className="border rounded px-2 py-1"
                 value={overrideMinCommAttachFt}
@@ -536,10 +552,11 @@ export default function JobSetup() {
                 power separation.
               </span>
             </label>
-            <label className="grid gap-1 text-sm">
-              <span className="font-medium">
-                Δ Threshold for Span Length (ft)
-              </span>
+            <label className="job-override-field text-sm">
+              <div className="job-override-head">
+                <span className="font-medium">Δ Threshold for Span Length</span>
+                <span className="job-override-unit">ft</span>
+              </div>
               <input
                 className="border rounded px-2 py-1"
                 type="number"
@@ -556,17 +573,17 @@ export default function JobSetup() {
               </span>
             </label>
           </div>
-          <div className="text-xs text-gray-600">
+          <div className="job-standards-helper text-xs text-gray-600">
             Defaults follow NESC unless the Owner maps to utilities like
             FirstEnergy (44" separation, 18 ft road). Overrides let you tune
             job-specific specs.
           </div>
         </div>
-        <label className="grid gap-1 text-sm sm:col-span-2 lg:col-span-4">
+        <label className="job-notes-field grid gap-1 text-sm sm:col-span-2 lg:col-span-4">
           <span className="font-medium">Notes</span>
           <textarea
             className="border rounded px-2 py-1"
-            rows={2}
+            rows={3}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Optional job notes"

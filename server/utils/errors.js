@@ -42,5 +42,8 @@ export class ValidationError extends HttpError {
  * @param {{ status: any; }} error
  */
 export function isHttpError(error) {
-  return error instanceof HttpError || (error && typeof error.status === 'number');
+  return Boolean(
+    error instanceof HttpError ||
+    (error && typeof error.status === 'number')
+  );
 }

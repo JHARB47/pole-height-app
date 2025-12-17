@@ -9,7 +9,7 @@ const DEFAULT_TEMPLATE = {
   sharing_mode: "private",
   tags: "",
   category_slug: "",
-  payload: "{\n  \"type\": \"pole_plan\",\n  \"fields\": {}\n}",
+  payload: '{\n  "type": "pole_plan",\n  "fields": {}\n}',
 };
 
 const fieldInputStyle = {
@@ -34,7 +34,7 @@ export default function TemplateManager() {
   const [templateDetail, setTemplateDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [versionNotes, setVersionNotes] = useState("");
-  const [versionPayload, setVersionPayload] = useState("{\n  \"fields\": {}\n}");
+  const [versionPayload, setVersionPayload] = useState('{\n  "fields": {}\n}');
   const [publishingVersion, setPublishingVersion] = useState(false);
 
   const userOrg = currentUser?.organization_id;
@@ -115,8 +115,10 @@ export default function TemplateManager() {
       let parsedPayload;
       try {
         parsedPayload = JSON.parse(createForm.payload || "{}");
-      } catch (_parseErr) {
-        throw new Error("Payload must be valid JSON");
+      } catch (parseErr) {
+        throw new Error(
+          `Payload must be valid JSON${parseErr?.message ? `: ${parseErr.message}` : ""}`,
+        );
       }
 
       const payload = {
@@ -158,8 +160,10 @@ export default function TemplateManager() {
       let parsedPayload;
       try {
         parsedPayload = JSON.parse(versionPayload || "{}");
-      } catch (_parseErr) {
-        throw new Error("Version payload must be valid JSON");
+      } catch (parseErr) {
+        throw new Error(
+          `Version payload must be valid JSON${parseErr?.message ? `: ${parseErr.message}` : ""}`,
+        );
       }
 
       const data = await templateService.createVersion(selectedTemplateId, {
@@ -184,7 +188,11 @@ export default function TemplateManager() {
         if (!existing) return existing;
         return existing.map((tpl) =>
           tpl.id === selectedTemplateId
-            ? { ...tpl, latest_version: data.version.version, updated_at: new Date().toISOString() }
+            ? {
+                ...tpl,
+                latest_version: data.version.version,
+                updated_at: new Date().toISOString(),
+              }
             : tpl,
         );
       });
@@ -207,7 +215,9 @@ export default function TemplateManager() {
       }}
     >
       <header style={{ marginBottom: "12px" }}>
-        <h2 style={{ margin: 0, fontSize: "1.6rem" }}>Template Library (Phase 3 Preview)</h2>
+        <h2 style={{ margin: 0, fontSize: "1.6rem" }}>
+          Template Library (Phase 3 Preview)
+        </h2>
         <p style={{ margin: "6px 0 0", color: "#444" }}>
           Share repeatable pole-plan configurations across your organization.
         </p>
@@ -385,7 +395,11 @@ export default function TemplateManager() {
                   }))
                 }
                 rows={8}
-                style={{ ...fieldInputStyle, fontFamily: "monospace", resize: "vertical" }}
+                style={{
+                  ...fieldInputStyle,
+                  fontFamily: "monospace",
+                  resize: "vertical",
+                }}
               />
             </label>
 
@@ -438,10 +452,17 @@ export default function TemplateManager() {
                       padding: "10px 12px",
                       marginBottom: "10px",
                       background:
-                        tpl.id === selectedTemplateId ? "rgba(79,70,229,0.08)" : "#fafafa",
+                        tpl.id === selectedTemplateId
+                          ? "rgba(79,70,229,0.08)"
+                          : "#fafafa",
                     }}
                   >
-                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                      }}
+                    >
                       <strong>{tpl.name}</strong>
                       <button
                         type="button"
@@ -463,7 +484,10 @@ export default function TemplateManager() {
                 ))}
               </ul>
             ) : (
-              <p style={{ color: "#555" }}>No templates yet. Create your first organizational starting point.</p>
+              <p style={{ color: "#555" }}>
+                No templates yet. Create your first organizational starting
+                point.
+              </p>
             )}
           </div>
         </article>
@@ -486,7 +510,8 @@ export default function TemplateManager() {
                 <div style={{ marginBottom: "12px" }}>
                   <strong>{templateDetail.template.name}</strong>
                   <div style={{ color: "#555", fontSize: "0.9rem" }}>
-                    Latest version: v{templateDetail.template.latest_version || 1}
+                    Latest version: v
+                    {templateDetail.template.latest_version || 1}
                   </div>
                 </div>
 
@@ -526,7 +551,11 @@ export default function TemplateManager() {
                       <span>Payload JSON</span>
                       <textarea
                         rows={8}
-                        style={{ ...fieldInputStyle, fontFamily: "monospace", resize: "vertical" }}
+                        style={{
+                          ...fieldInputStyle,
+                          fontFamily: "monospace",
+                          resize: "vertical",
+                        }}
                         value={versionPayload}
                         onChange={(evt) => setVersionPayload(evt.target.value)}
                       />
@@ -565,11 +594,21 @@ export default function TemplateManager() {
                               background: "#f9fafb",
                             }}
                           >
-                            <div style={{ display: "flex", justifyContent: "space-between" }}>
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                              }}
+                            >
                               <span>
-                                v{version.version} • {new Date(version.created_at).toLocaleString()}
+                                v{version.version} •{" "}
+                                {new Date(version.created_at).toLocaleString()}
                               </span>
-                              {version.notes ? <em style={{ color: "#555" }}>{version.notes}</em> : null}
+                              {version.notes ? (
+                                <em style={{ color: "#555" }}>
+                                  {version.notes}
+                                </em>
+                              ) : null}
                             </div>
                             <pre
                               style={{
@@ -594,7 +633,9 @@ export default function TemplateManager() {
                 </section>
               </div>
             ) : (
-              <p style={{ color: "#555" }}>Select a template to see details and publish new versions.</p>
+              <p style={{ color: "#555" }}>
+                Select a template to see details and publish new versions.
+              </p>
             )}
           </article>
         ) : null}
