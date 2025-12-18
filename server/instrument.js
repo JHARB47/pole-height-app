@@ -16,17 +16,17 @@ let SentryClient
 
 if (isTestLike) {
   // AI: rationale — avoid OpenTelemetry overhead/crashes in tests or when disabled
-  const safeSpan = (callback) => {
+  const safeSpan = (/** @type {(arg0: { setAttribute: () => void; setStatus: () => void; end: () => void; }) => any} */ callback) => {
     if (typeof callback === 'function') return callback({ ...noopSpan })
     return { ...noopSpan }
   }
 
   SentryClient = {
     Handlers: {
-      requestHandler: () => (_req, _res, next) => next(),
-      errorHandler: () => (err, _req, _res, next) => next(err)
+      requestHandler: () => (/** @type {any} */ _req, /** @type {any} */ _res, /** @type {() => any} */ next) => next(),
+      errorHandler: () => (/** @type {any} */ err, /** @type {any} */ _req, /** @type {any} */ _res, /** @type {(arg0: any) => any} */ next) => next(err)
     },
-    startSpan: (_ctxOrCallback, maybeCallback) => {
+    startSpan: (/** @type {any} */ _ctxOrCallback, /** @type {any} */ maybeCallback) => {
       // Support startSpan(callback) or startSpan(ctx, callback)
       const callback = typeof _ctxOrCallback === 'function' ? _ctxOrCallback : maybeCallback
       return safeSpan(callback)

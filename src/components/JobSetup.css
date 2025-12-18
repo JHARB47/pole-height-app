@@ -1,0 +1,51 @@
+/* Scoped layout fixes for Job Setup card */
+.job-setup-panel {
+  word-break: normal;
+  overflow-wrap: break-word;
+  line-height: 1.55;
+}
+
+.job-standards-card {
+  background: var(--surface-raised, #f9fafb);
+  border-color: var(--border-subtle, #e5e7eb);
+  gap: clamp(0.75rem, 1vw, 1.25rem);
+}
+
+.job-standards-grid {
+  display: grid;
+  gap: clamp(0.75rem, 1vw, 1.25rem);
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  align-items: start;
+}
+
+.job-standards-helper {
+  line-height: 1.5;
+  white-space: normal;
+}
+
+.job-notes-field textarea {
+  min-height: 84px;
+}
+
+.job-override-field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.job-override-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.job-override-unit {
+  font-size: 0.75rem;
+  color: var(--text-subtle, #4b5563);
+  background: var(--surface-muted, #f1f5f9);
+  border: 1px solid var(--border-subtle, #e5e7eb);
+  border-radius: 6px;
+  padding: 2px 6px;
+  line-height: 1.2;
+}

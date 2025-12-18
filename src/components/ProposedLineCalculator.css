@@ -1,0 +1,41 @@
+/* Responsive layout helpers for resources and data tables */
+.resource-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: clamp(0.75rem, 1vw, 1.25rem);
+  align-items: stretch;
+}
+
+.resource-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 100%;
+  color: var(--text-strong, #0f172a);
+  background: var(--surface, #fff);
+}
+
+.resource-card ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.data-table {
+  border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+  white-space: nowrap;
+  vertical-align: top;
+  color: var(--text-strong, #0f172a);
+  background: var(--surface, #fff);
+}
+
+.data-table-wide {
+  min-width: 1100px;
+}
+
+.midspan-table {
+  min-width: 560px;
+}

@@ -21,7 +21,7 @@ npm ci
 # Copy environment template
 cp .env.example .env
 
-# Edit .env file with your local settings:
+# Edit .env file with your local settings
 # - DATABASE_URL: Your local PostgreSQL connection
 # - JWT secrets: Generate using openssl rand -hex 64
 # - VITE_SENTRY_DSN: Leave empty for local development
