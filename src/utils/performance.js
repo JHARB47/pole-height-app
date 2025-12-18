@@ -1,7 +1,7 @@
 // Performance monitoring utilities
 export const handleWebVitalMetric = (metric) => {
   // Send to analytics service
-  if (window.gtag) {
+  if (globalThis.gtag) {
     globalThis.gtag("event", metric.name, {
       event_category: "Web Vitals",
       event_label: metric.id,
@@ -11,8 +11,8 @@ export const handleWebVitalMetric = (metric) => {
   }
 
   // Send to Sentry if available
-  if (window.Sentry) {
-    window.Sentry.captureMessage(`Web Vital: ${metric.name}`, {
+  if (globalThis.Sentry) {
+    globalThis.Sentry.captureMessage(`Web Vital: ${metric.name}`, {
       level: "info",
       tags: {
         metric: metric.name,
@@ -62,8 +62,8 @@ export const measureFunctionPerformance = (
 ) => {
   const duration = endTime - startTime;
 
-  if (window.Sentry) {
-    window.Sentry.captureMessage(`Function Performance: ${functionName}`, {
+  if (globalThis.Sentry) {
+    globalThis.Sentry.captureMessage(`Function Performance: ${functionName}`, {
       level: "info",
       tags: {
         type: "performance",

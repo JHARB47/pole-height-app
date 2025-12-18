@@ -5,42 +5,62 @@ import "./index.css";
 import App from "./App.jsx";
 // @ts-ignore - allow jsx resolution in JS project
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import {
+  createBrowserRouter,
+  createRoutesFromChildren,
+  matchRoutes,
+  RouterProvider,
+  useLocation,
+  useNavigationType,
+} from "react-router-dom";
 import ContentPage from "./routes/ContentPage.jsx";
 import SiteChrome from "./components/SiteChrome.jsx";
 import NotFoundPage from "./components/NotFoundPage.jsx";
 import { handleWebVitalMetric, reportWebVitals } from "./utils/performance.js";
+
+let sentryInitFailedLogged = false;
 
 // Only initialize Sentry if a valid DSN is provided
 if (
   import.meta.env.VITE_SENTRY_DSN &&
   import.meta.env.VITE_SENTRY_DSN !== "${VITE_SENTRY_DSN}"
 ) {
-  Sentry.init({
-    dsn: import.meta.env.VITE_SENTRY_DSN,
-    environment: import.meta.env.MODE,
-    integrations: [
-      Sentry.browserTracingIntegration(),
-      Sentry.reactRouterV6BrowserTracingIntegration({
-        useEffect: React.useEffect,
-        useLocation: React.useLocation,
-        useNavigationType: React.useNavigationType,
-        createRoutesFromChildren: React.createRoutesFromChildren,
-        matchRoutes: React.matchRoutes,
-      }),
-    ],
-    // Performance monitoring
-    tracesSampleRate: import.meta.env.PROD ? 0.1 : 1.0,
-    // Release tracking
-    release: import.meta.env.VITE_APP_VERSION || "1.0.0",
-    // Only send errors in production, but allow all in development
-    beforeSend: (event, hint) => {
-      if (import.meta.env.DEV) {
-        console.error("Sentry Error:", event, hint);
-      }
-      return event;
-    },
-  });
+  try {
+    // AI: rationale — Sentry init is optional; misconfig must not take down the UI.
+    Sentry.init({
+      dsn: import.meta.env.VITE_SENTRY_DSN,
+      environment: import.meta.env.MODE,
+      integrations: [
+        Sentry.browserTracingIntegration(),
+        Sentry.reactRouterV6BrowserTracingIntegration({
+          useEffect: React.useEffect,
+          useLocation,
+          useNavigationType,
+          createRoutesFromChildren,
+          matchRoutes,
+        }),
+      ],
+      // Performance monitoring
+      tracesSampleRate: import.meta.env.PROD ? 0.1 : 1.0,
+      // Release tracking
+      release: import.meta.env.VITE_APP_VERSION || "1.0.0",
+      // Only send errors in production, but allow all in development
+      beforeSend: (event, hint) => {
+        if (import.meta.env.DEV) {
+          console.error("Sentry Error:", event, hint);
+        }
+        return event;
+      },
+    });
+  } catch (err) {
+    if (!sentryInitFailedLogged) {
+      sentryInitFailedLogged = true;
+      console.error(
+        "Sentry init failed; continuing without error tracking:",
+        err,
+      );
+    }
+  }
 } else {
   console.warn("Sentry DSN not configured, error tracking disabled");
 }
