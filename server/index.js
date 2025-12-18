@@ -41,6 +41,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+// AI: rationale — honor real client IPs behind Netlify/Proxies for rate limit and logging accuracy
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3001;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
@@ -73,12 +75,23 @@ const limiter = rateLimit({
 });
 app.use('/api', limiter);
 
+// AI: rationale — allow env-configurable origins to support preview/staging integrations without code changes
+const defaultOrigins = NODE_ENV === 'production'
+  ? ['https://poleplanpro.com', 'https://www.poleplanpro.com']
+  : ['http://localhost:3000', 'http://localhost:5173'];
+
+const extraOrigins = (process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(Boolean);
+
+const allowedOrigins = Array.from(new Set([...defaultOrigins, ...extraOrigins]));
+
 // CORS configuration
 app.use(cors({
-  origin: NODE_ENV === 'production' 
-    ? ['https://poleplanpro.com', 'https://www.poleplanpro.com']
-    : ['http://localhost:3000', 'http://localhost:5173'],
-  credentials: true
+  origin: allowedOrigins,
+  credentials: true,
+  optionsSuccessStatus: 204
 }));
 
 // Body parsing

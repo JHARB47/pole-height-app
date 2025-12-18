@@ -280,6 +280,7 @@ async function checkExternalServices() {
 
   for (const check of externalChecks) {
     try {
+      const start = Date.now();
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), check.timeout);
       
@@ -289,11 +290,12 @@ async function checkExternalServices() {
       });
       
       clearTimeout(timeoutId);
+      const responseTime = Date.now() - start;
       
       services[check.name] = {
         status: response.ok ? 'healthy' : 'unhealthy',
         response_code: response.status,
-        response_time_ms: Date.now() - Date.now() // Simplified
+        response_time_ms: responseTime
       };
     } catch (error) {
       services[check.name] = {
