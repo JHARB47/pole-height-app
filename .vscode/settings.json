@@ -4,6 +4,10 @@
     "inlineChat.lineEmptyHint": true,
     "inlineChat.hideOnRequest": true,
     "inlineChat.finishOnType": true,
-    "inlineChat.enableV2": true
+    "inlineChat.enableV2": true,
+    "sql.validate.enable": false,
+    "files.associations": {
+        "*.sql": "postgres"
+    }
 
 }
