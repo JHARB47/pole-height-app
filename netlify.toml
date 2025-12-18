@@ -117,6 +117,14 @@
   status = 301
   force = true
 
+# Never rewrite asset requests to index.html.
+# If an asset is missing (e.g., old hashed filename), we want a real 404 (not HTML)
+# so browsers/SWs don't cache an HTML document under a JS URL.
+[[redirects]]
+  from = "/assets/*"
+  to = "/assets/:splat"
+  status = 200
+
 # SPA routing - serve index.html for all routes
 [[redirects]]
   from = "/*"
