@@ -40,6 +40,14 @@
   VITE_APP_PRIMARY_DOMAIN = "poleplanpro.com"
   VITE_NETLIFY_SITE_BASE = "poleplanpro.netlify.app"
 
+[[plugins]]
+  package = "@sentry/netlify-build-plugin"
+
+  [plugins.inputs]
+    sentryOrg = "env:SENTRY_ORG"
+    sentryProject = "env:SENTRY_PROJECT"
+    sentryAuthToken = "env:SENTRY_AUTH_TOKEN"
+
 [context.production.environment]
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
   NODE_ENV = "production"
