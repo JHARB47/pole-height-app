@@ -40,6 +40,22 @@ SENTRY_DSN=https://your-backend-dsn@sentry.io/project-id
 2. Enable automatic release tracking
 3. Set environment: production
 
+## 6.1 Netlify Build Plugin (Releases + Source Maps)
+This repo can use the Netlify build plugin `@sentry/netlify-build-plugin` to create releases and upload source maps.
+
+1. In Sentry: Settings → Developer Settings → Auth Tokens (or Internal Integrations)
+2. Create a token with at least:
+   - `project:releases`
+   - `org:read`
+   - (optional) `org:write` if you want environment/deploy metadata features
+3. In Netlify (Site settings → Environment variables), set:
+   - `SENTRY_AUTH_TOKEN`
+   - `SENTRY_ORG`
+   - `SENTRY_PROJECT`
+4. Enable the plugin in [netlify.toml](netlify.toml) by uncommenting the `@sentry/netlify-build-plugin` block.
+
+Note: If Netlify builds fail in `onPostBuild` with a 401 from Sentry, the token is invalid/expired or lacks permissions. Rotate the token and redeploy.
+
 ## 7. Test Error Reporting
 # Trigger a test error (temporary code):
 console.error('Test Sentry error');
