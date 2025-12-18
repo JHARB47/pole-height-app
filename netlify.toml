@@ -40,13 +40,17 @@
   VITE_APP_PRIMARY_DOMAIN = "poleplanpro.com"
   VITE_NETLIFY_SITE_BASE = "poleplanpro.netlify.app"
 
-[[plugins]]
-  package = "@sentry/netlify-build-plugin"
-
-  [plugins.inputs]
-    sentryOrg = "env:SENTRY_ORG"
-    sentryProject = "env:SENTRY_PROJECT"
-    sentryAuthToken = "env:SENTRY_AUTH_TOKEN"
+# TEMP: Sentry release management (source maps + releases) is currently disabled
+# because Netlify builds are failing with a 401 from Sentry (invalid auth token).
+# Re-enable this block after rotating `SENTRY_AUTH_TOKEN` in Netlify.
+#
+# [[plugins]]
+#   package = "@sentry/netlify-build-plugin"
+#
+#   [plugins.inputs]
+#     sentryOrg = "env:SENTRY_ORG"
+#     sentryProject = "env:SENTRY_PROJECT"
+#     sentryAuthToken = "env:SENTRY_AUTH_TOKEN"
 
 [context.production.environment]
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
