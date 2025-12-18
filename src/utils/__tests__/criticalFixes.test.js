@@ -63,9 +63,8 @@ describe("Critical Risk Mitigations", () => {
   describe("Route Fallback", () => {
     it("should have NotFoundPage component available", async () => {
       // Dynamic import to test component exists
-      const { default: NotFoundPage } = await import(
-        "../../components/NotFoundPage.jsx"
-      );
+      const { default: NotFoundPage } =
+        await import("../../components/NotFoundPage.jsx");
       expect(NotFoundPage).toBeDefined();
       expect(typeof NotFoundPage).toBe("function");
     });

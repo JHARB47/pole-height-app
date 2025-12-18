@@ -1188,9 +1188,8 @@ function FieldActionsCompact() {
   const store = useAppStore();
   const [includePhotos, setIncludePhotos] = React.useState(true);
   const exportGeo = async (type) => {
-    const { buildGeoJSON, exportGeoJSON, exportKML, exportKMZ } = await import(
-      "../utils/geodata"
-    );
+    const { buildGeoJSON, exportGeoJSON, exportKML, exportKMZ } =
+      await import("../utils/geodata");
     const job =
       (store.jobs || []).find((j) => j.id === store.currentJobId) || {};
     const jobPoles = (store.collectedPoles || []).filter(
@@ -2099,9 +2098,8 @@ function AgencyTemplatesPanel() {
   React.useEffect(() => {
     (async () => {
       try {
-        const { getTemplatesForEnvironment } = await import(
-          "../utils/permitTemplates"
-        );
+        const { getTemplatesForEnvironment } =
+          await import("../utils/permitTemplates");
         const list = getTemplatesForEnvironment(store.spanEnvironment);
         setItems(list || []);
       } catch (e) {
@@ -2340,9 +2338,8 @@ function FormAutofillPanel() {
         return;
       }
       const buf = new Uint8Array(await basePdf.arrayBuffer());
-      const { getPdfMeta, fillPdfAuto } = await import(
-        "../utils/pdfFormFiller"
-      );
+      const { getPdfMeta, fillPdfAuto } =
+        await import("../utils/pdfFormFiller");
       const meta = await getPdfMeta(buf);
       const pretty = `${meta.pages} page(s), first ${Math.round(meta.firstPage.width)}x${Math.round(meta.firstPage.height)}`;
       setAutoPreview(
@@ -4233,9 +4230,8 @@ function FieldCollection({ openHelp, showBottomActions = true }) {
 
   // Geospatial exports: GeoJSON, KML, KMZ
   const exportGeo = async (type) => {
-    const { buildGeoJSON, exportGeoJSON, exportKML, exportKMZ } = await import(
-      "../utils/geodata"
-    );
+    const { buildGeoJSON, exportGeoJSON, exportKML, exportKMZ } =
+      await import("../utils/geodata");
     const job =
       (store.jobs || []).find((j) => j.id === store.currentJobId) || {};
     // Prefer collected poles scoped to current job; augment with imported poles for span endpoints
