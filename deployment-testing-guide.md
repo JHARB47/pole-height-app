@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD001 MD026 MD032 -->
 # Deployment Testing & Verification
 
 ## 1. Pre-Deployment Checklist

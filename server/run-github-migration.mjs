@@ -51,10 +51,11 @@ try {
   await pool.end();
   process.exit(0);
 } catch (error) {
+  const message = error instanceof Error ? error.message : String(error);
   console.error('❌ Migration failed!\n');
-  console.error('Error:', error.message);
+  console.error('Error:', message);
   
-  if (error.message.includes('already exists')) {
+  if (message.includes('already exists')) {
     console.log('\n✅ Column already exists - migration previously applied');
     process.exit(0);
   }

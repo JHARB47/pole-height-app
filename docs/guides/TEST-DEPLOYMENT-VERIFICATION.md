@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD032 MD031 -->
 # Test & Deployment Verification Checklist
 
 Use this checklist to verify the application before and after deployment.

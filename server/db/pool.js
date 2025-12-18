@@ -3,6 +3,7 @@ import { newDb } from 'pg-mem';
 import { ENV } from '../config/env.js';
 import { log } from '../utils/logger.js';
 
+/** @type {Pool | undefined} */
 let pool;
 let isPgMem = false;
 
@@ -17,6 +18,7 @@ export function getPool() {
       const db = newDb({ autoCreateForeignKeyIndices: true });
       db.public.registerFunction({
         name: 'current_database',
+        // @ts-expect-error pg-mem accepts string return type declarations
         returns: 'text',
         implementation: () => 'pgmem',
       });

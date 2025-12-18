@@ -189,6 +189,11 @@ export async function handler(event) {
 
     // Prepare comment content
     const template = process.env.GITHUB_WEBHOOK_COMMENT_TEMPLATE;
+    const previewLine =
+      customPreviewUrl || defaultPreviewUrl
+        ? `\n\n🔗 Preview (guessed): ${customPreviewUrl || defaultPreviewUrl}`
+        : "";
+
     const commentBody = template
       ? template
           .replaceAll("{action}", action)
@@ -199,10 +204,7 @@ export async function handler(event) {
             "{previewUrl}",
             String(customPreviewUrl || defaultPreviewUrl || ""),
           )
-      : `🔔 Webhook: ${action} for PR #${prNumber} (${headRef} → ${baseRef}).` +
-        (defaultPreviewUrl || customPreviewUrl
-          ? `\n\n🔗 Preview (guessed): ${customPreviewUrl || defaultPreviewUrl}`
-          : "");
+      : `🔔 Webhook: ${action} for PR #${prNumber} (${headRef} → ${baseRef}).${previewLine}`;
 
     // Try GitHub App authentication via Octokit first (no PAT required)
     let commentResult = null;
@@ -436,8 +438,7 @@ export async function handler(event) {
     const action = payload.action; // created, rerequested, requested_action, completed
     const isRetry =
       action === "requested_action" &&
-      payload.requested_action &&
-      payload.requested_action.identifier === "retry";
+      payload.requested_action?.identifier === "retry";
     const isRerequested = action === "rerequested";
     if (isRetry || isRerequested) {
       const appId = process.env.GITHUB_APP_ID;

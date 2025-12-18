@@ -5,8 +5,35 @@ import { dirname, join } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+/**
+ * @typedef {{
+ *  nodeEnv: string;
+ *  port: number;
+ *  databaseUrl?: string;
+ *  databaseSchema: string;
+ *  jwtSecret: string;
+ *  refreshTokenSecret: string;
+ *  jwtExpiresIn: string;
+ *  refreshTokenTtl: string;
+ *  azureTenantId: string;
+ *  azureClientId: string;
+ *  azureClientSecret: string;
+ *  azureRedirectUri: string;
+ *  allowedOrigins: string[];
+ *  logLevel: string;
+ *  serviceName: string;
+ *  enableSsoStub: boolean;
+ * }} EnvShape
+ */
+
+/** @type {EnvShape | undefined} */
 let cached;
 
+/**
+ * @param {string | undefined} value
+ * @param {string} name
+ * @param {{ required?: boolean; fallback?: any }} [options]
+ */
 function ensure(value, name, { required = false, fallback } = {}) {
   if ((value == null || value === '') && required) {
     if (fallback !== undefined) return fallback;

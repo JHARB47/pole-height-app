@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import pgMigrate from 'node-pg-migrate';
+import { run as pgMigrate } from 'node-pg-migrate';
 import { ENV } from '../config/env.js';
 import { log } from '../utils/logger.js';
 
@@ -22,9 +22,12 @@ export async function runMigrations({ direction = 'up', databaseUrl = ENV.databa
     createSchema: true,
     logFileName: undefined,
     logger: {
-      info: (msg) => log.debug(msg),
-      warn: (msg) => log.warn(msg),
-      error: (msg) => log.error(msg),
+      /** @param {unknown} msg */
+      info: (msg) => log.debug(String(msg)),
+      /** @param {unknown} msg */
+      warn: (msg) => log.warn(String(msg)),
+      /** @param {unknown} msg */
+      error: (msg) => log.error(String(msg)),
     },
   });
 }

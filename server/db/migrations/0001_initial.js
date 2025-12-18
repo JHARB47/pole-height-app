@@ -1,6 +1,9 @@
  
 exports.shorthands = undefined;
 
+/**
+ * @param {import('node-pg-migrate').MigrationBuilder} pgm
+ */
 exports.up = (pgm) => {
   pgm.createExtension('pgcrypto', { ifNotExists: true });
 
@@ -114,6 +117,9 @@ exports.up = (pgm) => {
   pgm.createIndex('sessions', ['user_id', 'expires_at']);
 };
 
+/**
+ * @param {import('node-pg-migrate').MigrationBuilder} pgm
+ */
 exports.down = (pgm) => {
   pgm.dropTable('sessions');
   pgm.dropTable('audit_events');

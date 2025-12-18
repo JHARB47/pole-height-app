@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Lighthouse CI configuration for PolePlan Pro
  * Focuses on PWA compliance and stores reports locally.

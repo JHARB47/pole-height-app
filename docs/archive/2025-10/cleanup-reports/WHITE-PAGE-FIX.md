@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD013 MD026 MD031 MD032 -->
 # White Page Fix - Root Routing Issue
 
 **Date:** October 2, 2025  

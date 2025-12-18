@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD026 MD032 -->
 # Netlify Analytics & Performance Setup
 
 ## 1. Enable Netlify Analytics

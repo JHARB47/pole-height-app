@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD026 MD032 -->
 # UptimeRobot Monitoring Setup
 
 ## 1. Create UptimeRobot Account

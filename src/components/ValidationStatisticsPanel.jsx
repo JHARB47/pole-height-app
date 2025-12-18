@@ -100,7 +100,7 @@ export function ValidationStatisticsPanel({ poles, className = "" }) {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4">
         {/* Valid Count */}
         <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
-          <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
+          <CheckCircle className="w-6 h-6 text-green-600 shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
             <p className="text-2xl font-bold text-green-900">{stats.valid}</p>
             <p className="text-sm text-green-700">Valid</p>
@@ -112,7 +112,7 @@ export function ValidationStatisticsPanel({ poles, className = "" }) {
 
         {/* Warnings Count */}
         <div className="flex items-start gap-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-          <AlertTriangle className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" />
+          <AlertTriangle className="w-6 h-6 text-yellow-600 shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
             <p className="text-2xl font-bold text-yellow-900">
               {stats.withWarnings}
@@ -124,7 +124,7 @@ export function ValidationStatisticsPanel({ poles, className = "" }) {
 
         {/* Errors Count */}
         <div className="flex items-start gap-3 p-3 bg-red-50 rounded-lg border border-red-200">
-          <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+          <AlertCircle className="w-6 h-6 text-red-600 shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
             <p className="text-2xl font-bold text-red-900">
               {stats.withErrors}

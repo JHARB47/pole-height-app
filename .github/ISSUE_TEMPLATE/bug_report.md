@@ -7,6 +7,8 @@ assignees: ''
 
 ---
 
+<!-- markdownlint-disable MD032 MD007 -->
+
 **Describe the bug**
 A clear and concise description of what the bug is.
 

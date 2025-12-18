@@ -22,8 +22,8 @@ declare module 'exifr' {
     };
   }
 
-  export default function parse(file: File | Blob, options?: { gps?: boolean }): Promise<ExifData>;
-  export const parse: (file: Blob | File, options?: { gps?: boolean }) => Promise<ExifData>;
+  export function parse(file: File | Blob, options?: { gps?: boolean }): Promise<ExifData>;
+  export default parse;
 }
 
 declare module 'zustand/react/shallow' {

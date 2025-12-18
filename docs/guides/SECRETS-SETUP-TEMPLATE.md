@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD026 MD032 MD031 -->
 # Secrets Setup Template
 
 > **⚠️ IMPORTANT**: This is a TEMPLATE file. Never commit actual secret values to the repository!

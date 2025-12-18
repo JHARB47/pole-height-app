@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD026 MD032 MD031 MD029 -->
 # Database Connection Guide - Neon + Netlify
 
 ## 🎯 Quick Answer

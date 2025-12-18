@@ -1,8 +1,11 @@
 /* eslint-env node */
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { Octokit } from "octokit";
 import { createAppAuth } from "@octokit/auth-app";
 
+/**
+ * @param {import('@netlify/functions').HandlerEvent} event
+ */
 function verifyNetlifySecret(event) {
   const secret = process.env.NETLIFY_DEPLOY_WEBHOOK_SECRET;
   if (!secret) return true; // if not set, accept (optional hardening)
@@ -20,56 +23,40 @@ function verifyNetlifySecret(event) {
   }
 }
 
+/**
+ * @param {import('@netlify/functions').HandlerEvent} event
+ */
 export async function handler(event) {
   const headers = {
     "content-type": "application/json",
     "cache-control": "no-store",
   };
+
+  const respond = (statusCode, body) => ({
+    statusCode,
+    headers,
+    body: JSON.stringify(body),
+  });
+
   if (event.httpMethod !== "POST") {
-    return {
-      statusCode: 405,
-      headers,
-      body: JSON.stringify({ ok: false, error: "Method not allowed" }),
-    };
+    return respond(405, { ok: false, error: "Method not allowed" });
   }
   if (!verifyNetlifySecret(event)) {
-    return {
-      statusCode: 401,
-      headers,
-      body: JSON.stringify({ ok: false, error: "Invalid signature" }),
-    };
+    return respond(401, { ok: false, error: "Invalid signature" });
   }
 
-  let payload;
-  try {
-    payload = JSON.parse(event.body || "{}");
-  } catch {
-    return {
-      statusCode: 400,
-      headers,
-      body: JSON.stringify({ ok: false, error: "Invalid JSON" }),
-    };
+  const payload = safeParse(event.body || "{}");
+  if (!payload.ok) {
+    return respond(400, { ok: false, error: "Invalid JSON" });
   }
 
-  // Expecting Netlify deploy webhook payload
-  const branch = payload.branch;
-  const commitRef =
-    payload.commit_ref ||
-    payload.commit_ref_sha ||
-    payload.commit_ref_id ||
-    payload.commit_ref; // best-effort
-  const siteUrl =
-    payload.url || payload.deploy_ssl_url || payload.admin_url || null;
-  const repo = payload.build_info && payload.build_info.repo_path; // e.g., owner/repo
-  if (!branch || !commitRef || !repo) {
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({ ok: true, ignored: true }),
-    };
+  const meta = extractPayloadMeta(payload.data);
+  if (!meta) {
+    return respond(200, { ok: true, ignored: true });
   }
 
-  const [owner, name] = repo.split("/");
+  const { branch, commitRef, siteUrl, owner, name } = meta;
+
   const appId = process.env.GITHUB_APP_ID;
   const rawKey = process.env.GITHUB_APP_PRIVATE_KEY;
   const installationId = process.env.GITHUB_APP_INSTALLATION_ID; // Optional override if webhook not available
@@ -81,17 +68,13 @@ export async function handler(event) {
   function normalizePrivateKey(pem) {
     if (!pem) return pem;
     if (pem.includes("BEGIN") && pem.includes("\n"))
-      return pem.replace(/\\n/g, "\n");
+      return pem.replaceAll("\\n", "\n");
     return pem;
   }
 
   const privateKey = normalizePrivateKey(rawKey);
   if (!appId || !privateKey) {
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({ ok: true, skipped: "missing app credentials" }),
-    };
+    return respond(200, { ok: true, skipped: "missing app credentials" });
   }
 
   try {
@@ -115,7 +98,7 @@ export async function handler(event) {
       : null;
 
     const customBase = process.env.PREVIEW_DOMAIN_BASE;
-    const branchSlug = (branch || "").toLowerCase().replace(/[^a-z0-9-]/g, "-");
+    const branchSlug = (branch || "").toLowerCase().replaceAll(/[^a-z0-9-]/g, "-");
     const customUrl = customBase
       ? `https://${branchSlug}.${customBase}/`
       : null;
@@ -162,19 +145,35 @@ export async function handler(event) {
       });
     }
 
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({ ok: true, completed: true, url: siteUrl }),
-    };
+    return respond(200, { ok: true, completed: true, url: siteUrl });
   } catch (e) {
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({
-        ok: false,
-        error: e instanceof Error ? e.message : String(e),
-      }),
-    };
+    return respond(200, {
+      ok: false,
+      error: e instanceof Error ? e.message : String(e),
+    });
   }
+}
+
+function safeParse(body) {
+  try {
+    return { ok: true, data: JSON.parse(body) };
+  } catch {
+    return { ok: false };
+  }
+}
+
+function extractPayloadMeta(payload) {
+  const branch = payload.branch;
+  const commitRef =
+    payload.commit_ref ||
+    payload.commit_ref_sha ||
+    payload.commit_ref_id ||
+    payload.commit_ref;
+  const siteUrl =
+    payload.url || payload.deploy_ssl_url || payload.admin_url || null;
+  const repoPath = payload.build_info && payload.build_info.repo_path;
+  if (!branch || !commitRef || !repoPath) return null;
+  const [owner, name] = repoPath.split("/");
+  if (!owner || !name) return null;
+  return { branch, commitRef, siteUrl, owner, name };
 }

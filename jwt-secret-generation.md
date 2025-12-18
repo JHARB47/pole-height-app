@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD026 -->
 # Generate secure JWT secrets (64 bytes each)
 # Run these commands to generate secure random hex strings:
 

@@ -5,6 +5,9 @@ export default defineStackbitConfig({
   ssgName: 'custom',
   nodeVersion: '22.20.0',
   contentSources: [
+    /**
+     * Stackbit typing is looser in practice; cast to avoid TS complaints while keeping structure explicit.
+     */
     {
       type: 'git',
       rootPath: 'content',
@@ -102,6 +105,6 @@ export default defineStackbitConfig({
           ]
         }
       ]
-    }
+    } as any
   ]
 });

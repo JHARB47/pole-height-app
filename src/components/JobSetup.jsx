@@ -473,6 +473,7 @@ export default function JobSetup() {
                 className="border rounded px-2 py-1"
                 value={overrideCommToPowerIn}
                 onChange={(e) => setOverrideCommToPowerIn(e.target.value)}
+                aria-label="Override communication to power separation in inches"
                 placeholder="blank = use profile"
               />
             </label>
@@ -485,6 +486,7 @@ export default function JobSetup() {
                 className="border rounded px-2 py-1"
                 value={overrideMinTopSpaceFt}
                 onChange={(e) => setOverrideMinTopSpaceFt(e.target.value)}
+                aria-label="Override minimum top space in feet"
                 placeholder="blank = use profile"
               />
             </label>
@@ -497,6 +499,7 @@ export default function JobSetup() {
                 className="border rounded px-2 py-1"
                 value={overrideRoadClearanceFt}
                 onChange={(e) => setOverrideRoadClearanceFt(e.target.value)}
+                aria-label="Override road clearance in feet"
                 placeholder="blank = use profile"
               />
             </label>
@@ -509,6 +512,7 @@ export default function JobSetup() {
                 className="border rounded px-2 py-1"
                 value={overrideEnvRoadFt}
                 onChange={(e) => setOverrideEnvRoadFt(e.target.value)}
+                aria-label="Override road midspan target in feet"
                 placeholder="blank = use profile"
               />
             </label>
@@ -521,6 +525,7 @@ export default function JobSetup() {
                 className="border rounded px-2 py-1"
                 value={overrideEnvResidentialFt}
                 onChange={(e) => setOverrideEnvResidentialFt(e.target.value)}
+                aria-label="Override residential midspan target in feet"
                 placeholder="blank = use profile"
               />
             </label>
@@ -533,6 +538,7 @@ export default function JobSetup() {
                 className="border rounded px-2 py-1"
                 value={overrideEnvPedestrianFt}
                 onChange={(e) => setOverrideEnvPedestrianFt(e.target.value)}
+                aria-label="Override pedestrian midspan target in feet"
                 placeholder="blank = use profile"
               />
             </label>
@@ -545,6 +551,7 @@ export default function JobSetup() {
                 className="border rounded px-2 py-1"
                 value={overrideMinCommAttachFt}
                 onChange={(e) => setOverrideMinCommAttachFt(e.target.value)}
+                aria-label="Override minimum communications attachment height in feet"
                 placeholder="blank = use profile"
               />
               <span className="text-xs text-gray-500">

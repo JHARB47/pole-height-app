@@ -24,8 +24,9 @@ try {
   
   process.exit(0);
 } catch (error) {
+  const message = error instanceof Error ? error.message : String(error);
   console.error('❌ CONNECTION FAILED!\n');
-  console.error('Error:', error.message);
+  console.error('Error:', message);
   console.error('\n📝 Troubleshooting:');
   console.error('   1. Check DATABASE_URL in server/.env');
   console.error('   2. Ensure SSL mode is enabled (?sslmode=require)');

@@ -46,7 +46,7 @@ class OSPErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-[200px] flex items-center justify-center p-6 bg-red-50 border border-red-200 rounded-lg">
+        <div className="min-h-50 flex items-center justify-center p-6 bg-red-50 border border-red-200 rounded-lg">
           <div className="text-center max-w-md">
             <div className="mb-4">
               <div className="text-red-600 text-4xl mb-2">⚠️</div>

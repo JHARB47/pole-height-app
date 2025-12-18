@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD026 MD032 MD031 -->
 # PolePlan Pro: Complete Netlify Visual Editor Setup Guide
 
 ## 🎉 Deployment Complete!

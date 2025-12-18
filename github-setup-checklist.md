@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD032 -->
 # GitHub Repository Setup Checklist
 
 ## 1. Repository Settings

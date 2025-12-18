@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD026 MD032 -->
 # Sentry Monitoring Setup
 
 ## 1. Create Sentry Account & Projects

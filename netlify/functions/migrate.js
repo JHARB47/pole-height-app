@@ -17,7 +17,7 @@ export default async (req, _context) => {
     // Basic auth check - in production, use proper authentication
     const authHeader =
       req.headers.get("authorization") || req.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!authHeader?.startsWith("Bearer ")) {
       return new Response(
         JSON.stringify({ error: "Unauthorized - missing or invalid token" }),
         {

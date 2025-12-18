@@ -1,4 +1,9 @@
 /* eslint-env node */
+
+/**
+ * @param {import('@netlify/functions').HandlerEvent} _event
+ * @param {import('@netlify/functions').Context} _context
+ */
 export async function handler(_event, _context) {
   const startTime = Date.now();
   const ts = new Date().toISOString();
