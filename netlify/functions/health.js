@@ -1,4 +1,4 @@
-/* eslint-env node */
+import process from "node:process";
 
 /**
  * @param {import('@netlify/functions').HandlerEvent} _event

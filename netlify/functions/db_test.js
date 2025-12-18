@@ -1,4 +1,4 @@
-/* eslint-env node */
+import process from "node:process";
 /**
  * @param {any} _event
  * @param {any} _context

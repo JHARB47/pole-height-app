@@ -1,4 +1,5 @@
-/* eslint-env node */
+import process from "node:process";
+import { Buffer } from "node:buffer";
 import crypto from "crypto";
 import { Octokit } from "octokit";
 import { createAppAuth } from "@octokit/auth-app";
