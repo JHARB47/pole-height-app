@@ -16,8 +16,8 @@
     width: auto;
     height: auto;
     padding: 8px 12px;
-    background: #111827;
-    color: #fff;
+    background: var(--text-strong);
+    color: var(--surface);
     border-radius: 6px;
     z-index: 10000;
   }
@@ -32,16 +32,22 @@
     gap: 12px;
     align-items: center;
     padding: 8px 12px;
-    background: rgb(255 255 255 / 80%);
+    background: var(--surface);
     backdrop-filter: saturate(180%) blur(6px);
     z-index: 9999;
+  }
+
+  @supports (color: color-mix(in srgb, white, black)) {
+    .top-nav {
+      background: color-mix(in srgb, var(--surface) 86%, transparent);
+    }
   }
 
   .top-nav .brand {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #0f172a;
+    color: var(--text-strong);
     text-decoration: none;
     font-weight: 700;
   }
@@ -78,6 +84,11 @@
       color 150ms ease;
   }
 
+  .theme-toggle:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--ring);
+  }
+
   .theme-toggle:hover {
     background: var(--surface-muted);
     border-color: var(--border-strong);
@@ -94,14 +105,15 @@
   }
 
   .top-nav a {
-    color: #0f172a;
+    color: var(--text-strong);
     text-decoration: none;
     font-weight: 600;
   }
 
-  /* Body offset for fixed nav */
-  body {
-    padding-top: 44px;
+  .top-nav a:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--ring);
+    border-radius: 6px;
   }
 
   /* Preview banner (non-blocking) */
@@ -115,21 +127,26 @@
     justify-content: space-between;
     gap: 12px;
     padding: 8px 12px;
-    background: #fff7ed;
-    color: #7c2d12;
-    border-bottom: 1px solid #fed7aa;
-    box-shadow: 0 1px 2px rgb(0 0 0 / 5%);
+    background: var(--surface);
+    color: var(--text-strong);
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow-soft);
     z-index: 9998;
   }
 
   .preview-banner-dismiss {
     appearance: none;
-    border: 1px solid #fdba74;
-    background: #fff;
-    color: #7c2d12;
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: inherit;
     border-radius: 6px;
     padding: 4px 8px;
     cursor: pointer;
+  }
+
+  .preview-banner-dismiss:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--ring);
   }
 
   @media (width <= 640px) {

@@ -136,6 +136,8 @@ export default function SiteChrome() {
     return true;
   });
 
+  const mainOffsetPx = previewHost && !hidePreviewBanner ? 44 + 36 : 44;
+
   return (
     <div {...stackbitData(siteObjectId)}>
       <a href="#main-content" className="skip-link">
@@ -201,11 +203,7 @@ export default function SiteChrome() {
           </button>
         </div>
       )}
-      <main
-        id="main-content"
-        role="main"
-        style={{ marginTop: previewHost && !hidePreviewBanner ? 36 : 0 }}
-      >
+      <main id="main-content" role="main" style={{ paddingTop: mainOffsetPx }}>
         <Outlet />
       </main>
     </div>
