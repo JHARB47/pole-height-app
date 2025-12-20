@@ -27,7 +27,7 @@ jobs:
       CUSTOM_DOMAIN: poleplanpro.com
       NETLIFY_SITE_SUBDOMAIN: poleplanpro
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # Lint GitHub Actions workflows (pinned action, warn-only)
       - name: Workflow lint (actionlint)
@@ -202,7 +202,7 @@ jobs:
     if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
