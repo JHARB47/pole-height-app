@@ -1,4 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import fs from "node:fs";
+import path from "node:path";
+import process from "node:process";
 
 describe("Critical Risk Mitigations", () => {
   let originalLocalStorage;
@@ -108,6 +111,26 @@ describe("Critical Risk Mitigations", () => {
       // Our fix should include helpful error messages
       expect(expectedError).toMatch(/DATABASE_URL/);
       expect(expectedError).toMatch(/required/);
+    });
+  });
+
+  describe("Asset Rewrite Guard", () => {
+    it("should prevent /assets/* from falling through to SPA rewrite", () => {
+      // AI: rationale — prevent cache-poisoning where HTML is served/cached under a JS URL.
+      const configPath = path.join(process.cwd(), "netlify.toml");
+      const config = fs.readFileSync(configPath, "utf8");
+
+      const assetsRuleIndex = config.indexOf('from = "/assets/*"');
+      const spaRuleIndex = config.indexOf('from = "/*"');
+
+      expect(assetsRuleIndex).toBeGreaterThan(-1);
+      expect(spaRuleIndex).toBeGreaterThan(-1);
+      expect(assetsRuleIndex).toBeLessThan(spaRuleIndex);
+
+      // Minimal shape check so a rename or reformat doesn't break this test unnecessarily.
+      expect(config).toMatch(
+        /from = "\/assets\/\*"[\s\S]*?to = "\/assets\/:splat"[\s\S]*?status = 200/,
+      );
     });
   });
 });
