@@ -27,6 +27,9 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --progress=false
 
+      - name: Connectivity self-test (warn-only)
+        run: node scripts/ci/connectivity.mjs
+
       - name: Verify build
         run: npm run verify
         env:

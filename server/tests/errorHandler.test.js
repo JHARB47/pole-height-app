@@ -16,11 +16,9 @@ function makeRes() {
 describe('errorHandler', () => {
   it('handles HttpError preserving status & message', () => {
     const err = new ValidationError('Bad input', { field: 'password' });
-    console.log('err.details:', err.details);
     const req = { originalUrl: '/api/test', method: 'GET', id: 'req1' };
     const res = makeRes();
     errorHandler(err, req, res, () => {});
-    console.log('res._json:', res._json);
     expect(res.statusCode).toBe(400);
     expect(res._json.message).toBe('Bad input');
     expect(res._json.status).toBe(400);

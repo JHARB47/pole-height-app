@@ -61,6 +61,9 @@ jobs:
       - name: Audit (full tree, warn only)
         run: npm audit || true
 
+      - name: Connectivity self-test (warn-only)
+        run: node scripts/ci/connectivity.mjs
+
       - name: Run comprehensive verification
         run: npm run verify
           
@@ -184,20 +187,16 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Trigger Netlify build hook
-        if: ${{ secrets.NETLIFY_BUILD_HOOK_URL != '' && secrets.NETLIFY_BUILD_HOOK_URL != null }}
+      - name: Trigger Netlify build hook (optional)
+        env:
+          NETLIFY_BUILD_HOOK_URL: ${{ secrets.NETLIFY_BUILD_HOOK_URL }}
         run: |
+          if [ -z "$NETLIFY_BUILD_HOOK_URL" ]; then
+            echo "::notice::NETLIFY_BUILD_HOOK_URL not configured; skipping deploy step."
+            exit 0
+          fi
+
           curl -sS -X POST "$NETLIFY_BUILD_HOOK_URL"
-        env:
-          NETLIFY_BUILD_HOOK_URL: ${{ secrets.NETLIFY_BUILD_HOOK_URL }}
-      
-      - name: Fail deployment (no hook configured)
-        if: ${{ secrets.NETLIFY_BUILD_HOOK_URL == '' }}
-        run: |
-          echo "::error::NETLIFY_BUILD_HOOK_URL secret not configured. Deployment cannot proceed."
-          exit 1
-        env:
-          NETLIFY_BUILD_HOOK_URL: ${{ secrets.NETLIFY_BUILD_HOOK_URL }}
 
   weekly-hygiene:
     if: github.event_name == 'schedule'
@@ -208,6 +207,12 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: npm
+      - name: Use deterministic install
+        run: npm ci
+
+      - name: Connectivity self-test (warn-only)
+        continue-on-error: true
+        run: npm run check:connectivity
       - name: Run knip (report errors)
         run: |
           npm run knip --if-present || { echo "::warning::knip failed. See logs above for details."; }

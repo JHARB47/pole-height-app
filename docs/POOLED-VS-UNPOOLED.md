@@ -12,7 +12,7 @@ Both connection types are now configured in your application!
 ## 📊 Connection Comparison
 
 | Feature | Pooled (Default) | Unpooled (Direct) |
-|---------|------------------|-------------------|
+| ------- | ---------------- | ----------------- |
 | **Variable** | `DATABASE_URL` | `DATABASE_URL_UNPOOLED` |
 | **Endpoint** | `ep-noisy-sea-aervqc49-pooler` | `ep-noisy-sea-aervqc49` |
 | **Connection Pooling** | ✅ Yes (managed by Neon) | ❌ No (direct connection) |
@@ -25,19 +25,22 @@ Both connection types are now configured in your application!
 
 ## 🔄 Pooled Connection (Default)
 
-### When to Use
+### When to Use (Pooled)
+
 - ✅ **Netlify Functions** - Serverless environment
 - ✅ **API Endpoints** - Quick request/response
 - ✅ **High concurrency** - Many simultaneous requests
 - ✅ **Production workload** - General application traffic
 
-### Configuration
+### Configuration (Pooled)
+
 ```bash
-# In server/.env
-DATABASE_URL=postgresql://neondb_owner:npg_8CZoNbatvBL5@ep-noisy-sea-aervqc49-pooler.c-2.us-east-2.aws.neon.tech/neondb?channel_binding=require&sslmode=require
+# In server/.env (local-only; do not commit)
+DATABASE_URL=postgresql://<user>:<password>@<pooler-host>/<database>?sslmode=require&channel_binding=require
 ```
 
-### Example Usage
+### Example Usage (Pooled)
+
 ```javascript
 // server/db/pool.js automatically uses DATABASE_URL
 import { getPool } from './db/pool.js';
@@ -50,19 +53,22 @@ const result = await pool.query('SELECT * FROM projects');
 
 ## 🔗 Unpooled Connection (Direct)
 
-### When to Use
+### When to Use (Unpooled)
+
 - ✅ **Database migrations** - Schema changes
 - ✅ **Long transactions** - Complex operations
 - ✅ **Batch operations** - Large data imports
 - ✅ **Connection-specific features** - Advisory locks, etc.
 
-### Configuration
+### Configuration (Unpooled)
+
 ```bash
-# In server/.env
-DATABASE_URL_UNPOOLED=postgresql://neondb_owner:npg_8CZoNbatvBL5@ep-noisy-sea-aervqc49.c-2.us-east-2.aws.neon.tech/neondb?channel_binding=require&sslmode=require
+# In server/.env (local-only; do not commit)
+DATABASE_URL_UNPOOLED=postgresql://<user>:<password>@<direct-host>/<database>?sslmode=require&channel_binding=require
 ```
 
-### Example Usage
+### Example Usage (Unpooled)
+
 ```javascript
 // For migrations
 import { Pool } from 'pg';
@@ -80,11 +86,13 @@ await pool.query('ALTER TABLE projects ADD COLUMN ...');
 ## 🧪 Testing Both Connections
 
 ### Test Pooled Connection
+
 ```bash
 cd server && node test-connection.mjs
 ```
 
 **Expected Output:**
+
 ```
 ✅ DATABASE CONNECTION SUCCESSFUL!
 
@@ -95,11 +103,13 @@ cd server && node test-connection.mjs
 ```
 
 ### Test Unpooled Connection
+
 ```bash
 node scripts/db/check-status.mjs
 ```
 
 **Expected Output:**
+
 ```
 🔍 Database Connection Status
 
@@ -116,6 +126,7 @@ PostgreSQL: PostgreSQL 17.5
 ## 🔧 Configuration Files Updated
 
 ### netlify.toml
+
 ```toml
 [build.environment]
   DATABASE_URL = "${NETLIFY_DATABASE_URL}"
@@ -129,6 +140,7 @@ PostgreSQL: PostgreSQL 17.5
 ```
 
 ### server/.env
+
 ```bash
 # Pooled connection (default for API)
 DATABASE_URL=postgresql://...pooler.../neondb?...
@@ -163,6 +175,7 @@ npm run db:schema
 ### ✅ Do's
 
 1. **Use Pooled for API**
+
    ```javascript
    // In API routes
    import { getPool } from './db/pool.js';
@@ -170,6 +183,7 @@ npm run db:schema
    ```
 
 2. **Use Unpooled for Migrations**
+
    ```javascript
    // In migration scripts
    const pool = new Pool({ 
@@ -178,12 +192,14 @@ npm run db:schema
    ```
 
 3. **Close Connections**
+
    ```javascript
    // Always close when done
    await pool.end();
    ```
 
 4. **Handle Errors**
+
    ```javascript
    try {
      await pool.query('...');
@@ -203,13 +219,15 @@ npm run db:schema
 
 ## 🔒 Security Notes
 
-### Both Connections Use:
+### Both Connections Use
+
 - ✅ SSL/TLS encryption (`sslmode=require`)
 - ✅ Channel binding (`channel_binding=require`)
 - ✅ Secure credentials (in environment variables)
 - ✅ Same authentication (neondb_owner)
 
-### Differences:
+### Differences
+
 - **Pooled**: Connection managed by Neon's pooler
 - **Unpooled**: Direct connection to database server
 
@@ -218,6 +236,7 @@ npm run db:schema
 ## 📊 Performance Characteristics
 
 ### Pooled Connection
+
 ```
 Client → Neon Pooler → Database
          ↑
@@ -227,11 +246,13 @@ Client → Neon Pooler → Database
 ```
 
 **Metrics:**
+
 - Connection time: ~50ms (reused)
 - Query latency: +5-10ms (pooler overhead)
 - Max connections: High (pooling)
 
 ### Unpooled Connection
+
 ```
 Client → Database
     ↑
@@ -241,6 +262,7 @@ Lower concurrency
 ```
 
 **Metrics:**
+
 - Connection time: ~100ms (new)
 - Query latency: Lower (direct)
 - Max connections: Limited
@@ -250,6 +272,7 @@ Lower concurrency
 ## 🧪 Testing Commands
 
 ### Connection Tests
+
 ```bash
 # Test pooled (default)
 cd server && node test-connection.mjs
@@ -262,6 +285,7 @@ npm run db:test-all
 ```
 
 ### Migration Tests
+
 ```bash
 # Check migration status (uses unpooled)
 npm run db:status
@@ -274,6 +298,7 @@ npm run db:reset
 ```
 
 ### API Tests
+
 ```bash
 # Start server (uses pooled)
 npm run dev:netlify
@@ -286,17 +311,20 @@ curl http://localhost:8888/api/projects
 
 ## 🚀 Production Deployment
 
-### Netlify Automatically Provides:
+### Netlify Automatically Provides
+
 1. `NETLIFY_DATABASE_URL` (pooled)
 2. `NETLIFY_DATABASE_URL_UNPOOLED` (direct)
 
-### netlify.toml Maps Them:
+### netlify.toml Maps Them
+
 ```toml
 DATABASE_URL = "${NETLIFY_DATABASE_URL}"
 DATABASE_URL_UNPOOLED = "${NETLIFY_DATABASE_URL_UNPOOLED}"
 ```
 
-### Your App Reads:
+### Your App Reads
+
 ```javascript
 process.env.DATABASE_URL          // Pooled (API)
 process.env.DATABASE_URL_UNPOOLED // Unpooled (migrations)
@@ -320,6 +348,7 @@ process.env.DATABASE_URL_UNPOOLED // Unpooled (migrations)
 ### Pooled Connection Issues
 
 **Problem**: Timeout errors
+
 ```
 Solution: Connection pool might be full
 → Use unpooled for long operations
@@ -327,6 +356,7 @@ Solution: Connection pool might be full
 ```
 
 **Problem**: "Too many connections"
+
 ```
 Solution: Neon pooler reached limit
 → Increase pool size in Neon dashboard
@@ -336,6 +366,7 @@ Solution: Neon pooler reached limit
 ### Unpooled Connection Issues
 
 **Problem**: Slower responses
+
 ```
 Solution: This is expected (no pooling)
 → Use pooled for API requests
@@ -343,6 +374,7 @@ Solution: This is expected (no pooling)
 ```
 
 **Problem**: Connection limit reached
+
 ```
 Solution: Direct connections limited
 → Close connections promptly

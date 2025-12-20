@@ -44,11 +44,19 @@ function ensure(value, name, { required = false, fallback } = {}) {
 
 export function loadEnv(overrides = {}) {
   if (!cached) {
+    const isTest = process.env.NODE_ENV === 'test';
     const dotenvEnabled = process.env.NODE_ENV !== 'production' && process.env.DISABLE_DOTENV !== 'true';
     if (dotenvEnabled) {
-      loadEnvFile({ path: process.env.ENV_FILE || join(__dirname, '../.env'), override: false });
+      loadEnvFile({
+        path: process.env.ENV_FILE || join(__dirname, '../.env'),
+        override: false,
+        quiet:
+          process.env.DOTENV_CONFIG_QUIET === 'true' ||
+          process.env.DOTENV_QUIET === 'true' ||
+          process.env.CI === 'true' ||
+          isTest,
+      });
     }
-    const isTest = process.env.NODE_ENV === 'test';
     const base = {
       nodeEnv: process.env.NODE_ENV || 'development',
       port: Number(process.env.API_PORT || process.env.PORT || 4001),

@@ -32,6 +32,9 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --progress=false
 
+      - name: Connectivity self-test (warn-only)
+        run: node scripts/ci/connectivity.mjs
+
       - name: Lint
         run: npm run lint
 
@@ -56,12 +59,12 @@ jobs:
     steps:
       - name: Trigger Netlify staging hook
         env:
-          NETLIFY_STAGING_BUILD_HOOK_URL: ${{ secrets.NETLIFY_STAGING_BUILD_HOOK_URL }}
+          NETLIFY_BUILD_HOOK_URL: ${{ secrets.NETLIFY_BUILD_HOOK_URL }}
         run: |
-          if [ -z "$NETLIFY_STAGING_BUILD_HOOK_URL" ]; then
-            echo "NETLIFY_STAGING_BUILD_HOOK_URL not configured; skipping staging deploy."
+          if [ -z "$NETLIFY_BUILD_HOOK_URL" ]; then
+            echo "NETLIFY_BUILD_HOOK_URL not configured; skipping preview deploy."
             exit 0
           fi
 
-          echo "Triggering Netlify staging build..."
-          curl -sS -X POST -H "Content-Type: application/json" -d '{}' "$NETLIFY_STAGING_BUILD_HOOK_URL"
+          echo "Triggering Netlify preview build..."
+          curl -sS -X POST -H "Content-Type: application/json" -d '{}' "$NETLIFY_BUILD_HOOK_URL"

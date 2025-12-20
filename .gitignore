@@ -26,6 +26,7 @@ coverage/
 *-secrets.md
 NETLIFY-ADD-THESE.txt
 GITHUB-ADD-THESE.txt
+server/JWT_SECRET=*
 
 ## Netlify
 .netlify/
@@ -33,6 +34,7 @@ GITHUB-ADD-THESE.txt
 ## Editor & OS
 .DS_Store
 *.swp
+*.bak
 .vscode/node_modules/
 .vscode/*
 !.vscode/extensions.json

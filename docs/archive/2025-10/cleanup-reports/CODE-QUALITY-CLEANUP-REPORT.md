@@ -1,4 +1,4 @@
-<!-- markdownlint-disable MD013 MD026 MD031 MD032 MD050 -->
+<!-- markdownlint-disable MD013 MD026 MD031 MD032 MD050 MD060 -->
 # Code Quality & Dependency Cleanup Report
 
 **Date**: October 2, 2025

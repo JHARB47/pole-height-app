@@ -1,8 +1,8 @@
 import process from "node:process";
 
 /**
- * @param {import('@netlify/functions').HandlerEvent} _event
- * @param {import('@netlify/functions').Context} _context
+ * @param {any} _event
+ * @param {any} _context
  */
 export async function handler(_event, _context) {
   const startTime = Date.now();

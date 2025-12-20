@@ -7,6 +7,9 @@ import { log } from '../utils/logger.js';
 let pool;
 let isPgMem = false;
 
+/**
+ * @returns {Pool}
+ */
 export function getPool() {
   if (!pool) {
     const connectionString = ENV.databaseUrl;
@@ -28,6 +31,9 @@ export function getPool() {
     } else {
       pool = new Pool({ connectionString });
     }
+  }
+  if (!pool) {
+    throw new Error('Failed to initialize database pool');
   }
   return pool;
 }

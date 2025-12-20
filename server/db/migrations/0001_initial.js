@@ -53,8 +53,8 @@ exports.up = (pgm) => {
   pgm.createIndex('projects', ['organization_id', 'name']);
 
   pgm.createTable('project_members', {
-    project_id: { type: 'uuid', notNull: true, references: 'projects', onDelete: 'cascade' },
-    user_id: { type: 'uuid', notNull: true, references: 'users', onDelete: 'cascade' },
+    project_id: { type: 'uuid', notNull: true, references: 'projects', onDelete: 'CASCADE' },
+    user_id: { type: 'uuid', notNull: true, references: 'users', onDelete: 'CASCADE' },
     role: { type: 'user_role', notNull: true },
     added_at: { type: 'timestamptz', notNull: true, default: pgm.func('now()') },
   });
@@ -62,7 +62,7 @@ exports.up = (pgm) => {
 
   pgm.createTable('pole_sets', {
     id: { type: 'uuid', primaryKey: true, default: pgm.func('gen_random_uuid()') },
-    project_id: { type: 'uuid', notNull: true, references: 'projects', onDelete: 'cascade' },
+    project_id: { type: 'uuid', notNull: true, references: 'projects', onDelete: 'CASCADE' },
     version: { type: 'int', notNull: true },
     data: { type: 'jsonb', notNull: true },
     checksum: { type: 'text' },
@@ -74,8 +74,8 @@ exports.up = (pgm) => {
   pgm.createType('comment_entity', ['project', 'pole', 'span']);
   pgm.createTable('comments', {
     id: { type: 'uuid', primaryKey: true, default: pgm.func('gen_random_uuid()') },
-    project_id: { type: 'uuid', notNull: true, references: 'projects', onDelete: 'cascade' },
-    author_id: { type: 'uuid', notNull: true, references: 'users', onDelete: 'cascade' },
+    project_id: { type: 'uuid', notNull: true, references: 'projects', onDelete: 'CASCADE' },
+    author_id: { type: 'uuid', notNull: true, references: 'users', onDelete: 'CASCADE' },
     entity_type: { type: 'comment_entity', notNull: true, default: 'project' },
     entity_id: { type: 'text' },
     body: { type: 'text', notNull: true },
@@ -85,7 +85,7 @@ exports.up = (pgm) => {
 
   pgm.createTable('api_keys', {
     id: { type: 'uuid', primaryKey: true, default: pgm.func('gen_random_uuid()') },
-    organization_id: { type: 'uuid', notNull: true, references: 'organizations', onDelete: 'cascade' },
+    organization_id: { type: 'uuid', notNull: true, references: 'organizations', onDelete: 'CASCADE' },
     name: { type: 'text', notNull: true },
     hashed_key: { type: 'text', notNull: true },
     scopes: { type: 'text[]', notNull: true, default: pgm.func('ARRAY[]::text[]') },
@@ -109,7 +109,7 @@ exports.up = (pgm) => {
 
   pgm.createTable('sessions', {
     id: { type: 'uuid', primaryKey: true, default: pgm.func('gen_random_uuid()') },
-    user_id: { type: 'uuid', notNull: true, references: 'users', onDelete: 'cascade' },
+    user_id: { type: 'uuid', notNull: true, references: 'users', onDelete: 'CASCADE' },
     refresh_token_hash: { type: 'text', notNull: true },
     expires_at: { type: 'timestamptz', notNull: true },
     created_at: { type: 'timestamptz', notNull: true, default: pgm.func('now()') },

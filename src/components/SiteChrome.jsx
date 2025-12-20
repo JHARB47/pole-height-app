@@ -10,16 +10,17 @@ const siteObjectId = stackbitObjectId("content/site.json");
 const THEME_STORAGE_KEY = "ph-theme";
 
 const getSystemTheme = () => {
-  if (typeof window === "undefined") return "light";
-  return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
+  const win = globalThis.window;
+  if (!win) return "light";
+  const mql = win.matchMedia?.("(prefers-color-scheme: dark)");
+  if (!mql) return "light";
+  return mql.matches ? "dark" : "light";
 };
 
 const getInitialTheme = () => {
-  if (typeof window === "undefined") return "system";
+  if (!globalThis.window) return "system";
   try {
-    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    const stored = globalThis.localStorage?.getItem(THEME_STORAGE_KEY);
     if (stored === "light" || stored === "dark" || stored === "system")
       return stored;
   } catch {
@@ -48,8 +49,9 @@ export default function SiteChrome() {
   // Persist banner dismissal for the current session
   useEffect(() => {
     try {
-      const key = `previewBannerDismissed:${typeof window !== "undefined" ? window.location.hostname : ""}`;
-      const dismissed = sessionStorage.getItem(key);
+      const hostname = globalThis.window?.location?.hostname ?? "";
+      const key = `previewBannerDismissed:${hostname}`;
+      const dismissed = globalThis.sessionStorage?.getItem(key);
       if (dismissed === "1") setHidePreviewBanner(true);
     } catch {
       /* no-op: sessionStorage may be unavailable */
@@ -59,8 +61,9 @@ export default function SiteChrome() {
   function dismissPreviewBanner() {
     setHidePreviewBanner(true);
     try {
-      const key = `previewBannerDismissed:${typeof window !== "undefined" ? window.location.hostname : ""}`;
-      sessionStorage.setItem(key, "1");
+      const hostname = globalThis.window?.location?.hostname ?? "";
+      const key = `previewBannerDismissed:${hostname}`;
+      globalThis.sessionStorage?.setItem(key, "1");
     } catch {
       /* ignore */
     }
@@ -80,7 +83,7 @@ export default function SiteChrome() {
       }
       setResolvedTheme(theme);
     } else {
-      root.removeAttribute("data-theme");
+      delete root.dataset.theme;
       try {
         localStorage.setItem(THEME_STORAGE_KEY, "system");
       } catch {
@@ -92,16 +95,28 @@ export default function SiteChrome() {
 
   // Keep resolved theme in sync with system changes when in system mode
   useEffect(() => {
-    if (typeof window === "undefined") return undefined;
-    const mql = window.matchMedia("(prefers-color-scheme: dark)");
+    const win = globalThis.window;
+    if (!win) return undefined;
+    const mql = win.matchMedia?.("(prefers-color-scheme: dark)");
+    if (!mql) return undefined;
     const handler = () => {
       if (theme === "system") {
         setResolvedTheme(mql.matches ? "dark" : "light");
       }
     };
-    mql.addEventListener("change", handler);
+
+    // Safari < 14 uses addListener/removeListener.
+    if (typeof mql.addEventListener === "function") {
+      mql.addEventListener("change", handler);
+      handler();
+      return () => mql.removeEventListener("change", handler);
+    }
+
+    // AI: rationale — avoid deprecated MediaQueryList typings while keeping legacy support
+    const legacyMql = /** @type {any} */ (mql);
+    legacyMql.addListener(handler);
     handler();
-    return () => mql.removeEventListener("change", handler);
+    return () => legacyMql.removeListener(handler);
   }, [theme]);
 
   const cycleTheme = () => {
@@ -118,14 +133,10 @@ export default function SiteChrome() {
     return theme === "dark" ? "Dark" : "Light";
   }, [theme, resolvedTheme]);
 
-  const themeIcon =
-    theme === "system"
-      ? resolvedTheme === "dark"
-        ? "🌙"
-        : "☀️"
-      : theme === "dark"
-        ? "🌙"
-        : "☀️";
+  const themeIcon = (() => {
+    if (theme === "system") return resolvedTheme === "dark" ? "🌙" : "☀️";
+    return theme === "dark" ? "🌙" : "☀️";
+  })();
   const filteredNav = nav.filter((item) => {
     // If we ever add auth/login routes to content-driven nav, gate them here
     if (

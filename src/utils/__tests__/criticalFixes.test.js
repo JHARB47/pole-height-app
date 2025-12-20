@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { execSync } from "node:child_process";
 
 describe("Critical Risk Mitigations", () => {
   let originalLocalStorage;
@@ -131,6 +132,87 @@ describe("Critical Risk Mitigations", () => {
       expect(config).toMatch(
         /from = "\/assets\/\*"[\s\S]*?to = "\/assets\/:splat"[\s\S]*?status = 200/,
       );
+    });
+  });
+
+  describe("Service Worker Asset Guard", () => {
+    it("should bypass cache for /assets/* requests", () => {
+      // AI: rationale — ensure SW can't accidentally serve cached HTML for asset URLs.
+      const swPath = path.join(process.cwd(), "public", "sw.js");
+      const sw = fs.readFileSync(swPath, "utf8");
+
+      expect(sw).toContain("reqUrl.pathname.startsWith('/assets/')");
+      expect(sw).toMatch(/Never satisfy asset requests from cache/);
+      expect(sw).toMatch(/fetch\(req\)\.catch/);
+    });
+  });
+
+  describe("Headers Caching Guard", () => {
+    it("should keep immutable caching for /assets/* and no-cache for sw.js", () => {
+      // AI: rationale — prevent regressions where HTML gets cached under asset URLs.
+      const headersPath = path.join(process.cwd(), "public", "_headers");
+      const headers = fs.readFileSync(headersPath, "utf8");
+
+      const configPath = path.join(process.cwd(), "netlify.toml");
+      const config = fs.readFileSync(configPath, "utf8");
+
+      // Assets should be long-lived and immutable.
+      expect(headers).toContain("/assets/*");
+      expect(headers).toMatch(
+        /\/assets\/\*[\s\S]*?Cache-Control:\s*public,\s*max-age=31536000,\s*immutable/,
+      );
+
+      // The service worker script must not be cached.
+      expect(headers).toContain("/sw.js");
+      expect(headers).toMatch(
+        /\/sw\.js[\s\S]*?Cache-Control:\s*no-cache,\s*no-store,\s*must-revalidate/,
+      );
+
+      // Base path should be no-store to avoid stale HTML.
+      expect(headers).toMatch(/\/\*[\s\S]*?Cache-Control:\s*no-store/);
+
+      // Ensure we don't end up with two competing sources of truth for headers.
+      expect(config).not.toContain("[[headers]]");
+    });
+  });
+
+  describe("Repo Hygiene Guards", () => {
+    it("should not commit .bak backup files", () => {
+      // AI: rationale — tracked backups create config drift and accidental deploy changes.
+      const tracked = execSync("git ls-files", { encoding: "utf8" })
+        .split("\n")
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      const bakFiles = tracked.filter((p) => p.endsWith(".bak"));
+      expect(bakFiles).toEqual([]);
+    });
+
+    it("should not include stray JWT secret files", () => {
+      // AI: rationale — prevent committing secrets via misnamed env export artifacts.
+      const tracked = execSync("git ls-files", { encoding: "utf8" });
+      expect(tracked).not.toMatch(/\bJWT_SECRET=/);
+    });
+
+    it("should not commit real .env files", () => {
+      // AI: rationale — a common accidental secret leak path.
+      const tracked = execSync("git ls-files", { encoding: "utf8" })
+        .split("\n")
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      const envLike = tracked.filter(
+        (p) =>
+          p === ".env" ||
+          (p.startsWith(".env.") && p !== ".env.example") ||
+          p.endsWith("/.env") ||
+          (p.includes("/.env.") && !p.endsWith("/.env.example")),
+      );
+
+      // `.env.test` is allowed (contains only non-secret test runner knobs).
+      const envLikeDisallowed = envLike.filter((p) => p !== ".env.test");
+
+      expect(envLikeDisallowed).toEqual([]);
     });
   });
 });

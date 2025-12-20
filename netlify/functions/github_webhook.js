@@ -5,6 +5,26 @@ import { Octokit } from "octokit";
 import { createAppAuth } from "@octokit/auth-app";
 
 /**
+ * Case-insensitive header getter (Netlify typically lowercases, but don't rely on it).
+ * @param {any} event
+ * @param {string} name
+ * @returns {string | undefined}
+ */
+function getHeader(event, name) {
+  const headers = event?.headers ?? {};
+  const direct = headers[name];
+  if (typeof direct === "string") return direct;
+  const lower = name.toLowerCase();
+  const byLower = headers[lower];
+  if (typeof byLower === "string") return byLower;
+  // Fallback: scan keys once (defensive)
+  for (const [k, v] of Object.entries(headers)) {
+    if (k && k.toLowerCase() === lower && typeof v === "string") return v;
+  }
+  return undefined;
+}
+
+/**
  * @param {string} secret
  * @param {Buffer} payload
  * @param {string} signature
@@ -12,10 +32,18 @@ import { createAppAuth } from "@octokit/auth-app";
  */
 function verifySignature(secret, payload, signature) {
   if (!secret || !signature) return false;
-  const algo = signature.split("=")[0];
-  const sig = signature.split("=")[1];
+  const eq = signature.indexOf("=");
+  if (eq < 0) return false;
+  const algo = signature.slice(0, eq).trim().toLowerCase();
+  const sig = signature.slice(eq + 1).trim();
   if (!algo || !sig) return false;
-  const hmac = crypto.createHmac(algo, secret); // e.g., sha256
+  // Only accept the algorithms GitHub uses for webhook signatures.
+  if (algo !== "sha256" && algo !== "sha1") return false;
+  // hex-only signature (and limit size to avoid allocating huge buffers)
+  if (sig.length > 2048 || sig.length % 2 !== 0 || !/^[0-9a-f]+$/i.test(sig)) {
+    return false;
+  }
+  const hmac = crypto.createHmac(algo, secret);
   const digest = hmac.update(payload).digest("hex");
   // Constant-time compare
   const a = Buffer.from(sig, "hex");
@@ -41,10 +69,28 @@ function getRawBody(event) {
  * @returns {string}
  */
 function sanitizeBranchName(ref) {
-  // Git refs look like "refs/heads/feature/x"; get last segment
-  const raw = (ref || "").split("/").pop() || "";
-  // Netlify sanitizes to lowercase and replaces invalid chars with '-'
-  return raw.toLowerCase().replace(/[^a-z0-9-]/g, "-");
+  // Git refs look like "refs/heads/feature/x"; keep full branch name
+  const raw = String(ref || "").replace(/^refs\/heads\//, "");
+  // Netlify branch slugs are lowercase with non [a-z0-9-] replaced by '-'
+  // (also collapses path separators into '-')
+  return raw
+    .toLowerCase()
+    .replaceAll(/[^a-z0-9-]/g, "-")
+    .replaceAll(/(^-+|-+$)/g, "")
+    .replaceAll(/-+/g, "-");
+}
+
+/**
+ * Supports both true multiline PEM and env-style "\\n" escaped PEM.
+ * @param {string | undefined} pem
+ * @returns {string | undefined}
+ */
+export function normalizePrivateKey(pem) {
+  if (!pem) return pem;
+  // If the key is stored as a single-line env var, it typically contains literal "\\n".
+  const literalNewline = String.raw`\n`;
+  if (pem.includes(literalNewline)) return pem.replaceAll(literalNewline, "\n");
+  return pem;
 }
 
 /**
@@ -123,9 +169,9 @@ export async function handler(event) {
 
   const secret = process.env.GITHUB_APP_WEBHOOK_SECRET;
   const signature =
-    event.headers["x-hub-signature-256"] || event.headers["x-hub-signature"];
-  const delivery = event.headers["x-github-delivery"];
-  const eventName = event.headers["x-github-event"];
+    getHeader(event, "x-hub-signature-256") || getHeader(event, "x-hub-signature");
+  const delivery = getHeader(event, "x-github-delivery");
+  const eventName = getHeader(event, "x-github-event");
   const rawBuffer = getRawBody(event);
   const payloadRaw = rawBuffer.toString("utf8");
 
@@ -217,15 +263,6 @@ export async function handler(event) {
      * @param {string | undefined} pem
      * @returns {string | undefined}
      */
-    function normalizePrivateKey(pem) {
-      if (!pem) return pem;
-      // Support both true multiline PEM and \n-escaped env variants
-      if (pem.includes("BEGIN") && pem.includes("\n")) {
-        return pem.replace(/\\n/g, "\n");
-      }
-      return pem;
-    }
-
     const privateKey = normalizePrivateKey(rawKey);
     const owner = repo.owner && repo.owner.login;
     const name = repo.name;
@@ -453,9 +490,7 @@ export async function handler(event) {
       const headBranch =
         (checkRun.check_suite && checkRun.check_suite.head_branch) || null;
       const privateKey =
-        rawKey && rawKey.includes("BEGIN") && rawKey.includes("\n")
-          ? rawKey.replace(/\\n/g, "\n")
-          : rawKey;
+        normalizePrivateKey(rawKey);
 
       if (appId && privateKey && installationId && owner && name && headSha) {
         try {
@@ -537,3 +572,6 @@ export async function handler(event) {
     }),
   };
 }
+
+// Exported for unit tests (non-breaking for Netlify runtime)
+export { getHeader, verifySignature, sanitizeBranchName };

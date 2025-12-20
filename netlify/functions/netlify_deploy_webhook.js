@@ -5,27 +5,69 @@ import { Octokit } from "octokit";
 import { createAppAuth } from "@octokit/auth-app";
 
 /**
- * @param {import('@netlify/functions').HandlerEvent} event
+ * Case-insensitive header getter (Netlify typically lowercases, but don't rely on it).
+ * @param {any} event
+ * @param {string} name
  */
-function verifyNetlifySecret(event) {
-  const secret = process.env.NETLIFY_DEPLOY_WEBHOOK_SECRET;
+function getHeader(event, name) {
+  const headers = event?.headers ?? {};
+  const direct = headers[name];
+  if (typeof direct === "string") return direct;
+  const lower = name.toLowerCase();
+  const byLower = headers[lower];
+  if (typeof byLower === "string") return byLower;
+  for (const [k, v] of Object.entries(headers)) {
+    if (k && k.toLowerCase() === lower && typeof v === "string") return v;
+  }
+  return undefined;
+}
+
+/**
+ * @param {any} event
+ * @returns {Buffer}
+ */
+function getRawBody(event) {
+  if (event?.isBase64Encoded) {
+    return Buffer.from(event.body || "", "base64");
+  }
+  return Buffer.from(event?.body || "", "utf8");
+}
+
+/**
+ * @param {any} event
+ * @param {string | undefined} [secretOverride]
+ */
+function verifyNetlifySecret(event, secretOverride) {
+  const secret = secretOverride ?? process.env.NETLIFY_DEPLOY_WEBHOOK_SECRET;
   if (!secret) return true; // if not set, accept (optional hardening)
-  const sig = event.headers["x-webhook-signature"];
+  let sig = getHeader(event, "x-webhook-signature");
   if (!sig) return false;
+
+  // Defensive: allow a possible "sha256=<hex>" form.
+  const eq = sig.indexOf("=");
+  if (eq >= 0) sig = sig.slice(eq + 1).trim();
+
+  // hex-only signature (and limit size to avoid allocating huge buffers)
+  if (sig.length > 2048 || sig.length % 2 !== 0 || !/^[0-9a-f]+$/i.test(sig)) {
+    return false;
+  }
+
   const hmac = crypto.createHmac("sha256", secret);
-  const dig = hmac.update(event.body || "").digest("hex");
+  const dig = hmac.update(getRawBody(event)).digest("hex");
   try {
-    return crypto.timingSafeEqual(
-      Buffer.from(sig, "hex"),
-      Buffer.from(dig, "hex"),
-    );
+    const a = Buffer.from(sig, "hex");
+    const b = Buffer.from(dig, "hex");
+    if (a.length !== b.length) return false;
+    return crypto.timingSafeEqual(a, b);
   } catch {
     return false;
   }
 }
 
+export { getHeader, verifyNetlifySecret };
+
 /**
- * @param {import('@netlify/functions').HandlerEvent} event
+ * @param {any} event
  */
 export async function handler(event) {
   const headers = {
@@ -33,6 +75,10 @@ export async function handler(event) {
     "cache-control": "no-store",
   };
 
+  /**
+   * @param {number} statusCode
+   * @param {any} body
+   */
   const respond = (statusCode, body) => ({
     statusCode,
     headers,
@@ -68,8 +114,9 @@ export async function handler(event) {
    */
   function normalizePrivateKey(pem) {
     if (!pem) return pem;
-    if (pem.includes("BEGIN") && pem.includes("\n"))
-      return pem.replaceAll("\\n", "\n");
+    // Support env-style single-line keys that contain literal "\n".
+    const literalNewline = String.raw`\n`;
+    if (pem.includes(literalNewline)) return pem.replaceAll(literalNewline, "\n");
     return pem;
   }
 
@@ -85,66 +132,14 @@ export async function handler(event) {
       userAgent: "poleplanpro-netlify-functions",
     });
 
-    // Find our check run and complete it
-    const listResp = await octokit.request(
-      "GET /repos/{owner}/{repo}/commits/{ref}/check-runs",
-      {
-        owner,
-        repo: name,
-        ref: commitRef,
-      },
-    );
-    const existing = Array.isArray(listResp.data.check_runs)
-      ? listResp.data.check_runs.find((cr) => cr.name === "Preview: Links")
-      : null;
-
-    const customBase = process.env.PREVIEW_DOMAIN_BASE;
-    const branchSlug = (branch || "").toLowerCase().replaceAll(/[^a-z0-9-]/g, "-");
-    const customUrl = customBase
-      ? `https://${branchSlug}.${customBase}/`
-      : null;
-    const urls = [
-      siteUrl ? `Default: ${siteUrl}` : null,
-      customUrl ? `Custom: ${customUrl}` : null,
-    ].filter(Boolean);
-    const outputSummary = urls.length ? urls.join("\n") : "Preview deployed.";
-    const outputText = urls.length
-      ? `Links:\n- ${urls.join("\n- ")}`
-      : "Preview URL not available.";
-
-    if (existing) {
-      await octokit.request(
-        "PATCH /repos/{owner}/{repo}/check-runs/{check_run_id}",
-        {
-          owner,
-          repo: name,
-          check_run_id: existing.id,
-          status: "completed",
-          conclusion: "success",
-          details_url: customUrl || siteUrl || undefined,
-          output: {
-            title: "Preview links",
-            summary: outputSummary,
-            text: outputText,
-          },
-        },
-      );
-    } else {
-      await octokit.request("POST /repos/{owner}/{repo}/check-runs", {
-        owner,
-        repo: name,
-        name: "Preview: Links",
-        head_sha: commitRef,
-        status: "completed",
-        conclusion: "success",
-        details_url: customUrl || siteUrl || undefined,
-        output: {
-          title: "Preview links",
-          summary: outputSummary,
-          text: outputText,
-        },
-      });
-    }
+    await completePreviewCheckRun({
+      octokit,
+      owner,
+      repo: name,
+      branch,
+      commitRef,
+      siteUrl,
+    });
 
     return respond(200, { ok: true, completed: true, url: siteUrl });
   } catch (e) {
@@ -155,6 +150,94 @@ export async function handler(event) {
   }
 }
 
+/**
+ * @param {{
+ *   octokit: any;
+ *   owner: string;
+ *   repo: string;
+ *   branch: string;
+ *   commitRef: string;
+ *   siteUrl: string | null;
+ * }} args
+ */
+async function completePreviewCheckRun({
+  octokit,
+  owner,
+  repo,
+  branch,
+  commitRef,
+  siteUrl,
+}) {
+  const listResp = await octokit.request(
+    "GET /repos/{owner}/{repo}/commits/{ref}/check-runs",
+    {
+      owner,
+      repo,
+      ref: commitRef,
+    },
+  );
+  const existing = Array.isArray(listResp.data.check_runs)
+    ? listResp.data.check_runs.find(
+        /** @param {any} cr */ (cr) => cr.name === "Preview: Links",
+      )
+    : null;
+
+  const customBase = process.env.PREVIEW_DOMAIN_BASE;
+  const branchSlug = (branch || "")
+    .toLowerCase()
+    .replaceAll(/[^a-z0-9-]/g, "-")
+    .replaceAll(/(^-+|-+$)/g, "")
+    .replaceAll(/-+/g, "-");
+  const customUrl = customBase ? `https://${branchSlug}.${customBase}/` : null;
+  const urls = [
+    siteUrl ? `Default: ${siteUrl}` : null,
+    customUrl ? `Custom: ${customUrl}` : null,
+  ].filter(Boolean);
+  const outputSummary = urls.length ? urls.join("\n") : "Preview deployed.";
+  const outputText = urls.length
+    ? `Links:\n- ${urls.join("\n- ")}`
+    : "Preview URL not available.";
+
+  const detailsUrl = customUrl || siteUrl || undefined;
+  if (existing) {
+    await octokit.request(
+      "PATCH /repos/{owner}/{repo}/check-runs/{check_run_id}",
+      {
+        owner,
+        repo,
+        check_run_id: existing.id,
+        status: "completed",
+        conclusion: "success",
+        details_url: detailsUrl,
+        output: {
+          title: "Preview links",
+          summary: outputSummary,
+          text: outputText,
+        },
+      },
+    );
+    return;
+  }
+
+  await octokit.request("POST /repos/{owner}/{repo}/check-runs", {
+    owner,
+    repo,
+    name: "Preview: Links",
+    head_sha: commitRef,
+    status: "completed",
+    conclusion: "success",
+    details_url: detailsUrl,
+    output: {
+      title: "Preview links",
+      summary: outputSummary,
+      text: outputText,
+    },
+  });
+}
+
+/**
+ * @param {string} body
+ */
 function safeParse(body) {
   try {
     return { ok: true, data: JSON.parse(body) };
@@ -163,6 +246,9 @@ function safeParse(body) {
   }
 }
 
+/**
+ * @param {any} payload
+ */
 function extractPayloadMeta(payload) {
   const branch = payload.branch;
   const commitRef =

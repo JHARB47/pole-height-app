@@ -1,4 +1,4 @@
-<!-- markdownlint-disable MD013 MD026 MD031 MD032 -->
+<!-- markdownlint-disable MD013 MD026 MD031 MD032 MD060 -->
 # Migration Script Verification Report
 
 **Date**: October 3, 2025  

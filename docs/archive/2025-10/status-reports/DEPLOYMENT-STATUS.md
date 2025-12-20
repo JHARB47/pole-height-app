@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD013 MD026 MD031 MD032 MD060 -->
 # 🚀 Production Deployment Status
 
 **Date**: October 2, 2025  
@@ -81,10 +82,10 @@ REFRESH_TOKEN_TTL = 7d
 ### Database Connections
 ```bash
 # Pooled (app runtime)
-postgresql://neondb_owner:npg_8CZ...@ep-noisy-sea-aervqc49-pooler.c-2.us-east-2.aws.neon.tech/neondb
+postgresql://<user>:npg_<redacted>@<pooler-host>/<database>
 
 # Unpooled (migrations)
-postgresql://neondb_owner:npg_8CZ...@ep-noisy-sea-aervqc49.c-2.us-east-2.aws.neon.tech/neondb
+postgresql://<user>:npg_<redacted>@<direct-host>/<database>
 ```
 
 ---

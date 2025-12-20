@@ -4,6 +4,9 @@ import { defineConfig } from 'vitest/config';
 
 process.env.VITEST_MIN_THREADS ??= '1';
 process.env.VITEST_MAX_THREADS ??= '1';
+process.env.NODE_ENV ??= 'test';
+process.env.LOG_LEVEL ??= 'fatal';
+process.env.DOTENV_CONFIG_QUIET ??= 'true';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -13,7 +16,11 @@ export default defineConfig({
     alias: [{ find: '@', replacement: resolve(__dirname, 'src') }],
   },
   test: {
-    include: ['src/**/*.{test,spec}.{js,jsx}', 'server/**/*.{test,spec}.{js,mjs}'],
+    include: [
+      'src/**/*.{test,spec}.{js,jsx}',
+      'server/**/*.{test,spec}.{js,mjs}',
+      'netlify/**/*.{test,spec}.{js,mjs}',
+    ],
     exclude: ['coverage/**'],
     passWithNoTests: true,
     pool: 'threads',
@@ -30,6 +37,7 @@ export default defineConfig({
     environment: 'jsdom',
     environmentMatchGlobs: [
       ['server/**', 'node'],
+      ['netlify/**', 'node'],
     ],
     setupFiles: resolve(__dirname, 'src/testSetup.js'),
     coverage: {

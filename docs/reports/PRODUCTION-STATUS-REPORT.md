@@ -132,10 +132,10 @@ Netlify Environment
    DATABASE_URL_UNPOOLED = "${NETLIFY_DATABASE_URL_UNPOOLED}"
    ```
 
-2. ✅ **server/.env** - Local database URL configured
+2. ✅ **server/.env** - Local database URL configured (local-only; do not commit)
 
    ```bash
-   DATABASE_URL=postgresql://neondb_owner:npg_8CZoNbatvBL5@ep-noisy-sea-aervqc49-pooler.c-2.us-east-2.aws.neon.tech/neondb?channel_binding=require&sslmode=require
+   DATABASE_URL=postgresql://<user>:<password>@<pooler-host>/<database>?sslmode=require&channel_binding=require
    ```
 
 3. ✅ **server/db/pool.js** - Reads DATABASE_URL correctly
@@ -209,8 +209,8 @@ No errors found ✅
 ### NEON-SETUP.md Update
 
 ```diff
-- DATABASE_URL=postgresql://[postgresql://neondb_owner:npg_8CZoNbatvBL5@...]
-+ DATABASE_URL=postgresql://neondb_owner:npg_8CZoNbatvBL5@ep-noisy-sea-aervqc49-pooler.c-2.us-east-2.aws.neon.tech/neondb?channel_binding=require&sslmode=require
+- DATABASE_URL=postgresql://[postgresql://<user>:<password>@...]
++ DATABASE_URL=postgresql://<user>:<password>@<pooler-host>/<database>?sslmode=require&channel_binding=require
 ```
 
 **Impact:** Documentation fix only - removed erroneous square brackets

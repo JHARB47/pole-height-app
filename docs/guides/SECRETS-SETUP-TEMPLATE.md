@@ -9,7 +9,7 @@ Configure these in Netlify Dashboard at:
 https://app.netlify.com/sites/poleplanpro/settings/deploys#environment
 
 | Variable Name | Description | Example Value |
-|--------------|-------------|---------------|
+| ------------- | ----------- | ------------- |
 | `NETLIFY_DATABASE_URL` | Neon pooled database connection | Already configured ✓ |
 | `NETLIFY_DATABASE_URL_UNPOOLED` | Neon direct database connection | Already configured ✓ |
 | `JWT_SECRET` | JWT signing secret (64-char hex) | **Generate with**: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
@@ -35,7 +35,7 @@ Configure these in GitHub at:
 https://github.com/JHARB47/pole-height-app/settings/secrets/actions
 
 | Secret Name | Description | Source |
-|------------|-------------|--------|
+| ----------- | ----------- | ------ |
 | `DATABASE_URL` | Neon pooled database URL for CI/CD | Use the same value as `NETLIFY_DATABASE_URL` |
 | `JWT_SECRET` | JWT signing secret | **Must match** the value in Netlify |
 | `REFRESH_TOKEN_SECRET` | Refresh token secret | **Must match** the value in Netlify |

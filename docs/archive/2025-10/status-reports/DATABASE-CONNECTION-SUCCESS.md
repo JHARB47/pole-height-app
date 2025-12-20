@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD013 MD024 MD026 MD031 MD032 MD060 -->
 # ✅ Database Connection - COMPLETE
 
 ## 🎉 Success Summary
@@ -62,7 +63,7 @@ Connected to same Neon database ✅
 
 **Database URL**: 
 ```
-postgresql://neondb_owner:npg_8CZoNbatvBL5@ep-noisy-sea-aervqc49-pooler.c-2.us-east-2.aws.neon.tech/neondb?channel_binding=require&sslmode=require
+postgresql://<user>:<password>@<pooler-host>/<database>?sslmode=require&channel_binding=require
 ```
 
 ---

@@ -14,7 +14,11 @@ self.addEventListener('install', (event) => {
     (async () => {
       const cache = await caches.open(PRECACHE);
       // Best-effort cache of app shell for offline navigation
-  try { await cache.addAll(APP_SHELL); } catch { /* ignore */ }
+      try {
+        await cache.addAll(APP_SHELL);
+      } catch {
+        /* ignore */
+      }
       // Precache CDN resources with graceful failures
       await Promise.all(
         PRECACHE_URLS.map(u => fetch(u, { mode: 'no-cors' })
@@ -54,6 +58,10 @@ self.addEventListener('fetch', (event) => {
   const url = req.url;
   // Only handle GET requests; let the browser handle others
   if (req.method && req.method !== 'GET') return;
+
+  // Avoid a known SW edge case where Chrome issues a request with
+  // cache='only-if-cached' and mode!='same-origin', which can throw.
+  if (req.cache === 'only-if-cached' && req.mode !== 'same-origin') return;
   if (PRECACHE_URLS.some(u => url.startsWith(u))) {
     // @ts-ignore
     e.respondWith(
@@ -89,8 +97,27 @@ self.addEventListener('fetch', (event) => {
     const reqUrl = new URL(url);
     const selfOrigin = self.location.origin;
     if (reqUrl.origin === selfOrigin) {
+      const isAssetPath =
+        reqUrl.pathname.startsWith('/assets/') ||
+        /\.(?:js|css|map|png|jpe?g|gif|svg|webp|ico|woff2?|ttf|eot)$/.test(
+          reqUrl.pathname,
+        );
+
+      // Never satisfy asset requests from cache. This avoids any possibility of HTML being
+      // served under an asset URL if a rewrite misconfiguration ever regresses.
+      if (isAssetPath) {
+        // @ts-ignore
+        e.respondWith(
+          fetch(req).catch(async () =>
+            (await caches.match(req)) || Response.error(),
+          ),
+        );
+        return;
+      }
+
       // @ts-ignore
       e.respondWith(caches.match(req).then(r => r || fetch(req)));
+      return;
     }
     // else: allow cross-origin requests to proceed normally
   } catch {

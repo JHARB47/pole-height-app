@@ -358,7 +358,10 @@ describe("Export Templates", () => {
     });
 
     it("should reject invalid JSON", () => {
+      const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
       const result = importUserTemplates("invalid json", true);
+
+      errSpy.mockRestore();
 
       expect(result.success).toBe(false);
       expect(result.error).toBeDefined();
