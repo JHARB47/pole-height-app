@@ -12,6 +12,26 @@
           "text-wrap"
         ]
       }
+    ],
+    "compat-api/html": [
+      "default",
+      {
+        "ignore": [
+          "meta[name=theme-color]"
+        ]
+      }
     ]
-  }
+  },
+  "browserslist": [
+    "defaults",
+    "not ie 11",
+    "not ios_saf <= 18.5",
+    "not safari <= 18.5",
+    "not and_chr <= 138",
+    "not chrome <= 139",
+    "not edge <= 138",
+    "not firefox <= 141",
+    "not samsung <= 28",
+    "not opera <= 117"
+  ]
 }

@@ -221,7 +221,9 @@
     width: 1.75rem;
     height: 1.75rem;
     border-radius: 9999px;
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
+
+    /* Darker blues to meet WCAG contrast against white text */
+    background: linear-gradient(135deg, #1d4ed8, #1e40af);
     color: #fff;
     font-size: 0.875rem;
     font-weight: 700;
