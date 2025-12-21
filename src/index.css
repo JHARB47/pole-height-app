@@ -509,6 +509,92 @@
       gap: 1rem;
     }
   }
+
+  /* Profile tuner / measurement config box */
+  .config-box {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #bfdbfe;
+    background-color: #eff6ff;
+  }
+
+  @media (min-width: 480px) {
+    .config-box {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .config-box {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .config-box {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  .config-box-full {
+    grid-column: 1 / -1;
+  }
+
+  /* Config field with label and unit */
+  .config-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+
+  .config-field-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #374151;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .config-field-input {
+    width: 100%;
+    min-width: 0;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.25;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    background-color: #fff;
+  }
+
+  .config-field-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  }
+
+  .config-field-unit {
+    font-size: 0.6875rem;
+    color: #6b7280;
+  }
+
+  /* Section action bar with save/collapse buttons */
+  .section-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  @media (min-width: 640px) {
+    .section-actions {
+      flex-wrap: nowrap;
+    }
+  }
 }
 
 @layer utilities {

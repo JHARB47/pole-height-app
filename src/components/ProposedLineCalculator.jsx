@@ -494,15 +494,19 @@ export default function ProposedLineCalculator() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <SectionSaveButton sectionKey="job" align="right" />
-              <button
-                type="button"
-                className="ml-2 px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-sm"
-                onClick={() => setOpenSections((s) => ({ ...s, job: !s.job }))}
-                aria-expanded={!!openSections.job}
-              >
-                {openSections.job ? "▲ Collapse" : "▼ Expand"}
-              </button>
+              <div className="section-actions">
+                <SectionSaveButton sectionKey="job" align="right" />
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() =>
+                    setOpenSections((s) => ({ ...s, job: !s.job }))
+                  }
+                  aria-expanded={!!openSections.job}
+                >
+                  {openSections.job ? "▲ Collapse" : "▼ Expand"}
+                </button>
+              </div>
             </div>
           </div>
           {!openSections.job ? null : (
@@ -851,11 +855,11 @@ export default function ProposedLineCalculator() {
                   batch-apply data.
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="section-actions">
                 <SectionSaveButton sectionKey="map" align="right" />
                 <button
                   type="button"
-                  className="ml-2 px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-sm"
+                  className="btn btn-secondary btn-sm"
                   onClick={() =>
                     setOpenSections((s) => ({ ...s, map: !s.map }))
                   }
@@ -883,11 +887,11 @@ export default function ProposedLineCalculator() {
                   quick calculations.
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="section-actions">
                 <SectionSaveButton sectionKey="spans" align="right" />
                 <button
                   type="button"
-                  className="ml-2 px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-sm"
+                  className="btn btn-secondary btn-sm"
                   onClick={() =>
                     setOpenSections((s) => ({ ...s, spans: !s.spans }))
                   }
@@ -914,11 +918,11 @@ export default function ProposedLineCalculator() {
                   Track existing attachments and make-ready adjustments.
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="section-actions">
                 <SectionSaveButton sectionKey="existing" align="right" />
                 <button
                   type="button"
-                  className="ml-2 px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-sm"
+                  className="btn btn-secondary btn-sm"
                   onClick={() =>
                     setOpenSections((s) => ({ ...s, existing: !s.existing }))
                   }
@@ -945,12 +949,12 @@ export default function ProposedLineCalculator() {
                   Mobile capture with GPS, photos, and Draft/Done workflow.
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="section-actions">
                 <FieldActionsCompact />
                 <SectionSaveButton sectionKey="field" align="right" />
                 <button
                   type="button"
-                  className="ml-2 px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-sm"
+                  className="btn btn-secondary btn-sm"
                   onClick={() =>
                     setOpenSections((s) => ({ ...s, field: !s.field }))
                   }
@@ -981,7 +985,7 @@ export default function ProposedLineCalculator() {
         <ScenarioButtons />
         <ExportButtons />
         <button
-          className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium bg-white hover:bg-gray-50 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          className="btn btn-primary btn-sm"
           onClick={() => {
             setShowBatchReport(false);
             setShowReport((r) => !r);
@@ -996,7 +1000,7 @@ export default function ProposedLineCalculator() {
           {showReport ? "← Back to Editor" : "📄 View Report"}
         </button>
         <button
-          className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium bg-white hover:bg-gray-50 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          className="btn btn-secondary btn-sm"
           onClick={() => {
             setShowReport(false);
             setShowBatchReport((b) => !b);
@@ -1018,11 +1022,11 @@ export default function ProposedLineCalculator() {
               View summary outputs, generate reports, and export data.
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="section-actions">
             <SectionSaveButton sectionKey="results" align="right" />
             <button
               type="button"
-              className="ml-2 px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-sm"
+              className="btn btn-secondary btn-sm"
               onClick={() =>
                 setOpenSections((s) => ({ ...s, results: !s.results }))
               }
@@ -1174,7 +1178,7 @@ function SectionSaveButton({ sectionKey, align }) {
     >
       <button
         type="button"
-        className="px-2 py-1 text-xs border rounded"
+        className="btn btn-secondary btn-sm"
         onClick={() => store.setSectionSaved?.(sectionKey)}
         title={
           ts
@@ -1727,17 +1731,11 @@ function AutoMapPreviewModal({ open, onClose, current, proposal, onApply }) {
             </div>
           ))}
         </div>
-        <div className="flex items-center gap-2 mt-3">
-          <button
-            className="px-2 py-1 border rounded text-sm"
-            onClick={onApply}
-          >
+        <div className="btn-group mt-3">
+          <button className="btn btn-primary btn-sm" onClick={onApply}>
             Apply
           </button>
-          <button
-            className="px-2 py-1 border rounded text-sm"
-            onClick={onClose}
-          >
+          <button className="btn btn-secondary btn-sm" onClick={onClose}>
             Cancel
           </button>
         </div>
@@ -1885,91 +1883,70 @@ function ProfileTuner() {
   };
 
   const Editor = ({ label, field, unit }) => (
-    <label className="text-sm text-gray-700 grid gap-2">
-      <span className="font-medium whitespace-nowrap text-left">{label}</span>
+    <div className="config-field">
+      <label className="config-field-label" title={label}>
+        {label}
+      </label>
       <input
-        className="border rounded px-3 py-2 min-w-0 w-full text-base leading-normal bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        className="config-field-input"
         value={effective[field] ?? ""}
         onChange={(e) =>
           activeJob
             ? onChangeJob(field, e.target.value)
             : onChangeGlobal(field, e.target.value)
         }
-        placeholder={activeJob ? "override (blank uses profile)" : ""}
+        placeholder={activeJob ? "override" : ""}
+        aria-label={label}
       />
-      <span className="text-xs text-gray-500 -mt-1">{unit}</span>
-    </label>
+      <span className="config-field-unit">{unit}</span>
+    </div>
   );
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+    <div className="config-box">
       <Editor label="Comm→Power" field="commToPowerIn" unit={"in"} />
       <Editor label="Min Top Space" field="minTopSpaceFt" unit={"ft"} />
       <Editor label="Road Clearance" field="roadClearanceFt" unit={"ft"} />
-      <Editor label="Road Midspan Target" field="envRoadFt" unit={"ft"} />
+      <Editor label="Road Midspan" field="envRoadFt" unit={"ft"} />
+      <Editor label="Residential" field="envResidentialFt" unit={"ft"} />
+      <Editor label="Pedestrian" field="envPedestrianFt" unit={"ft"} />
+      <Editor label="Field" field="envFieldFt" unit={"ft"} />
+      <Editor label="Res. Yard" field="envResidentialYardFt" unit={"ft"} />
       <Editor
-        label="Residential Midspan Target"
-        field="envResidentialFt"
-        unit={"ft"}
-      />
-      <Editor
-        label="Pedestrian Midspan Target"
-        field="envPedestrianFt"
-        unit={"ft"}
-      />
-      <Editor label="Field Midspan Target" field="envFieldFt" unit={"ft"} />
-      <Editor
-        label="Residential Yard Target"
-        field="envResidentialYardFt"
-        unit={"ft"}
-      />
-      <Editor
-        label="Residential Driveway Target"
+        label="Res. Driveway"
         field="envResidentialDrivewayFt"
         unit={"ft"}
       />
+      <Editor label="Waterway" field="envWaterwayFt" unit={"ft"} />
+      <Editor label="WV Highway" field="envWVHighwayFt" unit={"ft"} />
+      <Editor label="PA Highway" field="envPAHighwayFt" unit={"ft"} />
+      <Editor label="OH Highway" field="envOHHighwayFt" unit={"ft"} />
+      <Editor label="MD Highway" field="envMDHighwayFt" unit={"ft"} />
       <Editor
-        label="Waterway Midspan Target"
-        field="envWaterwayFt"
-        unit={"ft"}
-      />
-      <Editor label="WV Highway Target" field="envWVHighwayFt" unit={"ft"} />
-      <Editor label="PA Highway Target" field="envPAHighwayFt" unit={"ft"} />
-      <Editor label="OH Highway Target" field="envOHHighwayFt" unit={"ft"} />
-      <Editor label="MD Highway Target" field="envMDHighwayFt" unit={"ft"} />
-      <Editor
-        label="Non-Residential Driveway Target"
+        label="Non-Res. Driveway"
         field="envNonResidentialDrivewayFt"
         unit={"ft"}
       />
-      <Editor label="Interstate Target" field="envInterstateFt" unit={"ft"} />
+      <Editor label="Interstate" field="envInterstateFt" unit={"ft"} />
       <Editor
-        label="Interstate (New Crossing) Target"
+        label="Interstate (New)"
         field="envInterstateNewCrossingFt"
         unit={"ft"}
       />
-      <Editor
-        label="Railroad Crossing Target"
-        field="envRailroadFt"
-        unit={"ft"}
-      />
-      <Editor
-        label="Min Comm Attach Height"
-        field="minCommAttachFt"
-        unit={"ft"}
-      />
+      <Editor label="Railroad" field="envRailroadFt" unit={"ft"} />
+      <Editor label="Min Comm Attach" field="minCommAttachFt" unit={"ft"} />
       {activeJob ? (
-        <div className="md:col-span-2 xl:col-span-3 text-sm text-blue-700 bg-blue-100 p-3 rounded border border-blue-200">
+        <div className="config-box-full text-sm text-blue-700 bg-blue-100 p-3 rounded border border-blue-200">
           Using job-specific overrides.{" "}
           <button
-            className="underline font-medium hover:no-underline"
+            className="btn btn-outline-blue btn-xs"
             onClick={onResetJobOverrides}
           >
             Reset overrides
           </button>
         </div>
       ) : (
-        <div className="md:col-span-2 xl:col-span-3 text-sm text-gray-600 bg-gray-100 p-3 rounded border">
+        <div className="config-box-full text-sm text-gray-600 bg-gray-100 p-3 rounded border">
           Editing global submission profile defaults.
         </div>
       )}
@@ -2450,7 +2427,7 @@ function FormAutofillPanel() {
         </div>
         <div className="flex items-end gap-2">
           <button
-            className="px-2 py-1 border rounded text-sm"
+            className="btn btn-outline-blue btn-sm"
             onClick={onSavePreset}
             disabled={!layoutText}
           >
@@ -2476,7 +2453,7 @@ function FormAutofillPanel() {
             ))}
           </select>
           <button
-            className="px-2 py-1 border rounded text-sm"
+            className="btn btn-outline-amber btn-sm"
             onClick={() => presetName && onDeletePreset(presetName)}
             disabled={!presetName}
           >
@@ -2484,23 +2461,23 @@ function FormAutofillPanel() {
           </button>
         </div>
       </div>
-      <div className="mt-2 flex items-center gap-2 flex-wrap">
+      <div className="mt-2 btn-group flex-wrap">
         <button
-          className="px-2 py-1 border rounded text-sm"
+          className="btn btn-primary btn-sm"
           onClick={onFill}
           disabled={!basePdf || !fields}
         >
           Fill PDF
         </button>
         <button
-          className="px-2 py-1 border rounded text-sm"
+          className="btn btn-outline-blue btn-sm"
           onClick={onAutoLayout}
           disabled={!basePdf || !fields}
         >
           Auto-Layout & Fill
         </button>
         <button
-          className="px-2 py-1 border rounded text-sm"
+          className="btn btn-outline-blue btn-sm"
           onClick={onFillByForm}
           disabled={!basePdf || !fields}
         >
@@ -2765,7 +2742,7 @@ function PrintableReport() {
       <div className="font-semibold">Estimated Cost: ${costAnalysis ?? 0}</div>
       <div className="print:hidden">
         <button
-          className="px-2 py-1 border rounded text-sm"
+          className="btn btn-secondary btn-sm"
           onClick={() => window.print()}
         >
           Print / Save PDF
@@ -2817,28 +2794,28 @@ function ScenarioButtons() {
     store.setExistingLines(snap.existingLines);
   };
   return (
-    <div className="flex items-center gap-2 my-2">
+    <div className="btn-group">
       <button
-        className="px-2 py-1 border rounded text-sm"
+        className="btn btn-outline-blue btn-sm"
         onClick={() => store.setScenarioA(snapshot())}
       >
         Save A
       </button>
       <button
-        className="px-2 py-1 border rounded text-sm"
+        className="btn btn-outline-blue btn-sm"
         onClick={() => store.setScenarioB(snapshot())}
       >
         Save B
       </button>
       <button
-        className="px-2 py-1 border rounded text-sm"
+        className="btn btn-secondary btn-sm"
         onClick={() => load(store.scenarioA)}
         disabled={!store.scenarioA}
       >
         Load A
       </button>
       <button
-        className="px-2 py-1 border rounded text-sm"
+        className="btn btn-secondary btn-sm"
         onClick={() => load(store.scenarioB)}
         disabled={!store.scenarioB}
       >
@@ -2868,16 +2845,16 @@ function ExportButtons() {
     window.print();
   };
   return (
-    <div className="flex items-center gap-2 my-2">
+    <div className="btn-group">
       <button
-        className="px-2 py-1 border rounded text-sm"
+        className="btn btn-outline-green btn-sm"
         onClick={onCSV}
         disabled={!results}
       >
         Export CSV
       </button>
       <button
-        className="px-2 py-1 border rounded text-sm"
+        className="btn btn-outline-green btn-sm"
         onClick={onPDF}
         disabled={!results}
       >
@@ -3403,7 +3380,7 @@ function PermitPackButton() {
   return (
     <span className="inline-flex items-center">
       <button
-        className="px-2 py-1 border rounded text-sm"
+        className="btn btn-outline-green btn-sm"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onClick={onPermit}
@@ -3532,7 +3509,7 @@ function InteropExportButton() {
   return (
     <>
       <button
-        className="px-2 py-1 border rounded text-sm"
+        className="btn btn-secondary btn-sm"
         onClick={() => setOpen(true)}
       >
         Interop Export
@@ -4896,7 +4873,7 @@ function FieldCollection({ openHelp, showBottomActions = true }) {
                       }
                     />
                     <button
-                      className="px-2 py-1 border rounded text-xs"
+                      className="btn btn-outline-blue btn-xs"
                       onClick={() => handleRowGPS(i)}
                     >
                       GPS
@@ -5021,7 +4998,7 @@ function FieldCollection({ openHelp, showBottomActions = true }) {
                 </td>
                 <td className="p-2">
                   <button
-                    className="px-2 py-1 border rounded text-xs"
+                    className="btn btn-outline-blue btn-xs"
                     onClick={() => {
                       const incoming = Number(p.incomingBearingDeg);
                       const outgoing = Number(p.outgoingBearingDeg);
@@ -5129,7 +5106,7 @@ function FieldCollection({ openHelp, showBottomActions = true }) {
                       />
                     </label>
                     <button
-                      className="px-2 py-1 border rounded text-xs"
+                      className="btn btn-secondary btn-xs"
                       onClick={() => {
                         const input = document.createElement("input");
                         input.type = "file";
@@ -5152,7 +5129,7 @@ function FieldCollection({ openHelp, showBottomActions = true }) {
                       Camera
                     </button>
                     <button
-                      className="px-2 py-1 border rounded text-xs"
+                      className="btn btn-secondary btn-xs"
                       onClick={() => {
                         const input = document.createElement("input");
                         input.type = "file";
@@ -5175,7 +5152,7 @@ function FieldCollection({ openHelp, showBottomActions = true }) {
                     </button>
                     {p.photoDataUrl ? (
                       <button
-                        className="px-2 py-1 border rounded text-xs"
+                        className="btn btn-outline-amber btn-xs"
                         onClick={() =>
                           store.updateCollectedPole(i, { photoDataUrl: "" })
                         }
@@ -5419,7 +5396,7 @@ function BatchReport() {
       ) : null}
       <div className="print:hidden">
         <button
-          className="px-2 py-1 border rounded text-sm"
+          className="btn btn-secondary btn-sm"
           onClick={() => window.print()}
         >
           Print Batch
@@ -5749,9 +5726,9 @@ function ImportPanel() {
             value={csvPolesText}
             onChange={(e) => setCsvPolesText(e.target.value)}
           />
-          <div className="flex items-center gap-2">
+          <div className="btn-group">
             <button
-              className="px-2 py-1 border rounded text-sm"
+              className="btn btn-secondary btn-sm"
               onClick={() => {
                 const rows = parsePolesCSV(csvPolesText, mapping.pole);
                 if (rows.length) {
@@ -5764,7 +5741,7 @@ function ImportPanel() {
               Load (Raw)
             </button>
             <button
-              className="px-2 py-1 border rounded text-sm bg-blue-50 hover:bg-blue-100"
+              className="btn btn-outline-blue btn-sm"
               onClick={async () => {
                 const { data, errors } = await parsePolesCSVValidated(
                   csvPolesText,
@@ -5837,9 +5814,9 @@ function ImportPanel() {
             value={csvSpansText}
             onChange={(e) => setCsvSpansText(e.target.value)}
           />
-          <div className="flex items-center gap-2">
+          <div className="btn-group">
             <button
-              className="px-2 py-1 border rounded text-sm"
+              className="btn btn-secondary btn-sm"
               onClick={() => {
                 const rows = parseSpansCSV(csvSpansText, mapping.span);
                 if (rows.length) {
@@ -5852,7 +5829,7 @@ function ImportPanel() {
               Load (Raw)
             </button>
             <button
-              className="px-2 py-1 border rounded text-sm bg-blue-50 hover:bg-blue-100"
+              className="btn btn-outline-blue btn-sm"
               onClick={async () => {
                 const { data, errors } = await parseSpansCSVValidated(
                   csvSpansText,
@@ -5925,9 +5902,9 @@ function ImportPanel() {
             value={csvText}
             onChange={(e) => setCsvText(e.target.value)}
           />
-          <div className="flex items-center gap-2">
+          <div className="btn-group">
             <button
-              className="px-2 py-1 border rounded text-sm"
+              className="btn btn-secondary btn-sm"
               onClick={() => {
                 const rows = parseExistingLinesCSV(csvText, mapping.line);
                 if (rows.length) store.setExistingLines(rows);
