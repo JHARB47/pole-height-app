@@ -23,8 +23,9 @@ function chunkForPdfLib(id) {
 function chunkForSimple(id) {
   if (id.includes('@tmcw/togeojson')) return 'geojson-utils';
   if (id.includes('jszip')) return 'zip-utils';
-  if (id.includes('react-dom')) return 'react-dom';
-  if (id.includes('react') && !id.includes('react-dom')) return 'react';
+  // AI: Keep react and react-dom together to prevent circular dependency issues
+  // Splitting them causes Vite to share symbols between chunks creating circular imports
+  if (id.includes('react-dom') || id.includes('react')) return 'react-vendor';
   if (id.includes('zustand')) return 'state-vendor';
   if (id.includes('lucide-react')) return 'iconography';
   if (['clsx', 'tailwind', 'postcss'].some(s => id.includes(s))) return 'ui-vendor';
