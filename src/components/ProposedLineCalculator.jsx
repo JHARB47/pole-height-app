@@ -485,8 +485,7 @@ export default function ProposedLineCalculator() {
           <div className="workflow-step-header md:col-span-2 xl:col-span-3">
             <div>
               <div className="workflow-step-title">
-                <span className="workflow-step-badge">1</span>
-                Job Setup
+                <span className="workflow-step-badge">1</span> Job Setup
               </div>
               <div className="workflow-step-desc mt-2">
                 Configure project info, GPS coordinates, design parameters, and
@@ -847,8 +846,8 @@ export default function ProposedLineCalculator() {
             <div className="workflow-step-header">
               <div>
                 <div className="workflow-step-title">
-                  <span className="workflow-step-badge">2</span>
-                  Import & Mapping
+                  <span className="workflow-step-badge">2</span> Import &
+                  Mapping
                 </div>
                 <div className="workflow-step-desc mt-2">
                   Load KML/KMZ/Shapefile or CSV files, map attributes, and
@@ -879,8 +878,7 @@ export default function ProposedLineCalculator() {
             <div className="workflow-step-header">
               <div>
                 <div className="workflow-step-title">
-                  <span className="workflow-step-badge">3</span>
-                  Spans
+                  <span className="workflow-step-badge">3</span> Spans
                 </div>
                 <div className="workflow-step-desc mt-2">
                   Configure per-span environment, auto/manual length, and run
@@ -911,8 +909,7 @@ export default function ProposedLineCalculator() {
             <div className="workflow-step-header">
               <div>
                 <div className="workflow-step-title">
-                  <span className="workflow-step-badge">4</span>
-                  Existing Lines
+                  <span className="workflow-step-badge">4</span> Existing Lines
                 </div>
                 <div className="workflow-step-desc mt-2">
                   Track existing attachments and make-ready adjustments.
@@ -942,8 +939,8 @@ export default function ProposedLineCalculator() {
             <div className="workflow-step-header">
               <div>
                 <div className="workflow-step-title">
-                  <span className="workflow-step-badge">5</span>
-                  Field Collection
+                  <span className="workflow-step-badge">5</span> Field
+                  Collection
                 </div>
                 <div className="workflow-step-desc mt-2">
                   Mobile capture with GPS, photos, and Draft/Done workflow.
@@ -1015,8 +1012,7 @@ export default function ProposedLineCalculator() {
         <div className="workflow-step-header">
           <div>
             <div className="workflow-step-title">
-              <span className="workflow-step-badge">6</span>
-              Results
+              <span className="workflow-step-badge">6</span> Results
             </div>
             <div className="workflow-step-desc mt-2">
               View summary outputs, generate reports, and export data.

@@ -6,7 +6,6 @@
   :root {
     color: #0f172a;
     background-color: #f8fafc;
-    /* System font stack for maximum cross-platform compatibility */
     font-family:
       Manrope,
       "DM Sans",
@@ -17,9 +16,7 @@
       sans-serif;
     font-size: clamp(15px, 1.2vw + 0.2rem, 17px);
     line-height: 1.6;
-    /* Prevent iOS zoom on input focus */
     -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
 
     --text-strong: #0f172a;
     --text-muted: #334155;
@@ -33,10 +30,8 @@
     --border-strong: #cbd5e1;
     --shadow-soft: 0 1px 2px 0 rgb(0 0 0 / 6%);
     --ring: #4f46e5;
-    /* Touch target minimum for all platforms */
     --touch-target-min: 44px;
-    /* Focus ring for keyboard navigation */
-    --focus-ring: 0 0 0 3px rgba(79, 70, 229, 0.4);
+    --focus-ring: 0 0 0 3px rgb(79 70 229 / 40%);
   }
 
   /* Light mode only - dark mode removed for professional engineering appearance */
@@ -48,12 +43,10 @@
     color: var(--text-strong);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
+    text-rendering: optimizelegibility;
     word-break: keep-all;
     overflow-wrap: break-word;
-    /* Prevent horizontal scroll on mobile */
     overflow-x: hidden;
-    /* Smooth scrolling for all browsers */
     scroll-behavior: smooth;
   }
 
@@ -114,18 +107,15 @@
     padding: 0.5rem 0.75rem;
     line-height: 1.4;
     font-family: inherit;
-    /* Prevent iOS zoom on focus - ensure 16px minimum */
     font-size: max(16px, 1rem);
-    /* Touch target minimum */
     min-height: var(--touch-target-min);
-    /* Remove iOS default styling */
     -webkit-appearance: none;
     appearance: none;
   }
 
-  /* Firefox number input spinner fix */
   input[type="number"] {
     -moz-appearance: textfield;
+    appearance: textfield;
   }
 
   input[type="number"]::-webkit-outer-spin-button,
@@ -140,28 +130,19 @@
     color: var(--text-subtle);
   }
 
-  input:focus,
-  textarea:focus,
-  select:focus {
-    outline: none;
-    box-shadow: var(--focus-ring);
-    border-color: var(--ring);
-  }
-
-  /* Focus visible for keyboard users only */
-  input:focus:not(:focus-visible),
-  textarea:focus:not(:focus-visible),
-  select:focus:not(:focus-visible) {
-    box-shadow: none;
-    border-color: var(--border);
-  }
-
   input:focus-visible,
   textarea:focus-visible,
   select:focus-visible {
     outline: none;
     box-shadow: var(--focus-ring);
     border-color: var(--ring);
+  }
+
+  input:focus:not(:focus-visible),
+  textarea:focus:not(:focus-visible),
+  select:focus:not(:focus-visible) {
+    box-shadow: none;
+    border-color: var(--border);
   }
 }
 
@@ -213,7 +194,7 @@
     height: 1.75rem;
     border-radius: 9999px;
     background: linear-gradient(135deg, #3b82f6, #2563eb);
-    color: white;
+    color: #fff;
     font-size: 0.875rem;
     font-weight: 700;
     flex-shrink: 0;
@@ -276,7 +257,6 @@
     gap: 0.25rem;
     overflow-x: auto;
     padding: 0 0.25rem;
-    -webkit-overflow-scrolling: touch;
   }
 
   @supports (color: color-mix(in srgb, white, black)) {
@@ -432,7 +412,6 @@
     gap: 1.5rem;
   }
 
-  /* Action button styles with proper contrast */
   .btn {
     display: inline-flex;
     align-items: center;
@@ -441,8 +420,8 @@
     font-size: 0.875rem;
     font-weight: 500;
     line-height: 1.25;
-    border-radius: 0.375rem;
     border: 1px solid;
+    border-radius: 0.375rem;
     white-space: nowrap;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
@@ -451,7 +430,6 @@
     user-select: none;
     -webkit-appearance: none;
     appearance: none;
-    /* Smooth transitions for all browsers */
     -webkit-transition:
       background-color 0.15s ease,
       border-color 0.15s ease,
@@ -462,18 +440,9 @@
       border-color 0.15s ease,
       box-shadow 0.15s ease,
       transform 0.1s ease;
-    min-height: var(--touch-target-min); /* iOS/Android touch target minimum */
-    /* Remove default button styling on iOS */
-    -webkit-border-radius: 0.375rem;
+    min-height: var(--touch-target-min);
   }
 
-  /* Active state for touch feedback */
-  .btn:active:not(:disabled) {
-    -webkit-transform: scale(0.98);
-    transform: scale(0.98);
-  }
-
-  /* Focus visible for keyboard users */
   .btn:focus-visible {
     outline: none;
     box-shadow: var(--focus-ring);
@@ -482,6 +451,11 @@
   .btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  .btn:active:not(:disabled) {
+    -webkit-transform: scale(0.98);
+    transform: scale(0.98);
   }
 
   .btn-primary {
@@ -674,7 +648,7 @@
   .config-field-input:focus {
     outline: none;
     border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    box-shadow: 0 0 0 2px rgb(59 130 246 / 20%);
   }
 
   .config-field-unit {
@@ -803,17 +777,12 @@
 
   /* Hide scrollbar but allow scrolling (cross-browser) */
   .hide-scrollbar {
-    -ms-overflow-style: none;
     scrollbar-width: none;
+    -ms-overflow-style: none;
   }
 
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
-  }
-
-  /* iOS momentum scrolling */
-  .momentum-scroll {
-    -webkit-overflow-scrolling: touch;
   }
 
   /* Prevent text selection on interactive elements */
@@ -827,8 +796,8 @@
   /* Hardware acceleration for smooth animations */
   .gpu-accelerated {
     -webkit-transform: translateZ(0);
-    transform: translateZ(0);
     -webkit-backface-visibility: hidden;
+    transform: translateZ(0);
     backface-visibility: hidden;
     will-change: transform;
   }

@@ -8,6 +8,16 @@
     "sql.validate.enable": false,
     "files.associations": {
         "*.sql": "postgres"
-    }
-
+    },
+    "css.lint.vendorPrefix": "ignore",
+    "css.lint.compatibleVendorPrefixes": "ignore",
+    "css.lint.unknownVendorSpecificProperties": "ignore",
+    "css.lint.propertyIgnoredDueToDisplay": "warning",
+    "css.lint.duplicateProperties": "warning",
+    "css.lint.emptyRules": "warning",
+    "css.lint.boxModel": "ignore",
+    "css.lint.universalSelector": "ignore",
+    "css.lint.unknownAtRules": "ignore",
+    "html.validate.scripts": true,
+    "html.validate.styles": true
 }
