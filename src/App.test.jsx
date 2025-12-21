@@ -33,18 +33,17 @@ afterAll(() => {
 });
 
 describe("App", () => {
-  // TEMPORARILY SKIPPED - See TEST-TIMEOUT-ISSUES.md
-  it("renders app chrome and loads the calculator lazily", async () => {
+  it("renders app chrome with new workflow UI", async () => {
     render(<App />);
-    // Title block from App
-    expect(
-      screen.getByText(/OSP Engineering & Permit Management/i),
-    ).toBeTruthy();
 
-    // Just check that the app renders - don't wait for lazy loading
-    // Check for system status instead of waiting for lazy component
-    // Lazy components may not load properly in test environment
-    expect(screen.getByText(/System Status/i)).toBeTruthy();
-    expect(screen.getByText(/Application Loading Successfully/i)).toBeTruthy();
+    // New UI: PolePlan Pro header with job selector and help
+    const polePlanElements = screen.getAllByText(/PolePlan Pro/i);
+    expect(polePlanElements.length).toBeGreaterThan(0);
+
+    // Check for Help button in header
+    expect(screen.getByRole("button", { name: /Help/i })).toBeTruthy();
+
+    // Check for navigation - step navigation should be present
+    expect(screen.getByRole("navigation", { name: /Workflow/i })).toBeTruthy();
   });
 });

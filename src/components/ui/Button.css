@@ -1,0 +1,279 @@
+/**
+ * PolePlan Pro - Button Component Styles
+ */
+
+/* ===== BASE BUTTON ===== */
+.ppp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  line-height: 1;
+  text-decoration: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  min-height: var(--touch-target);
+  transition: all var(--transition-base);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ppp-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.ppp-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.ppp-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* ===== BUTTON SIZES ===== */
+.ppp-btn--sm {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-xs);
+  min-height: 32px;
+  border-radius: var(--radius-sm);
+}
+
+.ppp-btn--md {
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--text-sm);
+  min-height: var(--touch-target);
+}
+
+.ppp-btn--lg {
+  padding: var(--space-4) var(--space-6);
+  font-size: var(--text-base);
+  min-height: 52px;
+  border-radius: var(--radius-md);
+}
+
+/* ===== BUTTON VARIANTS ===== */
+
+/* Primary - Main action */
+.ppp-btn--primary {
+  background: linear-gradient(
+    135deg,
+    var(--primary) 0%,
+    var(--primary-active) 100%
+  );
+  color: var(--primary-text);
+  border-color: var(--primary);
+  box-shadow: 0 2px 8px rgba(79, 140, 255, 0.25);
+}
+
+.ppp-btn--primary:hover:not(:disabled) {
+  background: linear-gradient(
+    135deg,
+    var(--primary-hover) 0%,
+    var(--primary) 100%
+  );
+  box-shadow: 0 4px 16px rgba(79, 140, 255, 0.35);
+  transform: translateY(-1px);
+}
+
+.ppp-btn--primary:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Secondary - Supporting action */
+.ppp-btn--secondary {
+  background: var(--surface-2);
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.ppp-btn--secondary:hover:not(:disabled) {
+  background: var(--surface-3);
+  border-color: var(--text-subtle);
+}
+
+/* Ghost - Minimal emphasis */
+.ppp-btn--ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border-color: transparent;
+}
+
+.ppp-btn--ghost:hover:not(:disabled) {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+/* Outline - Border emphasis */
+.ppp-btn--outline {
+  background: transparent;
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.ppp-btn--outline:hover:not(:disabled) {
+  background: var(--primary-muted);
+}
+
+/* Danger - Destructive action */
+.ppp-btn--danger {
+  background: var(--danger);
+  color: white;
+  border-color: var(--danger);
+}
+
+.ppp-btn--danger:hover:not(:disabled) {
+  background: var(--danger-hover);
+  border-color: var(--danger-hover);
+}
+
+/* Success - Positive action */
+.ppp-btn--success {
+  background: var(--success);
+  color: white;
+  border-color: var(--success);
+}
+
+.ppp-btn--success:hover:not(:disabled) {
+  background: var(--success-hover);
+  border-color: var(--success-hover);
+}
+
+/* ===== BUTTON MODIFIERS ===== */
+.ppp-btn--full {
+  width: 100%;
+}
+
+.ppp-btn--loading {
+  position: relative;
+  color: transparent !important;
+}
+
+.ppp-btn--loading .ppp-btn__label,
+.ppp-btn--loading .ppp-btn__icon {
+  visibility: hidden;
+}
+
+/* ===== BUTTON INNER ELEMENTS ===== */
+.ppp-btn__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ppp-btn__icon svg {
+  width: 1.125em;
+  height: 1.125em;
+}
+
+.ppp-btn__spinner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ppp-btn__spinner-icon {
+  width: 1.25em;
+  height: 1.25em;
+  animation: ppp-spin 0.75s linear infinite;
+  color: currentColor;
+}
+
+@keyframes ppp-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===== ICON BUTTON ===== */
+.ppp-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  background: transparent;
+  color: var(--text-muted);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ppp-icon-btn:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.ppp-icon-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.ppp-icon-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Icon Button Sizes */
+.ppp-icon-btn--sm {
+  padding: var(--space-1);
+  min-width: 28px;
+  min-height: 28px;
+}
+
+.ppp-icon-btn--sm svg {
+  width: 16px;
+  height: 16px;
+}
+
+.ppp-icon-btn--md {
+  padding: var(--space-2);
+  min-width: var(--touch-target);
+  min-height: var(--touch-target);
+}
+
+.ppp-icon-btn--lg {
+  padding: var(--space-3);
+  min-width: 52px;
+  min-height: 52px;
+}
+
+.ppp-icon-btn--lg svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Icon Button Variants */
+.ppp-icon-btn--primary {
+  background: var(--primary-muted);
+  color: var(--primary);
+}
+
+.ppp-icon-btn--primary:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.ppp-icon-btn--danger {
+  color: var(--danger);
+}
+
+.ppp-icon-btn--danger:hover {
+  background: var(--danger-muted);
+  color: var(--danger);
+}

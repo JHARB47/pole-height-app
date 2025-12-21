@@ -1,0 +1,136 @@
+/**
+ * PolePlan Pro Design System - Design Tokens
+ * Professional engineering application visual language
+ */
+
+:root {
+  /* ===== COLORS ===== */
+
+  /* Background layers */
+  --bg: #0b1020;
+  --bg-elevated: #0f172a;
+  --surface: #0f172a;
+  --surface-2: #111c33;
+  --surface-3: #1a2744;
+  --surface-hover: #1e3a5f;
+
+  /* Borders */
+  --border: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --border-focus: rgba(79, 140, 255, 0.5);
+
+  /* Text hierarchy */
+  --text: rgba(255, 255, 255, 0.92);
+  --text-secondary: rgba(255, 255, 255, 0.8);
+  --text-muted: rgba(255, 255, 255, 0.6);
+  --text-subtle: rgba(255, 255, 255, 0.45);
+
+  /* Primary brand */
+  --primary: #4f8cff;
+  --primary-hover: #6ba0ff;
+  --primary-active: #2f6bff;
+  --primary-muted: rgba(79, 140, 255, 0.15);
+  --primary-text: #ffffff;
+
+  /* Semantic colors */
+  --success: #22c55e;
+  --success-hover: #16a34a;
+  --success-muted: rgba(34, 197, 94, 0.15);
+
+  --warning: #f5a524;
+  --warning-hover: #d97706;
+  --warning-muted: rgba(245, 165, 36, 0.15);
+
+  --danger: #ff4d4f;
+  --danger-hover: #dc2626;
+  --danger-muted: rgba(255, 77, 79, 0.15);
+
+  --info: #38bdf8;
+  --info-muted: rgba(56, 189, 248, 0.15);
+
+  /* ===== SHADOWS ===== */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.45);
+  --shadow-glow: 0 0 20px rgba(79, 140, 255, 0.3);
+
+  /* ===== SPACING ===== */
+  --space-1: 0.25rem; /* 4px */
+  --space-2: 0.5rem; /* 8px */
+  --space-3: 0.75rem; /* 12px */
+  --space-4: 1rem; /* 16px */
+  --space-5: 1.25rem; /* 20px */
+  --space-6: 1.5rem; /* 24px */
+  --space-8: 2rem; /* 32px */
+  --space-10: 2.5rem; /* 40px */
+  --space-12: 3rem; /* 48px */
+
+  /* ===== RADII ===== */
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-full: 9999px;
+
+  /* ===== TYPOGRAPHY ===== */
+  --font-sans:
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+
+  --text-xs: 0.75rem; /* 12px */
+  --text-sm: 0.875rem; /* 14px */
+  --text-base: 1rem; /* 16px */
+  --text-lg: 1.125rem; /* 18px */
+  --text-xl: 1.25rem; /* 20px */
+  --text-2xl: 1.5rem; /* 24px */
+  --text-3xl: 1.875rem; /* 30px */
+
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  /* ===== FOCUS ===== */
+  --focus-ring: 0 0 0 3px rgba(79, 140, 255, 0.35);
+  --focus-ring-offset: 0 0 0 2px var(--surface), 0 0 0 4px var(--primary);
+
+  /* ===== TRANSITIONS ===== */
+  --transition-fast: 100ms ease;
+  --transition-base: 150ms ease;
+  --transition-slow: 250ms ease;
+
+  /* ===== LAYOUT ===== */
+  --sidebar-width: 280px;
+  --header-height: 64px;
+  --content-max-width: 1200px;
+  --touch-target: 44px;
+
+  /* ===== Z-INDEX ===== */
+  --z-base: 1;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-fixed: 300;
+  --z-modal-backdrop: 400;
+  --z-modal: 500;
+  --z-tooltip: 600;
+  --z-toast: 700;
+}
+
+/* Light theme override (optional - for documentation/print) */
+@media print {
+  :root {
+    --bg: #ffffff;
+    --surface: #f8fafc;
+    --surface-2: #f1f5f9;
+    --text: #0f172a;
+    --text-secondary: #334155;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+  }
+}

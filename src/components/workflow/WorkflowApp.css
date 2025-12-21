@@ -1,0 +1,382 @@
+/* WorkflowApp.css - Main workflow container styles */
+
+/* Loading state */
+.ppp-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  padding: var(--space-12);
+  color: var(--text-muted);
+}
+
+.ppp-loading__spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Main content area with scrollable panels */
+.ppp-main-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-6);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .ppp-main-content {
+    padding: var(--space-4);
+    gap: var(--space-4);
+  }
+}
+
+/* Panel header with title and actions */
+.ppp-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.ppp-panel-header__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.ppp-panel-header__step-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--primary);
+  color: white;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: var(--radius-full);
+}
+
+.ppp-panel-header h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+
+.ppp-panel-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Empty state */
+.ppp-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  padding: var(--space-12) var(--space-6);
+  text-align: center;
+  background: var(--surface);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.ppp-empty-state__icon {
+  width: 48px;
+  height: 48px;
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+.ppp-empty-state__title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+
+.ppp-empty-state__description {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  max-width: 300px;
+  margin: 0;
+}
+
+/* Section divider */
+.ppp-divider {
+  height: 1px;
+  background: var(--border);
+  margin: var(--space-4) 0;
+}
+
+/* Inline field group */
+.ppp-field-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.ppp-field-group > * {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* Field with label */
+.ppp-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.ppp-field__label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.ppp-field__label--required::after {
+  content: "*";
+  color: var(--danger);
+}
+
+.ppp-field__hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.ppp-field__error {
+  font-size: 0.75rem;
+  color: var(--danger);
+}
+
+/* Data table wrapper */
+.ppp-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.ppp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.ppp-table th,
+.ppp-table td {
+  padding: var(--space-3);
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.ppp-table th {
+  background: var(--surface);
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.ppp-table tbody tr:hover {
+  background: rgba(79, 140, 255, 0.05);
+}
+
+.ppp-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Numeric columns */
+.ppp-table td.numeric {
+  text-align: right;
+  font-feature-settings: "tnum";
+}
+
+/* Status cells */
+.ppp-table td.status {
+  text-align: center;
+}
+
+/* Action cells */
+.ppp-table td.actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Sticky header table */
+.ppp-table--sticky-header thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+/* Inline data grid (for simpler layouts) */
+.ppp-data-grid {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+}
+
+.ppp-data-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.ppp-data-item__label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ppp-data-item__value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.ppp-data-item__value--pass {
+  color: var(--success);
+}
+
+.ppp-data-item__value--fail {
+  color: var(--danger);
+}
+
+/* Summary row (totals, etc.) */
+.ppp-summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.ppp-summary-row__label {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.ppp-summary-row__value {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Progress indicator */
+.ppp-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.ppp-progress__bar {
+  height: 8px;
+  background: var(--surface);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.ppp-progress__fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: var(--radius-full);
+  transition: width 0.3s ease;
+}
+
+.ppp-progress__fill--success {
+  background: var(--success);
+}
+
+.ppp-progress__fill--warning {
+  background: var(--warning);
+}
+
+.ppp-progress__label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Action bar (bottom of panels) */
+.ppp-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding-top: var(--space-6);
+  margin-top: var(--space-6);
+  border-top: 1px solid var(--border);
+}
+
+.ppp-action-bar--with-status {
+  justify-content: space-between;
+}
+
+.ppp-action-bar__status {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.ppp-action-bar__buttons {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .ppp-panel-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ppp-panel-header__actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .ppp-action-bar {
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .ppp-action-bar--with-status {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ppp-action-bar__buttons {
+    justify-content: stretch;
+  }
+
+  .ppp-action-bar__buttons > * {
+    flex: 1;
+  }
+}

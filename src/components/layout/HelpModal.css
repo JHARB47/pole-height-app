@@ -1,0 +1,237 @@
+/**
+ * PolePlan Pro - Help Modal Styles
+ */
+
+/* ===== HELP INTRO ===== */
+.ppp-help-intro {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-5);
+  line-height: var(--leading-relaxed);
+}
+
+/* ===== QUICK START STEPS ===== */
+.ppp-help-steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.ppp-help-step {
+  display: flex;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: border-color var(--transition-fast);
+}
+
+.ppp-help-step:hover {
+  border-color: var(--border-strong);
+}
+
+.ppp-help-step__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  font-size: 24px;
+  background: var(--primary-muted);
+  border-radius: var(--radius);
+  flex-shrink: 0;
+}
+
+.ppp-help-step__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.ppp-help-step__title {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text);
+  margin: 0 0 var(--space-1) 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.ppp-help-step__number {
+  color: var(--primary);
+  font-weight: var(--font-bold);
+}
+
+.ppp-help-step__desc {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin: 0;
+  line-height: var(--leading-relaxed);
+}
+
+/* ===== FIELD MODE TIPS ===== */
+.ppp-help-tips {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.ppp-help-tip {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.ppp-help-tip__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  font-size: 18px;
+  background: var(--surface-3);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.ppp-help-tip__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.ppp-help-tip__title {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.ppp-help-tip__desc {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin: 0;
+  line-height: var(--leading-normal);
+}
+
+/* ===== FAQ ===== */
+.ppp-help-faq__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.ppp-help-faq__item {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface-2);
+  transition: border-color var(--transition-fast);
+}
+
+.ppp-help-faq__item:hover {
+  border-color: var(--border-strong);
+}
+
+.ppp-help-faq__item--open {
+  border-color: var(--primary);
+}
+
+.ppp-help-faq__question {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text);
+  text-align: left;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.ppp-help-faq__question:hover {
+  color: var(--primary);
+}
+
+.ppp-help-faq__question:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.ppp-help-faq__chevron {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: transform var(--transition-base);
+}
+
+.ppp-help-faq__item--open .ppp-help-faq__chevron {
+  transform: rotate(180deg);
+}
+
+.ppp-help-faq__answer {
+  padding: 0 var(--space-4) var(--space-4) var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+  animation: ppp-fade-in 0.15s ease;
+}
+
+/* ===== HELP FOOTER ===== */
+.ppp-help-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  width: 100%;
+}
+
+.ppp-help-checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.ppp-help-checkbox input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--primary);
+}
+
+.ppp-help-checkbox span {
+  user-select: none;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 640px) {
+  .ppp-help-step {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .ppp-help-step__icon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  .ppp-help-footer {
+    flex-direction: column-reverse;
+    gap: var(--space-3);
+  }
+
+  .ppp-help-footer .ppp-btn {
+    width: 100%;
+  }
+}

@@ -1,0 +1,85 @@
+/**
+ * PolePlan Pro - Badge Component Styles
+ */
+
+/* ===== BASE BADGE ===== */
+.ppp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  font-family: var(--font-sans);
+  font-weight: var(--font-semibold);
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+/* ===== BADGE SIZES ===== */
+.ppp-badge--sm {
+  padding: 2px var(--space-2);
+  font-size: 10px;
+}
+
+.ppp-badge--md {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-xs);
+}
+
+.ppp-badge--lg {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+}
+
+/* ===== BADGE VARIANTS ===== */
+.ppp-badge--default {
+  background: var(--surface-3);
+  color: var(--text-muted);
+}
+
+.ppp-badge--primary {
+  background: var(--primary-muted);
+  color: var(--primary);
+}
+
+.ppp-badge--success {
+  background: var(--success-muted);
+  color: var(--success);
+}
+
+.ppp-badge--warning {
+  background: var(--warning-muted);
+  color: var(--warning);
+}
+
+.ppp-badge--danger {
+  background: var(--danger-muted);
+  color: var(--danger);
+}
+
+.ppp-badge--info {
+  background: var(--info-muted);
+  color: var(--info);
+}
+
+/* ===== BADGE DOT ===== */
+.ppp-badge__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.ppp-badge--dot {
+  padding-left: var(--space-2);
+}
+
+/* ===== BADGE GROUP ===== */
+.ppp-badge-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}

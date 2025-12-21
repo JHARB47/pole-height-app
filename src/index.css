@@ -147,6 +147,33 @@
 }
 
 @layer components {
+  /* Spinner for loading states */
+  .ppp-spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: ppp-spin 0.75s linear infinite;
+    vertical-align: middle;
+    margin-right: 0.25rem;
+  }
+
+  @keyframes ppp-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ppp-spinner {
+      animation: none;
+      border-right-color: currentColor;
+      opacity: 0.5;
+    }
+  }
+
   /* Engineering workflow step cards */
   .workflow-step-card {
     border-radius: 0.75rem;
