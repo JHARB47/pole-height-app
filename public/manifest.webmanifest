@@ -1,15 +1,25 @@
 {
   "name": "PolePlan Pro",
-  "short_name": "PolePlan Pro",
+  "short_name": "PolePlan",
+  "description": "Plan proposed lines and pole heights with on-site field collection and export to GIS formats.",
   "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#0ea5e9",
+  "orientation": "any",
+  "background_color": "#f8fafc",
+  "theme_color": "#2563eb",
+  "categories": ["utilities", "productivity", "business"],
   "icons": [
     { "src": "/pwa-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "/pwa-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "/maskable_icon.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
-  ]
+    {
+      "src": "/maskable_icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false
 }

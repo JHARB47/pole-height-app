@@ -6,9 +6,20 @@
   :root {
     color: #0f172a;
     background-color: #f8fafc;
-    font-family: Manrope, "DM Sans", "Segoe UI", sans-serif;
+    /* System font stack for maximum cross-platform compatibility */
+    font-family:
+      Manrope,
+      "DM Sans",
+      "Segoe UI",
+      -apple-system,
+      BlinkMacSystemFont,
+      system-ui,
+      sans-serif;
     font-size: clamp(15px, 1.2vw + 0.2rem, 17px);
     line-height: 1.6;
+    /* Prevent iOS zoom on input focus */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
 
     --text-strong: #0f172a;
     --text-muted: #334155;
@@ -22,6 +33,10 @@
     --border-strong: #cbd5e1;
     --shadow-soft: 0 1px 2px 0 rgb(0 0 0 / 6%);
     --ring: #4f46e5;
+    /* Touch target minimum for all platforms */
+    --touch-target-min: 44px;
+    /* Focus ring for keyboard navigation */
+    --focus-ring: 0 0 0 3px rgba(79, 70, 229, 0.4);
   }
 
   /* Light mode only - dark mode removed for professional engineering appearance */
@@ -32,8 +47,26 @@
     background: var(--page-bg);
     color: var(--text-strong);
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
     word-break: keep-all;
     overflow-wrap: break-word;
+    /* Prevent horizontal scroll on mobile */
+    overflow-x: hidden;
+    /* Smooth scrolling for all browsers */
+    scroll-behavior: smooth;
+  }
+
+  /* Reduce motion for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 
   @supports (text-wrap: balance) {
@@ -81,6 +114,24 @@
     padding: 0.5rem 0.75rem;
     line-height: 1.4;
     font-family: inherit;
+    /* Prevent iOS zoom on focus - ensure 16px minimum */
+    font-size: max(16px, 1rem);
+    /* Touch target minimum */
+    min-height: var(--touch-target-min);
+    /* Remove iOS default styling */
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  /* Firefox number input spinner fix */
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
   }
 
   input::placeholder,
@@ -93,15 +144,24 @@
   textarea:focus,
   select:focus {
     outline: none;
-    box-shadow: 0 0 0 2px var(--ring);
+    box-shadow: var(--focus-ring);
+    border-color: var(--ring);
   }
 
-  @supports (color: color-mix(in srgb, white, black)) {
-    input:focus,
-    textarea:focus,
-    select:focus {
-      box-shadow: 0 0 0 2px color-mix(in srgb, var(--ring) 80%, transparent);
-    }
+  /* Focus visible for keyboard users only */
+  input:focus:not(:focus-visible),
+  textarea:focus:not(:focus-visible),
+  select:focus:not(:focus-visible) {
+    box-shadow: none;
+    border-color: var(--border);
+  }
+
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    border-color: var(--ring);
   }
 }
 
@@ -391,11 +451,32 @@
     user-select: none;
     -webkit-appearance: none;
     appearance: none;
+    /* Smooth transitions for all browsers */
+    -webkit-transition:
+      background-color 0.15s ease,
+      border-color 0.15s ease,
+      box-shadow 0.15s ease,
+      transform 0.1s ease;
     transition:
       background-color 0.15s ease,
       border-color 0.15s ease,
-      box-shadow 0.15s ease;
-    min-height: 44px; /* iOS touch target minimum */
+      box-shadow 0.15s ease,
+      transform 0.1s ease;
+    min-height: var(--touch-target-min); /* iOS/Android touch target minimum */
+    /* Remove default button styling on iOS */
+    -webkit-border-radius: 0.375rem;
+  }
+
+  /* Active state for touch feedback */
+  .btn:active:not(:disabled) {
+    -webkit-transform: scale(0.98);
+    transform: scale(0.98);
+  }
+
+  /* Focus visible for keyboard users */
+  .btn:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
   }
 
   .btn:disabled {
@@ -468,6 +549,25 @@
     padding: 0.25rem 0.5rem;
     font-size: 0.6875rem;
     min-height: 32px;
+  }
+
+  /* Ensure proper spacing between icon and text in buttons */
+  .btn > svg {
+    flex-shrink: 0;
+    width: 1em;
+    height: 1em;
+  }
+
+  .btn > svg:first-child {
+    margin-right: 0.375rem;
+  }
+
+  .btn > svg:last-child {
+    margin-left: 0.375rem;
+  }
+
+  .btn > svg:only-child {
+    margin: 0;
   }
 
   /* Button group - horizontal layout that doesn't wrap */
@@ -679,5 +779,57 @@
 
   .vertical-rhythm > * + * {
     margin-top: 1rem;
+  }
+
+  /* Cross-browser scrollbar styling */
+  .styled-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+
+  .styled-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .styled-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .styled-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--border-strong);
+    border-radius: 4px;
+  }
+
+  /* Hide scrollbar but allow scrolling (cross-browser) */
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* iOS momentum scrolling */
+  .momentum-scroll {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Prevent text selection on interactive elements */
+  .no-select {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  /* Hardware acceleration for smooth animations */
+  .gpu-accelerated {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    will-change: transform;
   }
 }
