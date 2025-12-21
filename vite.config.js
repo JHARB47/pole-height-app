@@ -145,5 +145,9 @@ export default defineConfig({
   define: {
     // Provide global for libraries that expect it
     global: "globalThis",
+    // Inject app version for telemetry
+    "import.meta.env.VITE_APP_VERSION": JSON.stringify(process.env.npm_package_version || "0.2.0"),
+    // Inject build SHA for release correlation (from CI or git)
+    "import.meta.env.VITE_BUILD_SHA": JSON.stringify(process.env.VITE_BUILD_SHA || process.env.COMMIT_REF || null),
   },
 });
