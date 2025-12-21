@@ -1,5 +1,6 @@
 /// <reference lib="webworker" />
-const PRECACHE = 'ph-precache-v3';
+// IMPORTANT: Bump this version whenever deploying new UI changes
+const PRECACHE = 'ph-precache-v4';
 const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/vite.svg'];
 const PRECACHE_URLS = [
   'https://unpkg.com/@mapbox/shp-write@0.4.3/dist/shpwrite.js',
