@@ -1592,10 +1592,10 @@ function FieldActionsCompact() {
   };
 
   return (
-    <div className="flex items-center gap-2 text-xs">
+    <div className="export-toolbar">
       <label
         htmlFor="include-photos-checkbox"
-        className="inline-flex items-center gap-1"
+        className="btn-group-label inline-flex items-center gap-1"
         title="Include photos when available in ZIP exports"
       >
         <input
@@ -1607,52 +1607,54 @@ function FieldActionsCompact() {
         />
         Photos
       </label>
-      <button
-        className="px-2 py-1 border rounded"
-        onClick={exportCollected}
-        disabled={!store.collectedPoles?.length}
-      >
-        Export CSV
-      </button>
-      <button
-        className="px-2 py-1 border rounded"
-        onClick={exportFirst25}
-        disabled={(store.collectedPoles?.length || 0) < 1}
-      >
-        First 25
-      </button>
-      <button
-        className="px-2 py-1 border rounded"
-        onClick={exportSpansZip}
-        disabled={(store.collectedPoles?.length || 0) < 1}
-      >
-        FE SPANS
-      </button>
-      <button
-        className="px-2 py-1 border rounded"
-        onClick={exportByProfile}
-        disabled={(store.collectedPoles?.length || 0) < 1}
-      >
-        Utility ZIP
-      </button>
-      <div className="flex items-center gap-1">
-        <span>Geo:</span>
+      <div className="btn-group">
         <button
-          className="px-2 py-1 border rounded"
+          className="btn btn-secondary btn-xs"
+          onClick={exportCollected}
+          disabled={!store.collectedPoles?.length}
+        >
+          Export CSV
+        </button>
+        <button
+          className="btn btn-secondary btn-xs"
+          onClick={exportFirst25}
+          disabled={(store.collectedPoles?.length || 0) < 1}
+        >
+          First 25
+        </button>
+        <button
+          className="btn btn-secondary btn-xs"
+          onClick={exportSpansZip}
+          disabled={(store.collectedPoles?.length || 0) < 1}
+        >
+          FE SPANS
+        </button>
+        <button
+          className="btn btn-secondary btn-xs"
+          onClick={exportByProfile}
+          disabled={(store.collectedPoles?.length || 0) < 1}
+        >
+          Utility ZIP
+        </button>
+      </div>
+      <div className="btn-group">
+        <span className="btn-group-label">Geo:</span>
+        <button
+          className="btn btn-outline-blue btn-xs"
           onClick={() => exportGeo("geojson")}
           disabled={(store.collectedPoles?.length || 0) < 1}
         >
           GeoJSON
         </button>
         <button
-          className="px-2 py-1 border rounded"
+          className="btn btn-outline-blue btn-xs"
           onClick={() => exportGeo("kml")}
           disabled={(store.collectedPoles?.length || 0) < 1}
         >
           KML
         </button>
         <button
-          className="px-2 py-1 border rounded"
+          className="btn btn-outline-blue btn-xs"
           onClick={() => exportGeo("kmz")}
           disabled={(store.collectedPoles?.length || 0) < 1}
         >
@@ -1660,7 +1662,7 @@ function FieldActionsCompact() {
         </button>
       </div>
       <button
-        className="px-2 py-1 border rounded"
+        className="btn btn-secondary btn-xs"
         onClick={() => store.setCollectedPoles?.([])}
         disabled={!store.collectedPoles?.length}
       >
@@ -4559,7 +4561,7 @@ function FieldCollection({ openHelp, showBottomActions = true }) {
             placeholder="-82.987654"
           />
           <button
-            className="h-9 px-3 border rounded text-sm"
+            className="btn btn-outline-blue btn-sm"
             onClick={async () => {
               if (!("geolocation" in navigator)) {
                 alert("Geolocation not supported");
@@ -4590,14 +4592,14 @@ function FieldCollection({ openHelp, showBottomActions = true }) {
             <span className="text-sm font-medium text-gray-700">Photo</span>
             <div className="flex items-center gap-2">
               <button
-                className="h-9 px-2 border rounded text-sm"
+                className="btn btn-secondary btn-sm"
                 onClick={() => fileInputRefCamera.current?.click()}
                 title="Take photo"
               >
                 Camera
               </button>
               <button
-                className="h-9 px-2 border rounded text-sm"
+                className="btn btn-secondary btn-sm"
                 onClick={() => fileInputRefLibrary.current?.click()}
                 title="Choose from library"
               >
@@ -4612,7 +4614,7 @@ function FieldCollection({ openHelp, showBottomActions = true }) {
               ) : null}
               {currentPhotoDataUrl ? (
                 <button
-                  className="h-9 px-2 border rounded text-sm"
+                  className="btn btn-secondary btn-sm"
                   onClick={() => setCurrentPhotoDataUrl("")}
                 >
                   Remove
@@ -4637,14 +4639,14 @@ function FieldCollection({ openHelp, showBottomActions = true }) {
           </div>
           <div className="flex items-end justify-end gap-2">
             <button
-              className="h-9 px-3 border rounded text-sm"
+              className="btn btn-secondary btn-sm"
               onClick={onSaveDraft}
               disabled={saving}
             >
               Save Draft
             </button>
             <button
-              className="h-9 px-3 border rounded text-sm"
+              className="btn btn-primary btn-sm"
               onClick={onDone}
               disabled={saving}
             >
@@ -4655,8 +4657,8 @@ function FieldCollection({ openHelp, showBottomActions = true }) {
       </div>
 
       {showBottomActions ? (
-        <div className="mt-3 flex items-center gap-2">
-          <label className="text-xs inline-flex items-center gap-2 mr-1">
+        <div className="export-toolbar mt-3">
+          <label className="btn-group-label inline-flex items-center gap-2">
             <input
               type="checkbox"
               className="h-4 w-4"
@@ -4665,52 +4667,54 @@ function FieldCollection({ openHelp, showBottomActions = true }) {
             />
             <span>Include photos</span>
           </label>
-          <button
-            className="px-2 py-1 border rounded text-sm"
-            onClick={exportCollected}
-            disabled={!store.collectedPoles?.length}
-          >
-            Export CSV
-          </button>
-          <button
-            className="px-2 py-1 border rounded text-sm"
-            onClick={exportFirst25}
-            disabled={(store.collectedPoles?.length || 0) < 1}
-          >
-            Export First 25
-          </button>
-          <button
-            className="px-2 py-1 border rounded text-sm"
-            onClick={exportSpansZip}
-            disabled={(store.collectedPoles?.length || 0) < 1}
-          >
-            Export FE SPANS ZIP
-          </button>
-          <button
-            className="px-2 py-1 border rounded text-sm"
-            onClick={exportByProfile}
-            disabled={(store.collectedPoles?.length || 0) < 1}
-          >
-            Export Utility ZIP (Profile)
-          </button>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500">Geospatial:</span>
+          <div className="btn-group">
             <button
-              className="px-2 py-1 border rounded text-xs"
+              className="btn btn-secondary btn-sm"
+              onClick={exportCollected}
+              disabled={!store.collectedPoles?.length}
+            >
+              Export CSV
+            </button>
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={exportFirst25}
+              disabled={(store.collectedPoles?.length || 0) < 1}
+            >
+              Export First 25
+            </button>
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={exportSpansZip}
+              disabled={(store.collectedPoles?.length || 0) < 1}
+            >
+              FE SPANS ZIP
+            </button>
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={exportByProfile}
+              disabled={(store.collectedPoles?.length || 0) < 1}
+            >
+              Utility ZIP
+            </button>
+          </div>
+          <div className="btn-group">
+            <span className="btn-group-label">Geospatial:</span>
+            <button
+              className="btn btn-outline-blue btn-xs"
               onClick={() => exportGeo("geojson")}
               disabled={(store.collectedPoles?.length || 0) < 1}
             >
               GeoJSON
             </button>
             <button
-              className="px-2 py-1 border rounded text-xs"
+              className="btn btn-outline-blue btn-xs"
               onClick={() => exportGeo("kml")}
               disabled={(store.collectedPoles?.length || 0) < 1}
             >
               KML
             </button>
             <button
-              className="px-2 py-1 border rounded text-xs"
+              className="btn btn-outline-blue btn-xs"
               onClick={() => exportGeo("kmz")}
               disabled={(store.collectedPoles?.length || 0) < 1}
             >
@@ -4718,40 +4722,42 @@ function FieldCollection({ openHelp, showBottomActions = true }) {
             </button>
             {/* Shapefile export omitted intentionally to avoid heavy deps */}
           </div>
+          <div className="btn-group">
+            <button
+              className="btn btn-outline-green btn-sm"
+              onClick={exportAepZip}
+              disabled={(store.collectedPoles?.length || 0) < 1}
+            >
+              AEP ZIP
+            </button>
+            <button
+              className="btn btn-outline-green btn-sm"
+              onClick={exportFilteredByProfile}
+              disabled={!rows.length}
+            >
+              Filtered ZIP
+            </button>
+            <button
+              className="btn btn-outline-amber btn-sm"
+              onClick={exportDoneOnly}
+              disabled={!rows.length}
+            >
+              DONE-only
+            </button>
+            <button
+              className="btn btn-outline-amber btn-sm"
+              onClick={exportFailOnly}
+              disabled={!rows.length}
+            >
+              FAIL-only
+            </button>
+          </div>
           <button
-            className="px-2 py-1 border rounded text-sm"
-            onClick={exportAepZip}
-            disabled={(store.collectedPoles?.length || 0) < 1}
-          >
-            Export AEP ZIP
-          </button>
-          <button
-            className="px-2 py-1 border rounded text-sm"
-            onClick={exportFilteredByProfile}
-            disabled={!rows.length}
-          >
-            Export Filtered ZIP
-          </button>
-          <button
-            className="px-2 py-1 border rounded text-sm"
-            onClick={exportDoneOnly}
-            disabled={!rows.length}
-          >
-            Export DONE-only
-          </button>
-          <button
-            className="px-2 py-1 border rounded text-sm"
-            onClick={exportFailOnly}
-            disabled={!rows.length}
-          >
-            Export FAIL-only
-          </button>
-          <button
-            className="px-2 py-1 border rounded text-sm"
+            className="btn btn-secondary btn-sm"
             onClick={() => store.setCollectedPoles?.([])}
             disabled={!store.collectedPoles?.length}
           >
-            Clear
+            Clear All
           </button>
         </div>
       ) : null}
@@ -5515,7 +5521,7 @@ function ImportPanel() {
           />
         </label>
         <button
-          className="self-end h-9 px-3 border rounded"
+          className="btn btn-primary btn-sm self-end"
           onClick={onImport}
           disabled={!file}
         >
@@ -5549,7 +5555,7 @@ function ImportPanel() {
           {batchPreview.lines} lines loaded
         </div>
         <button
-          className="self-end h-9 px-3 border rounded"
+          className="btn btn-secondary btn-sm self-end"
           onClick={() => {
             // Apply imported first records again (handy after edits)
             const data = {
@@ -5600,13 +5606,13 @@ function ImportPanel() {
           </select>
         </label>
         <button
-          className="self-end h-9 px-3 border rounded"
+          className="btn btn-secondary btn-sm self-end"
           onClick={() => setShowConfig(true)}
         >
           Configure Mapping
         </button>
         <button
-          className="self-end h-9 px-3 border rounded"
+          className="btn btn-secondary btn-sm self-end"
           onClick={() => {
             const name = prompt("Delete saved profile by name:");
             if (name) store.removeMappingProfile(name);
@@ -5615,7 +5621,7 @@ function ImportPanel() {
           Delete Profile
         </button>
         <button
-          className="self-end h-9 px-3 border rounded"
+          className="btn btn-secondary btn-sm self-end"
           onClick={() => {
             const oldName = prompt(
               "Rename which profile? Enter existing name:",
@@ -5629,7 +5635,7 @@ function ImportPanel() {
           Rename Profile
         </button>
         <button
-          className="self-end h-9 px-3 border rounded"
+          className="btn btn-secondary btn-sm self-end"
           onClick={() => {
             // Simple auto-map heuristic with preview
             const choose = (list, keywords) =>
@@ -5669,7 +5675,7 @@ function ImportPanel() {
           Auto-map
         </button>
         <button
-          className="self-end h-9 px-3 border rounded"
+          className="btn btn-secondary btn-sm self-end"
           onClick={() => {
             try {
               const blob = new Blob(
@@ -5689,7 +5695,7 @@ function ImportPanel() {
         >
           Export Profiles
         </button>
-        <label className="self-end h-9 px-3 border rounded inline-flex items-center gap-2 cursor-pointer">
+        <label className="btn btn-secondary btn-sm self-end inline-flex items-center gap-2 cursor-pointer">
           <span>Import Profiles</span>
           <input
             type="file"
