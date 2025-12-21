@@ -70,8 +70,7 @@
                 "Lint: Code Quality",
                 "Test: Unit Tests",
                 "Build: Production Bundle",
-                "DB: Verify Schema",
-                "Deploy: Netlify CLI"
+                "DB: Verify Schema"
             ],
             "group": {
                 "kind": "build",

@@ -1,9 +1,5 @@
-import { neon } from '@netlify/neon';
-import { drizzle } from 'drizzle-orm/neon-http';
+// AI: rationale — this file was an experiment with Netlify Neon + drizzle.
+// It is currently unused; leaving a type placeholder avoids tooling noise.
 
-import * as schema from './schema';
-
-export const db = drizzle({
-    schema,
-    client: neon()
-});
+/** Placeholder type for future database client instance */
+export type DbClient = unknown;

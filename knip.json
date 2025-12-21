@@ -1,0 +1,48 @@
+{
+  "$schema": "node_modules/knip/schema.json",
+  "paths": {
+    "@/*": [
+      "src/*"
+    ]
+  },
+  "entry": [
+    "src/main.jsx",
+    "server/index.js",
+    "netlify/functions/*.{js,mjs}",
+    "scripts/**/*.{js,mjs}"
+  ],
+  "project": [
+    "src/**/*.{js,jsx,mjs,ts,tsx}",
+    "server/**/*.{js,mjs,cjs}",
+    "netlify/**/*.{js,mjs}",
+    "scripts/**/*.{js,mjs}",
+    "*.config.{js,cjs,ts}"
+  ],
+  "ignoreBinaries": [
+    "docker-compose",
+    "netlify",
+    "rimraf",
+    "rollup-plugin-visualizer"
+  ],
+  "ignoreDependencies": [
+    "pino-pretty"
+  ],
+  "ignoreFiles": [
+    "dist/**",
+    "coverage/**",
+    "public/**",
+    "migrations/schema.ts",
+    "migrations/relations.ts",
+    "**/*.d.ts"
+  ],
+  "rules": {
+    "files": "off",
+    "devDependencies": "off",
+    "exports": "off",
+    "types": "off",
+    "nsExports": "off",
+    "nsTypes": "off",
+    "classMembers": "off",
+    "enumMembers": "off"
+  }
+}

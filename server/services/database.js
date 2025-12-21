@@ -59,16 +59,13 @@ export class DatabaseService {
       
       this.logger.info('Database pool initialized successfully');
       
-  // Mark service as initialized BEFORE running migrations so internal
-  // query()/transaction() calls inside runMigrations are allowed
-  this.isInitialized = true;
+      // Mark service as initialized BEFORE running migrations so internal
+      // query()/transaction() calls inside runMigrations are allowed
+      this.isInitialized = true;
 
-  // Run migrations (uses this.query/transaction)
-  await this.runMigrations();
-      // Run migrations
+      // Run migrations (uses this.query/transaction)
       await this.runMigrations();
       
-      this.isInitialized = true;
       this.initSpan.setAttribute('poolMax', config.max);
       this.initSpan.setStatus({ code: 'ok' });
     } catch (error) {

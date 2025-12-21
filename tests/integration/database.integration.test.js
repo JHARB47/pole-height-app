@@ -5,8 +5,8 @@
  */
 import { describe, test, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { GenericContainer, Wait } from 'testcontainers';
-import { DatabaseService } from '../server/services/database.js';
-import { Logger } from '../server/services/logger.js';
+import { DatabaseService } from '../../server/services/database.js';
+import { Logger } from '../../server/services/logger.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 

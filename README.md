@@ -8,7 +8,7 @@
 [![Build Size](https://img.shields.io/badge/bundle-1388.4%20KB%20%2F%201450%20KB-success)](https://github.com/JHARB47/pole-height-app/actions)
 
 **Live URL**: <https://poleplanpro.com>  
-**Status**: Production | Node 22.20.0 | React 18 | Vite 7.1.8 | Netlify Functions (esbuild)
+**Status**: Production | Node 22.x (see `.nvmrc`) | React 18 | Vite 7.x | Netlify Functions (esbuild)
 
 A comprehensive web application for calculating NESC-compliant pole attachment heights and span-level pull (tension surrogate) using bearing-derived geometry, with enterprise-grade authentication, database integration, and resilient geospatial export capabilities.
 
@@ -36,15 +36,15 @@ A comprehensive web application for calculating NESC-compliant pole attachment h
 
 ### Frontend
 
-- **Framework**: React 18.2 with Vite 7.1.8
-- **Styling**: TailwindCSS 3.4 with responsive design and print optimization
+- **Framework**: React 18.2 with Vite 7.x
+- **Styling**: TailwindCSS 4.x with responsive design and print optimization
 - **State Management**: Zustand with localStorage persistence and corruption recovery
 - **Icons**: Lucide React icon library
 
 ### Backend & Database
 
-- **Runtime**: Node.js 22.20.0 (LTS)
-- **Server**: Express 4.21 with Helmet security middleware
+- **Runtime**: Node.js 22.x (see `.nvmrc`)
+- **Server**: Express 5.x with Helmet security middleware
 - **Database**: PostgreSQL 17.5 (Neon serverless)
   - Pooled connections for runtime operations
   - Unpooled connections for migrations
@@ -60,8 +60,8 @@ A comprehensive web application for calculating NESC-compliant pole attachment h
 
 - **CI/CD**: GitHub Actions multi-stage pipeline
   - Security scanning (CodeQL, Snyk, Trivy)
-  - Automated testing (current suite: 193/203 passing)
-  - Bundle size monitoring (1388.4 KB / 1450 KB)
+  - Automated testing (see CI badges)
+  - Bundle size monitoring (see CI logs)
   - Docker builds with multi-platform support
 - **Testing**: Vitest + Playwright for end-to-end validation
 - **Deployment**: Netlify (with environment-specific configs + functions)
@@ -81,10 +81,9 @@ A comprehensive web application for calculating NESC-compliant pole attachment h
 
 2. **Database & Backend**
    - Configure PostgreSQL 17.5+ via Neon or local container
-   - Environment variables:
-     - Pooled/Unpooled `DATABASE_URL`, `JWT_SECRET`, `REFRESH_TOKEN_SECRET`, OAuth secrets
+   - Environment variables: Pooled/Unpooled `DATABASE_URL`, `JWT_SECRET`, `REFRESH_TOKEN_SECRET`, OAuth secrets
    - Run migrations: `npm run db:migrate`
-   - Start backend API: `npm run dev:api` (or `npm run dev:full` for concurrent frontend)
+   - Start backend API: `npm run dev:backend` (or `npm run dev:full` for concurrent frontend)
 
 3. **Frontend Development**
    - Start Vite dev server: `npm run dev` (hot reload)
@@ -97,7 +96,7 @@ A comprehensive web application for calculating NESC-compliant pole attachment h
 
 5. **Full Stack Verification**
    - Run `npm run verify` to execute linting, tests, bundle, and deploy checks sequentially
-   - CI mirrors these steps across Node 22.x & 24.x, plus PostgreSQL service
+   - CI mirrors these steps on the Node version from `.nvmrc`
 
 6. **Deployment Flow**
    - GitHub Action (`ci-cd.yml`) handles lint → test → build → deploy
@@ -112,10 +111,7 @@ A comprehensive web application for calculating NESC-compliant pole attachment h
 
 - **Command**: `npm run build`
 - **Publish Dir**: `dist`
-- **Node Version**: 22.20.0 (enforced by `.nvmrc`, `netlify.toml`, CI)
-- **Bundle Size**: 1388.4 KB / 1450 KB (95.8% utilized)
-- **Build Time**: ~2.2s
-- **Dependencies**: 1624 packages, zero prod vulnerabilities
+- **Node Version**: 22.x (enforced by `.nvmrc`, `netlify.toml`, CI)
 - **Consistency**: CI and Netlify read `.nvmrc`; developers must `nvm use` before `npm ci`
 
 #### Key Files
@@ -134,7 +130,7 @@ A comprehensive web application for calculating NESC-compliant pole attachment h
 
 ### Prerequisites
 
-- Node.js 22.20.0
+- Node.js 22.x (see `.nvmrc` and `netlify.toml`)
 - npm 10.x+
 - PostgreSQL 17.5+
 
@@ -144,7 +140,7 @@ A comprehensive web application for calculating NESC-compliant pole attachment h
 nvm use
 npm ci
 npm run dev           # frontend
-npm run dev:api       # backend API
+npm run dev:backend   # backend API
 npm run dev:netlify   # functions + app with Netlify Dev
 ```
 
@@ -174,8 +170,8 @@ npm run docker:prod
 
 ```bash
 cp .env.example .env
-nvm install 22.20.0
-nvm use 22.20.0
+nvm install 22
+nvm use
 ```
 
 ## 🌍 Deployment to Netlify

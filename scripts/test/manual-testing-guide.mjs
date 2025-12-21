@@ -4,8 +4,8 @@
  * Run this script to create sample data and test new features
  */
 
-import { BUILT_IN_TEMPLATES, saveTemplate, getAllTemplates } from '../src/utils/exportTemplates.js';
-import { validatePoleCoordinates } from '../src/utils/gisValidation.js';
+import { BUILT_IN_TEMPLATES, saveTemplate, getAllTemplates } from '../../src/utils/exportTemplates.js';
+import { validatePoleCoordinates } from '../../src/utils/gisValidation.js';
 
 console.log('\n╔═══════════════════════════════════════════════════════════╗');
 console.log('║  PHASE 2 ENHANCEMENTS - MANUAL TESTING GUIDE              ║');
