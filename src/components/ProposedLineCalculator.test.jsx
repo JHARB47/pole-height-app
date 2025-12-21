@@ -47,14 +47,13 @@ describe("ProposedLineCalculator", () => {
     render(<ProposedLineCalculator />);
     // Key heading/title
     expect(screen.getByText("PolePlan Pro")).toBeTruthy();
-    // Workflow nav links
-    expect(screen.getByRole("link", { name: "Job" })).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Import/Map" })).toBeTruthy();
-    // Disambiguate against section title by scoping to role=link
-    expect(screen.getByRole("link", { name: "Spans" })).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Existing Lines" })).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Field" })).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Results" })).toBeTruthy();
+    // Workflow nav links (updated for new step indicator format)
+    expect(screen.getByRole("link", { name: /Job Setup/i })).toBeTruthy();
+    expect(screen.getByRole("link", { name: /Import/i })).toBeTruthy();
+    expect(screen.getByRole("link", { name: /Spans/i })).toBeTruthy();
+    expect(screen.getByRole("link", { name: /Existing/i })).toBeTruthy();
+    expect(screen.getByRole("link", { name: /Field/i })).toBeTruthy();
+    expect(screen.getByRole("link", { name: /Results/i })).toBeTruthy();
     // A couple of core controls exist
     expect(screen.getByText("Use GPS")).toBeTruthy();
     expect(

@@ -24,61 +24,7 @@
     --ring: #4f46e5;
   }
 
-  @media (prefers-color-scheme: dark) {
-    :root {
-      color: #e2e8f0;
-      background-color: #0b1220;
-
-      --text-strong: #e2e8f0;
-      --text-muted: #cbd5e1;
-      --text-subtle: #94a3b8;
-      --link: #93c5fd;
-      --link-visited: #a78bfa;
-      --page-bg: #0b1220;
-      --surface: #0f172a;
-      --surface-muted: #111827;
-      --border: #1f2937;
-      --border-strong: #334155;
-      --shadow-soft: 0 6px 24px 0 rgb(0 0 0 / 28%);
-      --ring: #818cf8;
-    }
-  }
-
-  :root[data-theme="light"] {
-    color: #0f172a;
-    background-color: #f8fafc;
-
-    --text-strong: #0f172a;
-    --text-muted: #334155;
-    --text-subtle: #475569;
-    --link: #1d4ed8;
-    --link-visited: #4338ca;
-    --page-bg: #f8fafc;
-    --surface: #fff;
-    --surface-muted: #f9fafb;
-    --border: #e5e7eb;
-    --border-strong: #cbd5e1;
-    --shadow-soft: 0 1px 2px 0 rgb(0 0 0 / 6%);
-    --ring: #4f46e5;
-  }
-
-  :root[data-theme="dark"] {
-    color: #e2e8f0;
-    background-color: #0b1220;
-
-    --text-strong: #e2e8f0;
-    --text-muted: #cbd5e1;
-    --text-subtle: #94a3b8;
-    --link: #93c5fd;
-    --link-visited: #a78bfa;
-    --page-bg: #0b1220;
-    --surface: #0f172a;
-    --surface-muted: #111827;
-    --border: #1f2937;
-    --border-strong: #334155;
-    --shadow-soft: 0 6px 24px 0 rgb(0 0 0 / 28%);
-    --ring: #818cf8;
-  }
+  /* Light mode only - dark mode removed for professional engineering appearance */
 
   body {
     margin: 0;
@@ -160,6 +106,65 @@
 }
 
 @layer components {
+  /* Engineering workflow step cards */
+  .workflow-step-card {
+    border-radius: 0.75rem;
+    border: 2px solid var(--border);
+    padding: clamp(1rem, 1.5vw + 0.5rem, 1.75rem);
+    background: linear-gradient(to bottom, #fff, #fafbfc);
+    box-shadow:
+      0 2px 8px rgb(0 0 0 / 4%),
+      0 1px 2px rgb(0 0 0 / 6%);
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s;
+  }
+
+  .workflow-step-card:focus-within {
+    border-color: #3b82f6;
+    box-shadow:
+      0 0 0 3px rgb(59 130 246 / 15%),
+      0 2px 8px rgb(0 0 0 / 8%);
+  }
+
+  .workflow-step-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .workflow-step-title {
+    font-size: clamp(1.1rem, 0.8vw + 0.9rem, 1.35rem);
+    font-weight: 700;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .workflow-step-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .workflow-step-desc {
+    font-size: 0.9rem;
+    color: #64748b;
+    line-height: 1.5;
+  }
+
   /* Reusable component styles */
   .app-section {
     border-radius: 0.75rem;

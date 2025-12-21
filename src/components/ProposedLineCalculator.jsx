@@ -397,30 +397,46 @@ export default function ProposedLineCalculator() {
   return (
     <div className="p-3 md:p-4 space-y-4">
       {/* Workflow nav */}
-      <nav className="sticky top-0 z-40 border-b border-gray-200 bg-white/90 backdrop-blur-sm print:hidden">
-        <div className="mx-auto max-w-6xl px-3 md:px-6 flex items-center gap-1 overflow-x-auto">
+      <nav className="sticky top-0 z-40 border-b border-gray-200 bg-white shadow-sm print:hidden">
+        <div className="mx-auto max-w-6xl px-3 md:px-6 flex items-center gap-0 overflow-x-auto py-1">
           {[
-            { id: "job", label: "Job" },
-            { id: "map", label: "Import/Map" },
-            { id: "spans", label: "Spans" },
-            { id: "existing", label: "Existing Lines" },
-            { id: "field", label: "Field" },
-            { id: "results", label: "Results" },
+            { id: "job", label: "Job Setup", step: 1, icon: "📋" },
+            { id: "map", label: "Import", step: 2, icon: "📁" },
+            { id: "spans", label: "Spans", step: 3, icon: "📏" },
+            { id: "existing", label: "Existing", step: 4, icon: "⚡" },
+            { id: "field", label: "Field", step: 5, icon: "📍" },
+            { id: "results", label: "Results", step: 6, icon: "📊" },
           ].map((link, i, arr) => (
             <React.Fragment key={link.id}>
               <a
                 href={`#${link.id}`}
                 aria-current={activeSection === link.id ? "step" : undefined}
-                className={`inline-flex items-center whitespace-nowrap rounded px-3 py-3 text-sm font-medium transition-colors duration-150 ease-in-out ${
+                className={`inline-flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-semibold transition-all duration-150 ease-in-out ${
                   activeSection === link.id
-                    ? "bg-blue-50 text-blue-700"
-                    : "text-gray-700 hover:text-black hover:bg-gray-50"
+                    ? "bg-blue-600 text-white shadow-md"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                 }`}
               >
-                {link.label}
+                <span
+                  className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
+                    activeSection === link.id
+                      ? "bg-white text-blue-600"
+                      : "bg-gray-200 text-gray-600"
+                  }`}
+                >
+                  {link.step}
+                </span>
+                <span className="hidden sm:inline">{link.label}</span>
+                <span className="sm:hidden">{link.icon}</span>
               </a>
               {i < arr.length - 1 ? (
-                <span className="text-gray-300">•</span>
+                <span
+                  className={`w-4 h-0.5 ${
+                    arr.findIndex((l) => l.id === activeSection) > i
+                      ? "bg-blue-400"
+                      : "bg-gray-200"
+                  }`}
+                />
               ) : null}
             </React.Fragment>
           ))}
@@ -465,30 +481,32 @@ export default function ProposedLineCalculator() {
       {/* Invisible anchor for #job and optional collapse */}
       <div id="job" className="scroll-mt-14" />
       {!showReport && (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 print:hidden rounded-lg border border-gray-200 bg-white p-4 md:p-6 shadow-sm">
-          <div className="flex items-start justify-between md:col-span-2 xl:col-span-3">
+        <div className="workflow-step-card print:hidden">
+          <div className="workflow-step-header md:col-span-2 xl:col-span-3">
             <div>
-              <div className="text-lg font-semibold text-gray-900 md:text-xl mb-3">
+              <div className="workflow-step-title">
+                <span className="workflow-step-badge">1</span>
                 Job Setup
               </div>
-              <div className="text-sm text-gray-600 leading-relaxed mb-4">
-                Project info, GPS, design parameters, and profiles.
+              <div className="workflow-step-desc mt-2">
+                Configure project info, GPS coordinates, design parameters, and
+                utility profiles.
               </div>
             </div>
             <div className="flex items-center gap-2">
               <SectionSaveButton sectionKey="job" align="right" />
               <button
                 type="button"
-                className="ml-2 px-3 py-2 text-sm border rounded bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                className="ml-2 px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-sm"
                 onClick={() => setOpenSections((s) => ({ ...s, job: !s.job }))}
                 aria-expanded={!!openSections.job}
               >
-                {openSections.job ? "Collapse" : "Expand"}
+                {openSections.job ? "▲ Collapse" : "▼ Expand"}
               </button>
             </div>
           </div>
           {!openSections.job ? null : (
-            <>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               <SectionTips section="job" />
               <Input
                 label="Project Name"
@@ -809,41 +827,41 @@ export default function ProposedLineCalculator() {
                   { label: "Tick Marks (15' 6\")", value: "ticks" },
                 ]}
               />
-            </>
+              {openSections.job ? (
+                <div className="md:col-span-2 xl:col-span-3">
+                  <SectionSaveButton sectionKey="job" align="bottom" />
+                </div>
+              ) : null}
+            </div>
           )}
-          {openSections.job ? (
-            <SectionSaveButton sectionKey="job" align="bottom" />
-          ) : null}
         </div>
       )}
 
       {!showReport && (
         <>
-          <div
-            id="map"
-            className="rounded-lg border border-gray-200 bg-white p-4 md:p-6 shadow-sm scroll-mt-14"
-          >
-            <div className="flex items-start justify-between">
+          <div id="map" className="workflow-step-card scroll-mt-14">
+            <div className="workflow-step-header">
               <div>
-                <div className="text-lg font-semibold text-gray-900 md:text-xl mb-3">
+                <div className="workflow-step-title">
+                  <span className="workflow-step-badge">2</span>
                   Import & Mapping
                 </div>
-                <div className="text-sm text-gray-600 leading-relaxed mb-4">
-                  Load KML/KMZ/Shapefile or CSV, map attributes, and
-                  batch-apply.
+                <div className="workflow-step-desc mt-2">
+                  Load KML/KMZ/Shapefile or CSV files, map attributes, and
+                  batch-apply data.
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <SectionSaveButton sectionKey="map" align="right" />
                 <button
                   type="button"
-                  className="ml-2 px-2 py-1 text-xs border rounded"
+                  className="ml-2 px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-sm"
                   onClick={() =>
                     setOpenSections((s) => ({ ...s, map: !s.map }))
                   }
                   aria-expanded={!!openSections.map}
                 >
-                  {openSections.map ? "Collapse" : "Expand"}
+                  {openSections.map ? "▲ Collapse" : "▼ Expand"}
                 </button>
               </div>
             </div>
@@ -853,31 +871,29 @@ export default function ProposedLineCalculator() {
               <SectionSaveButton sectionKey="map" align="bottom" />
             ) : null}
           </div>
-          <div
-            id="spans"
-            className="rounded-lg border border-gray-200 bg-white p-4 md:p-6 shadow-sm scroll-mt-14"
-          >
-            <div className="flex items-start justify-between">
+          <div id="spans" className="workflow-step-card scroll-mt-14">
+            <div className="workflow-step-header">
               <div>
-                <div className="text-lg font-semibold text-gray-900 md:text-xl mb-3">
+                <div className="workflow-step-title">
+                  <span className="workflow-step-badge">3</span>
                   Spans
                 </div>
-                <div className="text-sm text-gray-600 leading-relaxed mb-4">
-                  Per‑span environment, auto/manual length, and quick
-                  calculations.
+                <div className="workflow-step-desc mt-2">
+                  Configure per-span environment, auto/manual length, and run
+                  quick calculations.
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <SectionSaveButton sectionKey="spans" align="right" />
                 <button
                   type="button"
-                  className="ml-2 px-2 py-1 text-xs border rounded"
+                  className="ml-2 px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-sm"
                   onClick={() =>
                     setOpenSections((s) => ({ ...s, spans: !s.spans }))
                   }
                   aria-expanded={!!openSections.spans}
                 >
-                  {openSections.spans ? "Collapse" : "Expand"}
+                  {openSections.spans ? "▲ Collapse" : "▼ Expand"}
                 </button>
               </div>
             </div>
@@ -887,30 +903,28 @@ export default function ProposedLineCalculator() {
               <SectionSaveButton sectionKey="spans" align="bottom" />
             ) : null}
           </div>
-          <div
-            id="existing"
-            className="rounded-lg border border-gray-200 bg-white p-4 md:p-6 shadow-sm scroll-mt-14"
-          >
-            <div className="flex items-start justify-between">
+          <div id="existing" className="workflow-step-card scroll-mt-14">
+            <div className="workflow-step-header">
               <div>
-                <div className="text-lg font-semibold text-gray-900 md:text-xl mb-3">
+                <div className="workflow-step-title">
+                  <span className="workflow-step-badge">4</span>
                   Existing Lines
                 </div>
-                <div className="text-sm text-gray-600 leading-relaxed mb-4">
-                  Track existing attachments and make‑ready.
+                <div className="workflow-step-desc mt-2">
+                  Track existing attachments and make-ready adjustments.
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <SectionSaveButton sectionKey="existing" align="right" />
                 <button
                   type="button"
-                  className="ml-2 px-2 py-1 text-xs border rounded"
+                  className="ml-2 px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-sm"
                   onClick={() =>
                     setOpenSections((s) => ({ ...s, existing: !s.existing }))
                   }
                   aria-expanded={!!openSections.existing}
                 >
-                  {openSections.existing ? "Collapse" : "Expand"}
+                  {openSections.existing ? "▲ Collapse" : "▼ Expand"}
                 </button>
               </div>
             </div>
@@ -920,16 +934,14 @@ export default function ProposedLineCalculator() {
               <SectionSaveButton sectionKey="existing" align="bottom" />
             ) : null}
           </div>
-          <div
-            id="field"
-            className="rounded-lg border border-gray-200 bg-white p-4 md:p-6 shadow-sm scroll-mt-14"
-          >
-            <div className="flex items-start justify-between">
+          <div id="field" className="workflow-step-card scroll-mt-14">
+            <div className="workflow-step-header">
               <div>
-                <div className="text-lg font-semibold text-gray-900 md:text-xl mb-3">
+                <div className="workflow-step-title">
+                  <span className="workflow-step-badge">5</span>
                   Field Collection
                 </div>
-                <div className="text-sm text-gray-600 leading-relaxed mb-4">
+                <div className="workflow-step-desc mt-2">
                   Mobile capture with GPS, photos, and Draft/Done workflow.
                 </div>
               </div>
@@ -938,13 +950,13 @@ export default function ProposedLineCalculator() {
                 <SectionSaveButton sectionKey="field" align="right" />
                 <button
                   type="button"
-                  className="ml-2 px-2 py-1 text-xs border rounded"
+                  className="ml-2 px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-sm"
                   onClick={() =>
                     setOpenSections((s) => ({ ...s, field: !s.field }))
                   }
                   aria-expanded={!!openSections.field}
                 >
-                  {openSections.field ? "Collapse" : "Expand"}
+                  {openSections.field ? "▲ Collapse" : "▼ Expand"}
                 </button>
               </div>
             </div>
@@ -965,11 +977,11 @@ export default function ProposedLineCalculator() {
         </>
       )}
 
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2 print:hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 print:hidden bg-gray-50 rounded-xl p-4 border border-gray-200">
         <ScenarioButtons />
         <ExportButtons />
         <button
-          className="px-2 py-1 border rounded text-sm"
+          className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium bg-white hover:bg-gray-50 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={() => {
             setShowBatchReport(false);
             setShowReport((r) => !r);
@@ -981,44 +993,42 @@ export default function ProposedLineCalculator() {
               : undefined
           }
         >
-          {showReport ? "Back to Editor" : "View Report"}
+          {showReport ? "← Back to Editor" : "📄 View Report"}
         </button>
         <button
-          className="px-2 py-1 border rounded text-sm"
+          className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium bg-white hover:bg-gray-50 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={() => {
             setShowReport(false);
             setShowBatchReport((b) => !b);
           }}
           disabled={!useAppStore.getState().importedSpans.length}
         >
-          {showBatchReport ? "Back to Editor" : "Batch Report"}
+          {showBatchReport ? "← Back to Editor" : "📑 Batch Report"}
         </button>
       </div>
 
-      <div
-        id="results"
-        className="rounded-lg border border-gray-200 bg-white p-4 md:p-6 shadow-sm scroll-mt-14"
-      >
-        <div className="flex items-start justify-between">
+      <div id="results" className="workflow-step-card scroll-mt-14">
+        <div className="workflow-step-header">
           <div>
-            <div className="text-lg font-semibold text-gray-900 md:text-xl mb-3">
+            <div className="workflow-step-title">
+              <span className="workflow-step-badge">6</span>
               Results
             </div>
-            <div className="text-sm text-gray-600 leading-relaxed mb-4">
-              Summary outputs, reports, and exports.
+            <div className="workflow-step-desc mt-2">
+              View summary outputs, generate reports, and export data.
             </div>
           </div>
           <div className="flex items-center gap-2">
             <SectionSaveButton sectionKey="results" align="right" />
             <button
               type="button"
-              className="ml-2 px-2 py-1 text-xs border rounded"
+              className="ml-2 px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-sm"
               onClick={() =>
                 setOpenSections((s) => ({ ...s, results: !s.results }))
               }
               aria-expanded={!!openSections.results}
             >
-              {openSections.results ? "Collapse" : "Expand"}
+              {openSections.results ? "▲ Collapse" : "▼ Expand"}
             </button>
           </div>
         </div>
