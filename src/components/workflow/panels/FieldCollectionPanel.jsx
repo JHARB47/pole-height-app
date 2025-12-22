@@ -24,35 +24,6 @@ export default function FieldCollectionPanel() {
   const totalPoles = collectedPoles.length;
   const progress = totalPoles > 0 ? (doneCount / totalPoles) * 100 : 0;
 
-  if (!currentJobId) {
-    return (
-      <div className="ppp-main-content">
-        <div className="ppp-panel-header">
-          <div className="ppp-panel-header__title">
-            <span className="ppp-panel-header__step-badge">5</span>
-            <h1>Field Collection</h1>
-          </div>
-        </div>
-        <div className="ppp-empty-state">
-          <svg
-            className="ppp-empty-state__icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <path d="M12 8v4M12 16h.01" />
-          </svg>
-          <h3 className="ppp-empty-state__title">No Job Selected</h3>
-          <p className="ppp-empty-state__description">
-            Select or create a job in Project Setup first.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   const handleMarkDone = (poleId) => {
     updateCollectedPole(poleId, { status: "done" });
   };
@@ -85,6 +56,41 @@ export default function FieldCollectionPanel() {
           </div>
         )}
       </div>
+
+      {/* Info banner when no job selected */}
+      {!currentJobId && (
+        <div
+          className="ppp-info-banner"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "var(--space-3)",
+            padding: "var(--space-3) var(--space-4)",
+            backgroundColor: "var(--blue-50, #eff6ff)",
+            border: "1px solid var(--blue-200, #bfdbfe)",
+            borderRadius: "var(--radius-md)",
+            marginBottom: "var(--space-4)",
+            color: "var(--blue-800, #1e40af)",
+            fontSize: "0.875rem",
+          }}
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 16v-4M12 8h.01" />
+          </svg>
+          <span>
+            <strong>Tip:</strong> Create a job in Project Setup to save field
+            collection data to a project.
+          </span>
+        </div>
+      )}
 
       {/* Progress */}
       {totalPoles > 0 && (

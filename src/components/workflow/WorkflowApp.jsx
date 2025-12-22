@@ -108,8 +108,8 @@ function WorkflowAppContent() {
     (p) => p.status === "done",
   ).length;
 
-  // Step configuration with structured requires for validation gates
-  // disabled is derived from requires.isMet to ensure single source of truth
+  // Step configuration - all steps are now accessible without strict prerequisites
+  // Users can explore features and import data without creating a job first
   const steps = React.useMemo(
     () => [
       {
@@ -125,11 +125,7 @@ function WorkflowAppContent() {
         subtitle: "Import & field mapping",
         count: importedSpans.length,
         status: hasPoles ? "complete" : "pending",
-        requires: {
-          label: "Project Setup",
-          isMet: hasJob,
-          reason: "Create or select a job first",
-        },
+        // No requires - allow data import without job
       },
       {
         id: "existing-plant",
@@ -137,11 +133,7 @@ function WorkflowAppContent() {
         subtitle: "Attachments & make-ready",
         count: existingLines.length,
         status: hasExistingLines ? "complete" : "pending",
-        requires: {
-          label: "Project Setup",
-          isMet: hasJob,
-          reason: "Create or select a job first",
-        },
+        // No requires - allow exploration without job
       },
       {
         id: "span-modeling",
@@ -149,11 +141,7 @@ function WorkflowAppContent() {
         subtitle: "Compute clearances",
         count: importedSpans.length,
         status: importedSpans.length > 0 ? "complete" : "pending",
-        requires: {
-          label: "Project Setup",
-          isMet: hasJob,
-          reason: "Create or select a job first",
-        },
+        // No requires - allow span modeling without job
       },
       {
         id: "field-collection",
@@ -168,22 +156,14 @@ function WorkflowAppContent() {
               }
             : undefined,
         status: donePolesCount > 0 ? "complete" : "pending",
-        requires: {
-          label: "Project Setup",
-          isMet: hasJob,
-          reason: "Create or select a job first",
-        },
+        // No requires - allow field collection without job
       },
       {
         id: "outputs",
         label: "Outputs",
         subtitle: "Reports & exports",
-        status: "pending",
-        requires: {
-          label: "Project Setup & Pole Data",
-          isMet: hasJob && hasPoles,
-          reason: !hasJob ? "Create a job first" : "Import pole data first",
-        },
+        status: hasPoles ? "complete" : "pending",
+        // No requires - allow exports when data exists
       },
     ],
     [
