@@ -370,37 +370,44 @@ const useAppStore = create(
       // }
       jobs: [],
       currentJobId: "",
-      addJob: (job) =>
-        set((s) => {
-          const id = job?.id || String(Date.now());
-          const newJob = {
-            id,
-            name: job?.name || "Untitled Job",
-            applicantName: job?.applicantName || "",
-            jobNumber: job?.jobNumber || "",
-            presetProfile: job?.presetProfile || "",
-            jobOwner: job?.jobOwner || "",
-            notes: job?.notes || "",
-            createdAt: job?.createdAt || new Date().toISOString(),
-            commCompany: job?.commCompany || "",
-            submissionProfileName:
-              job?.submissionProfileName ||
-              s.currentSubmissionProfile ||
-              "generic",
-            submissionProfileOverrides: job?.submissionProfileOverrides || {},
-            exportProfile: job?.exportProfile || "generic",
-          };
-          const merged = [...(s.jobs || []), newJob];
-          return {
-            jobs: merged,
-            currentJobId: id,
-            projectName: newJob.name,
-            applicantName: newJob.applicantName,
-            jobNumber: newJob.jobNumber,
-            presetProfile: newJob.presetProfile,
-            jobOwner: newJob.jobOwner,
-          };
-        }),
+      // createJob returns the new job object (for UI that needs the ID)
+      createJob: (nameOrJob) => {
+        const s = get();
+        const jobInput =
+          typeof nameOrJob === "string" ? { name: nameOrJob } : nameOrJob;
+        const id = jobInput?.id || String(Date.now());
+        const newJob = {
+          id,
+          name: jobInput?.name || "Untitled Job",
+          applicantName: jobInput?.applicantName || "",
+          jobNumber: jobInput?.jobNumber || "",
+          presetProfile: jobInput?.presetProfile || "",
+          jobOwner: jobInput?.jobOwner || "",
+          notes: jobInput?.notes || "",
+          createdAt: jobInput?.createdAt || new Date().toISOString(),
+          commCompany: jobInput?.commCompany || "",
+          submissionProfileName:
+            jobInput?.submissionProfileName ||
+            s.currentSubmissionProfile ||
+            "generic",
+          submissionProfileOverrides:
+            jobInput?.submissionProfileOverrides || {},
+          exportProfile: jobInput?.exportProfile || "generic",
+        };
+        const merged = [...(s.jobs || []), newJob];
+        set({
+          jobs: merged,
+          currentJobId: id,
+          projectName: newJob.name,
+          applicantName: newJob.applicantName,
+          jobNumber: newJob.jobNumber,
+          presetProfile: newJob.presetProfile,
+          jobOwner: newJob.jobOwner,
+        });
+        return newJob;
+      },
+      // Alias for backwards compatibility
+      addJob: (job) => get().createJob(job),
       updateJob: (id, patch) =>
         set((s) => {
           const arr = (s.jobs || []).map((j) =>
@@ -437,6 +444,8 @@ const useAppStore = create(
             : {};
           return { jobs: arr, currentJobId, ...updates };
         }),
+      // Alias for deleteJob
+      deleteJob: (id) => get().removeJob(id),
       setCurrentJobId: (id) =>
         set((s) => {
           const found = (s.jobs || []).find((j) => j.id === id);

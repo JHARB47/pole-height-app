@@ -24,12 +24,12 @@ export default function FieldCollectionPanel() {
   const totalPoles = collectedPoles.length;
   const progress = totalPoles > 0 ? (doneCount / totalPoles) * 100 : 0;
 
-  const handleMarkDone = (poleId) => {
-    updateCollectedPole(poleId, { status: "done" });
+  const handleMarkDone = (index) => {
+    updateCollectedPole(index, { status: "done" });
   };
 
-  const handleMarkPending = (poleId) => {
-    updateCollectedPole(poleId, { status: "pending" });
+  const handleMarkPending = (index) => {
+    updateCollectedPole(index, { status: "pending" });
   };
 
   return (
@@ -153,8 +153,8 @@ export default function FieldCollectionPanel() {
                   </tr>
                 </thead>
                 <tbody>
-                  {collectedPoles.map((pole) => (
-                    <tr key={pole.id}>
+                  {collectedPoles.map((pole, index) => (
+                    <tr key={pole.id || index}>
                       <td>{pole.poleId || pole.id?.slice(0, 8)}</td>
                       <td>
                         {pole.latitude && pole.longitude
@@ -174,7 +174,7 @@ export default function FieldCollectionPanel() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleMarkPending(pole.id)}
+                            onClick={() => handleMarkPending(index)}
                           >
                             Undo
                           </Button>
@@ -182,7 +182,7 @@ export default function FieldCollectionPanel() {
                           <Button
                             variant="success"
                             size="sm"
-                            onClick={() => handleMarkDone(pole.id)}
+                            onClick={() => handleMarkDone(index)}
                           >
                             Mark Done
                           </Button>
