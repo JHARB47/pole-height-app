@@ -10,4 +10,5 @@ export {
   MobileBottomBar,
 } from "./AppShell";
 
-export { HelpModal, useHelpModal } from "./HelpModal";
+export { HelpModal } from "./HelpModal";
+export { useHelpModal } from "./useHelpModal";

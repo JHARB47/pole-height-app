@@ -4,12 +4,11 @@
  * Comprehensive system health reporting and metrics
  */
 import express from 'express';
-import { DatabaseService } from '../services/database.js';
+import { db } from '../services/db.js';
 import { Logger } from '../services/logger.js';
 import { MetricsService } from '../services/metrics.js';
 
 const router = express.Router();
-const db = new DatabaseService();
 const logger = new Logger();
 const metrics = new MetricsService();
 

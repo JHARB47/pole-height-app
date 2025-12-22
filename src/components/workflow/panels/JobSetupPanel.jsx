@@ -375,8 +375,8 @@ export default function JobSetupPanel() {
                   >
                     <option value="">Default</option>
                     {submissionProfiles.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name}
+                      <option key={p.name || p.id} value={p.name || p.id}>
+                        {p.label || p.name}
                       </option>
                     ))}
                   </select>

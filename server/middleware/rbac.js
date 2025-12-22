@@ -3,10 +3,9 @@
  * Role-Based Access Control (RBAC) Middleware
  * Comprehensive permission system with granular access control
  */
-import { DatabaseService } from '../services/database.js';
+import { db } from '../services/db.js';
 import { Logger } from '../services/logger.js';
 
-const db = new DatabaseService();
 const logger = new Logger();
 
 /**

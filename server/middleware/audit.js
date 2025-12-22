@@ -3,10 +3,9 @@
  * Audit Logging Middleware
  * Comprehensive audit trail for all API operations
  */
-import { DatabaseService } from '../services/database.js';
+import { db } from '../services/db.js';
 import { Logger } from '../services/logger.js';
 
-const db = new DatabaseService();
 const logger = new Logger();
 
 /**

@@ -5,12 +5,11 @@
  */
 import express from 'express';
 import crypto from 'crypto';
-import { DatabaseService } from '../services/database.js';
+import { db } from '../services/db.js';
 import { Logger } from '../services/logger.js';
 import { rbacMiddleware } from '../middleware/rbac.js';
 
 const router = express.Router();
-const db = new DatabaseService();
 const logger = new Logger();
 
 /**

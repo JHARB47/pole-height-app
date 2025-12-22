@@ -28,7 +28,7 @@ import { errorHandler } from './middleware/errorHandler.js';
 import { requestLogger, setRequestLoggerMetrics } from './middleware/requestLogger.js';
 
 // Import services
-import { DatabaseService } from './services/database.js';
+import { db, ensureDbInitialized } from './services/db.js';
 import { Logger } from './services/logger.js';
 import { MetricsService } from './services/metrics.js';
 import { PassportConfig } from './config/passport.js';
@@ -48,7 +48,6 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // Initialize services
 const logger = new Logger();
-const db = new DatabaseService();
 const metrics = new MetricsService();
 
 // Security middleware
@@ -185,14 +184,14 @@ app.use(errorHandler);
 process.on('SIGTERM', async () => {
   logger.info('SIGTERM received, shutting down gracefully');
   try { metrics.stop(); } catch { /* ignore */ }
-  await db.close();
+  try { await db.close(); } catch { /* ignore */ }
   process.exit(0);
 });
 
 process.on('SIGINT', async () => {
   logger.info('SIGINT received, shutting down gracefully');
   try { metrics.stop(); } catch { /* ignore */ }
-  await db.close();
+  try { await db.close(); } catch { /* ignore */ }
   process.exit(0);
 });
 
@@ -200,7 +199,7 @@ process.on('SIGINT', async () => {
 async function startServer() {
   try {
     // Initialize database
-    await db.initialize();
+    await ensureDbInitialized();
     app.locals.db = db;
     app.locals.metrics = metrics;
     logger.info('Database connection established');

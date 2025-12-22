@@ -194,6 +194,71 @@ AppHeader.propTypes = {
 };
 
 /**
+ * Helper to render step indicator icon (extracted to avoid nested ternary)
+ */
+function renderStepIndicator(isCompleted, isDisabled, index) {
+  if (isCompleted) {
+    return (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path
+          d="M3.5 8.5l3 3 6-6"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
+  if (isDisabled) {
+    return (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+        <rect
+          x="5"
+          y="10"
+          width="14"
+          height="12"
+          rx="2"
+          stroke="currentColor"
+          strokeWidth="2"
+        />
+        <path
+          d="M8 10V7a4 4 0 018 0v3"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      </svg>
+    );
+  }
+  return <span>{index + 1}</span>;
+}
+
+/**
+ * Helper to build requires tooltip title (extracted to avoid nested template literal)
+ */
+function getRequiresTooltip(requires) {
+  if (typeof requires === "string") {
+    return `Requires: ${requires}`;
+  }
+  const base = `Requires: ${requires.label}`;
+  if (requires.reason) {
+    return `${base} — ${requires.reason}`;
+  }
+  return base;
+}
+
+/**
+ * Helper to build requires aria-label (extracted to avoid nested ternary)
+ */
+function getRequiresAriaLabel(requires) {
+  if (typeof requires === "string") {
+    return `Requires: ${requires}`;
+  }
+  return `Requires: ${requires.label}`;
+}
+
+/**
  * StepNavigation - Left sidebar step navigation with status indicators
  */
 export function StepNavigation({
@@ -237,37 +302,7 @@ export function StepNavigation({
                 tabIndex={isDisabled ? -1 : 0}
               >
                 <span className="ppp-step-nav__indicator">
-                  {isCompleted ? (
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                      <path
-                        d="M3.5 8.5l3 3 6-6"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  ) : isDisabled ? (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                      <rect
-                        x="5"
-                        y="10"
-                        width="14"
-                        height="12"
-                        rx="2"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      />
-                      <path
-                        d="M8 10V7a4 4 0 018 0v3"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                  ) : (
-                    <span>{index + 1}</span>
-                  )}
+                  {renderStepIndicator(isCompleted, isDisabled, index)}
                 </span>
                 <span className="ppp-step-nav__content">
                   <span className="ppp-step-nav__label">{step.label}</span>
@@ -290,16 +325,8 @@ export function StepNavigation({
                 {isDisabled && step.requires && (
                   <span
                     className="ppp-step-nav__gate"
-                    title={
-                      typeof step.requires === "string"
-                        ? `Requires: ${step.requires}`
-                        : `Requires: ${step.requires.label}${step.requires.reason ? ` — ${step.requires.reason}` : ""}`
-                    }
-                    aria-label={
-                      typeof step.requires === "string"
-                        ? `Requires: ${step.requires}`
-                        : `Requires: ${step.requires.label}`
-                    }
+                    title={getRequiresTooltip(step.requires)}
+                    aria-label={getRequiresAriaLabel(step.requires)}
                   >
                     <svg
                       width="12"

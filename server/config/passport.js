@@ -12,10 +12,9 @@ import { Strategy as SamlStrategy } from '@node-saml/passport-saml';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { DatabaseService } from '../services/database.js';
+import { db } from '../services/db.js';
 import { Logger } from '../services/logger.js';
 
-const db = new DatabaseService();
 const logger = new Logger();
 const JWT_SECRET = process.env.JWT_SECRET || 'test-secret';
 

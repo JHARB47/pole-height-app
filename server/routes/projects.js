@@ -5,11 +5,10 @@
 
 import express from 'express';
 import { authMiddleware } from '../middleware/auth.js';
-import { DatabaseService } from '../services/database.js';
+import { db } from '../services/db.js';
 import { validatePoleCoordinates } from '../../src/utils/gisValidation.js';
 
 const router = express.Router();
-const db = new DatabaseService();
 
 // Use the existing authMiddleware instead of a separate authenticate function
 const authenticate = authMiddleware;

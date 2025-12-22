@@ -5,11 +5,10 @@
  */
 import passport from 'passport';
 import jwt from 'jsonwebtoken';
-import { DatabaseService } from '../services/database.js';
+import { db } from '../services/db.js';
 import { Logger } from '../services/logger.js';
 import { apiKeyMiddleware, flexibleAuthMiddleware } from './rbac.js';
 
-const db = new DatabaseService();
 const logger = new Logger();
 
 /**

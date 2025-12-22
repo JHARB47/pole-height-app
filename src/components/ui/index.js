@@ -19,4 +19,5 @@ export { Tooltip, HelpTooltip } from "./Tooltip";
 export { Badge, StatusBadge, CountBadge } from "./Badge";
 
 // Toast components
-export { ToastProvider, useToast } from "./Toast";
+export { ToastProvider } from "./ToastProvider";
+export { useToast } from "./useToast";

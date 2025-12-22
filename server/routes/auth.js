@@ -8,11 +8,10 @@ import passport from 'passport';
 import bcrypt from 'bcryptjs';
 import rateLimit from 'express-rate-limit';
 import { PassportConfig } from '../config/passport.js';
-import { DatabaseService } from '../services/database.js';
+import { db } from '../services/db.js';
 import { Logger } from '../services/logger.js';
 
 const router = express.Router();
-const db = new DatabaseService();
 const logger = new Logger();
 
 // --- Safe returnUrl handling for preview subdomains ---
