@@ -140,33 +140,35 @@ export class DatabaseService {
       throw new Error('Database not initialized');
     }
     
-    return Sentry.startSpan({
+    const span = Sentry.startSpan({
       op: 'db.query',
       name: text.substring(0, 64) || 'db.query',
-    }, async (span) => {
-      span.setAttribute('paramCount', params.length);
-      const start = Date.now();
-      try {
-        const result = await this.pool.query(text, params);
-        const duration = Date.now() - start;
-        span.setAttribute('durationMs', duration);
-        
-        if (duration > 1000) {
-          this.logger.warn(`Slow query (${duration}ms):`, text.substring(0, 100));
-        }
-        
-        return result;
-      } catch (error) {
-        span.setStatus({ code: 'error', message: error.message });
-        this.logger.error('Database query error:', {
-          query: text.substring(0, 100),
-          params: params,
-          error: error.message
-        });
-        Sentry.captureException(error);
-        throw error;
-      }
     });
+    span.setAttribute('paramCount', params.length);
+    const start = Date.now();
+    try {
+      const result = await this.pool.query(text, params);
+      const duration = Date.now() - start;
+      span.setAttribute('durationMs', duration);
+      
+      if (duration > 1000) {
+        this.logger.warn(`Slow query (${duration}ms):`, text.substring(0, 100));
+      }
+      
+      span.setStatus({ code: 'ok' });
+      return result;
+    } catch (error) {
+      span.setStatus({ code: 'error', message: error.message });
+      this.logger.error('Database query error:', {
+        query: text.substring(0, 100),
+        params: params,
+        error: error.message
+      });
+      Sentry.captureException(error);
+      throw error;
+    } finally {
+      if (span && typeof span.end === 'function') span.end();
+    }
   }
 
   /**
@@ -177,26 +179,26 @@ export class DatabaseService {
       throw new Error('Database not initialized');
     }
     
-    return Sentry.startSpan({
+    const span = Sentry.startSpan({
       op: 'db.transaction',
       name: 'Database transaction',
-    }, async (span) => {
-      const client = await this.pool.connect();
-      try {
-        await client.query('BEGIN');
-        const result = await callback(client);
-        await client.query('COMMIT');
-        span.setStatus({ code: 'ok' });
-        return result;
-      } catch (error) {
-        span.setStatus({ code: 'error', message: error.message });
-        Sentry.captureException(error);
-        await client.query('ROLLBACK');
-        throw error;
-      } finally {
-        client.release();
-      }
     });
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN');
+      const result = await callback(client);
+      await client.query('COMMIT');
+      span.setStatus({ code: 'ok' });
+      return result;
+    } catch (error) {
+      span.setStatus({ code: 'error', message: error.message });
+      Sentry.captureException(error);
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+      if (span && typeof span.end === 'function') span.end();
+    }
   }
 
   /**

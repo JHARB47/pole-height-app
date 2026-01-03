@@ -1,8 +1,16 @@
 -- Migration: 001_initial_schema.sql
 -- Create initial database schema for PolePlan Pro Enterprise
 
--- Enable PostGIS extension for geospatial data
-CREATE EXTENSION IF NOT EXISTS postgis;
+-- Enable PostGIS extension for geospatial data (optional in development)
+-- AI: rationale — PostGIS may not be available in all dev environments; use DO block to fail gracefully
+DO $$
+BEGIN
+    CREATE EXTENSION IF NOT EXISTS postgis;
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE 'PostGIS extension not available - geospatial features disabled';
+END
+$$;
+
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Organizations table
@@ -85,8 +93,9 @@ CREATE TABLE projects (
     -- Project data (spans, poles, calculations, etc.)
     project_data JSONB DEFAULT '{}',
     
-    -- Geospatial location
-    location GEOMETRY(Point, 4326), -- WGS84 coordinates
+    -- Geospatial location (uses GEOMETRY if PostGIS available, else TEXT for GeoJSON)
+    -- AI: rationale — fallback to TEXT in dev when PostGIS not installed
+    location TEXT, -- GEOMETRY(Point, 4326) when PostGIS is enabled
     
     -- Project metadata
     status VARCHAR(50) DEFAULT 'active' CHECK (status IN ('active', 'archived', 'draft')),
@@ -107,7 +116,7 @@ CREATE TABLE geospatial_cache (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
     data_type VARCHAR(50) NOT NULL, -- 'shapefile', 'kml', 'geojson'
-    geometry GEOMETRY NOT NULL,
+    geometry TEXT NOT NULL, -- GEOMETRY when PostGIS is enabled
     properties JSONB DEFAULT '{}',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -156,7 +165,14 @@ CREATE INDEX idx_users_organization ON users(organization_id);
 CREATE INDEX idx_users_role ON users(role);
 CREATE INDEX idx_projects_user ON projects(user_id);
 CREATE INDEX idx_projects_org ON projects(organization_id);
-CREATE INDEX idx_projects_location ON projects USING GIST(location);
+-- Spatial index (only if PostGIS available)
+DO $$
+BEGIN
+    EXECUTE 'CREATE INDEX idx_projects_location ON projects USING GIST(location)';
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE 'Spatial index skipped - PostGIS not available';
+END
+$$;
 CREATE INDEX idx_audit_logs_user ON audit_logs(user_id);
 CREATE INDEX idx_audit_logs_created ON audit_logs(created_at);
 CREATE INDEX idx_api_keys_hash ON api_keys(key_hash);

@@ -6,21 +6,39 @@ import {
 } from "./calculations.js";
 import { persist, createJSONStorage } from "zustand/middleware";
 
-// Preflight: if persisted state is corrupt JSON, clear it to avoid runtime crash
-try {
-  const key = "pole-height-store";
-  const raw = localStorage.getItem(key);
-  if (raw && typeof raw === "string") {
-    JSON.parse(raw);
-  }
-} catch {
-  console.warn("Clearing corrupt persisted state");
+// Preflight: if persisted state is corrupt JSON or missing required fields, clear it to avoid runtime crash
+function validateStoreState() {
   try {
-    localStorage.removeItem("pole-height-store");
-  } catch {
-    /* ignore */
+    const key = "pole-height-store";
+    const raw = localStorage.getItem(key);
+    if (raw && typeof raw === "string") {
+      const parsed = JSON.parse(raw);
+      // AI: Defensive required fields check (add more as needed)
+      const required = [
+        "currentSubmissionProfile",
+        "submissionProfiles",
+        "existingLines",
+        "collectedPoles",
+        "importedSpans",
+        "jobs",
+      ];
+      for (const field of required) {
+        if (!(field in parsed.state)) {
+          throw new Error(`Missing required field: ${field}`);
+        }
+      }
+    }
+  } catch (e) {
+    console.warn("Clearing corrupt or incomplete persisted state", e);
+    try {
+      localStorage.removeItem("pole-height-store");
+    } catch {
+      /* ignore */
+    }
   }
 }
+
+validateStoreState();
 
 const useAppStore = create(
   persist(

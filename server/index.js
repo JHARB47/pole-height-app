@@ -124,14 +124,18 @@ app.get('/debug-sentry', (req, res) => {
     });
   }
 
-  Sentry.startSpan({
+  // AI: rationale — use explicit span with end() to avoid callback signature incompatibility
+  const span = Sentry.startSpan({
     op: 'debug.trigger',
     name: 'manual debug-sentry invocation',
-  }, (span) => {
+  });
+  try {
     span.setAttribute('path', req.path);
     span.setAttribute('method', req.method);
     throw new Error('My first Sentry error!');
-  });
+  } finally {
+    if (span && typeof span.end === 'function') span.end();
+  }
 });
 
 // API routes with middleware

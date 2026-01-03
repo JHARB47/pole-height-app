@@ -1,4 +1,5 @@
 import React from "react";
+import PropTypes from "prop-types";
 import useAppStore from "../../utils/store";
 import { useShallow } from "zustand/react/shallow";
 import {
@@ -63,6 +64,14 @@ const PanelError = ({ error, resetErrorBoundary }) => (
     </Button>
   </div>
 );
+
+// AI: PropTypes for PanelError component
+PanelError.propTypes = {
+  error: PropTypes.shape({
+    message: PropTypes.string,
+  }),
+  resetErrorBoundary: PropTypes.func.isRequired,
+};
 
 /**
  * WorkflowAppContent - Inner component that uses toast context
@@ -277,7 +286,8 @@ function WorkflowAppContent() {
           />
         }
       >
-        <ErrorBoundary fallback={PanelError}>
+        {/* AI: Pass activeStep as resetKey so errors clear when switching panels */}
+        <ErrorBoundary fallback={PanelError} resetKey={activeStep}>
           {renderActivePanel()}
         </ErrorBoundary>
       </AppShell>
