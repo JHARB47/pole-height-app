@@ -1,6 +1,7 @@
 // @ts-nocheck
 import React, { Component } from "react";
 import PropTypes from "prop-types";
+import { errorMonitor } from "../utils/errorMonitoring.js";
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -25,6 +26,11 @@ class ErrorBoundary extends Component {
 
   componentDidCatch(error, info) {
     console.error("ErrorBoundary caught:", error, info);
+    // Log to centralized error monitor
+    errorMonitor.logError(error, {
+      componentStack: info.componentStack,
+      boundary: this.props.name || "ErrorBoundary",
+    });
   }
 
   // AI: Manual reset method for fallback component

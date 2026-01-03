@@ -106,6 +106,27 @@ class ErrorMonitor {
       errorRate: last5Minutes.length / 5, // Errors per minute
     };
   }
+
+  /**
+   * Alias for getStats for backward compatibility
+   */
+  getErrorStats() {
+    return this.getStats();
+  }
+
+  /**
+   * Subscribe to error events (alias for addListener)
+   */
+  subscribe(listener) {
+    this.addListener(listener);
+  }
+
+  /**
+   * Unsubscribe from error events (alias for removeListener)
+   */
+  unsubscribe(listener) {
+    this.removeListener(listener);
+  }
 }
 
 // Global instance
@@ -183,43 +204,46 @@ export async function withRetry(fn, options = {}) {
 
 /**
  * Graceful degradation wrapper
+ * Tries preferred function with timeout, falls back on failure
  * @param {Function} preferredFn - Preferred function
  * @param {Function} fallbackFn - Fallback function
- * @param {Object} options - Options
- * @returns {Function} Wrapped function
+ * @param {number} timeout - Timeout in milliseconds (default: 5000)
+ * @param {Object} context - Additional context for logging
+ * @returns {Promise} Result from preferred or fallback function
  */
-export function withFallback(preferredFn, fallbackFn, options = {}) {
-  const { timeout = 5000, context = {} } = options;
+export async function withFallback(
+  preferredFn,
+  fallbackFn,
+  timeout = 5000,
+  context = {},
+) {
+  try {
+    // Try preferred function with timeout
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Timeout")), timeout),
+    );
 
-  return async function wrapped(...args) {
-    try {
-      // Try preferred function with timeout
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Timeout")), timeout),
-      );
+    const resultPromise = preferredFn();
 
-      const resultPromise = preferredFn.apply(this, args);
+    return await Promise.race([resultPromise, timeoutPromise]);
+  } catch (error) {
+    errorMonitor.logError(error, {
+      ...context,
+      message: "Falling back to alternative implementation",
+      preferredFunction: preferredFn.name,
+      fallbackFunction: fallbackFn.name,
+    });
 
-      return await Promise.race([resultPromise, timeoutPromise]);
-    } catch (error) {
-      errorMonitor.logError(error, {
-        ...context,
-        message: "Falling back to alternative implementation",
-        preferredFunction: preferredFn.name,
-        fallbackFunction: fallbackFn.name,
-      });
-
-      return fallbackFn.apply(this, args);
-    }
-  };
+    return fallbackFn();
+  }
 }
 
 /**
  * Circuit breaker pattern
  */
 export class CircuitBreaker {
-  constructor(fn, options = {}) {
-    this.fn = fn;
+  constructor(name, options = {}) {
+    this.name = name;
     this.failureThreshold = options.failureThreshold || 5;
     this.resetTimeout = options.resetTimeout || 60000;
     this.state = "CLOSED"; // CLOSED, OPEN, HALF_OPEN
@@ -227,17 +251,17 @@ export class CircuitBreaker {
     this.lastFailureTime = null;
   }
 
-  async execute(...args) {
+  async execute(fn, ...args) {
     if (this.state === "OPEN") {
       if (Date.now() - this.lastFailureTime >= this.resetTimeout) {
         this.state = "HALF_OPEN";
       } else {
-        throw new Error("Circuit breaker is OPEN");
+        throw new Error(`Circuit breaker is open for ${this.name}`);
       }
     }
 
     try {
-      const result = await this.fn.apply(this, args);
+      const result = await fn(...args);
 
       if (this.state === "HALF_OPEN") {
         this.state = "CLOSED";
@@ -252,7 +276,7 @@ export class CircuitBreaker {
       if (this.failureCount >= this.failureThreshold) {
         this.state = "OPEN";
         errorMonitor.logError(error, {
-          message: "Circuit breaker opened",
+          message: `Circuit breaker opened for ${this.name}`,
           failureCount: this.failureCount,
         });
       }

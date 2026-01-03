@@ -149,6 +149,8 @@ export function logEvent(name, props = {}) {
   }
 }
 
+import { errorMonitor } from "./errorMonitoring.js";
+
 /**
  * Flush queued events to the telemetry endpoint
  * Uses sendBeacon for reliability, with fetch fallback
@@ -220,11 +222,23 @@ async function fetchWithRetry(payload, originalEvents) {
 
     // Handle retryable errors (429 Too Many Requests, 5xx Server Errors)
     if (response.status === 429 || response.status >= 500) {
+      errorMonitor.logError(
+        new Error(`Telemetry endpoint returned ${response.status}`),
+        {
+          operation: "telemetry_flush",
+          status: response.status,
+          retryAttempts,
+        },
+      );
       handleRetry(originalEvents);
     }
     // For 4xx (except 429), don't retry - likely a client/config issue
-  } catch {
+  } catch (error) {
     // Network error - retry
+    errorMonitor.logError(error, {
+      operation: "telemetry_fetch",
+      retryAttempts,
+    });
     handleRetry(originalEvents);
   } finally {
     isRetrying = false;

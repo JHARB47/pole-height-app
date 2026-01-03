@@ -4,6 +4,8 @@
  * Handles JWT tokens, SSO, and user authentication state
  */
 
+import { withErrorHandling } from "../utils/errorMonitoring.js";
+
 class AuthService {
   constructor() {
     this.baseURL = import.meta.env.VITE_API_URL || "http://localhost:3001";
@@ -185,39 +187,47 @@ class AuthService {
    * Make authenticated API request
    */
   async apiRequest(endpoint, options = {}) {
-    const token = this.getToken();
+    return withErrorHandling(
+      async () => {
+        const token = this.getToken();
 
-    if (!token) {
-      throw new Error("No authentication token available");
-    }
+        if (!token) {
+          throw new Error("No authentication token available");
+        }
 
-    const config = {
-      ...options,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-        ...options.headers,
+        const config = {
+          ...options,
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            ...options.headers,
+          },
+        };
+
+        let response = await fetch(`${this.baseURL}${endpoint}`, config);
+
+        // If token expired, try to refresh and retry
+        if (response.status === 401) {
+          try {
+            await this.refreshToken();
+
+            // Update token in headers and retry
+            config.headers.Authorization = `Bearer ${this.getToken()}`;
+            response = await fetch(`${this.baseURL}${endpoint}`, config);
+          } catch (refreshError) {
+            console.error(
+              "Token refresh failed during API request:",
+              refreshError,
+            );
+            this.clearAuth();
+            throw new Error("Authentication expired");
+          }
+        }
+
+        return response;
       },
-    };
-
-    let response = await fetch(`${this.baseURL}${endpoint}`, config);
-
-    // If token expired, try to refresh and retry
-    if (response.status === 401) {
-      try {
-        await this.refreshToken();
-
-        // Update token in headers and retry
-        config.headers.Authorization = `Bearer ${this.getToken()}`;
-        response = await fetch(`${this.baseURL}${endpoint}`, config);
-      } catch (refreshError) {
-        console.error("Token refresh failed during API request:", refreshError);
-        this.clearAuth();
-        throw new Error("Authentication expired");
-      }
-    }
-
-    return response;
+      { context: { operation: "api_request", endpoint } },
+    );
   }
 
   /**

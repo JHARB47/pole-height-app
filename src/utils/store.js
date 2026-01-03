@@ -5,6 +5,7 @@ import {
   applyPresetToClearances,
 } from "./calculations.js";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { errorMonitor } from "./errorMonitoring.js";
 
 // Preflight: if persisted state is corrupt JSON or missing required fields, clear it to avoid runtime crash
 function validateStoreState() {
@@ -30,6 +31,11 @@ function validateStoreState() {
     }
   } catch (e) {
     console.warn("Clearing corrupt or incomplete persisted state", e);
+    // Log to error monitor for tracking
+    errorMonitor.logError(e, {
+      operation: "store_validation",
+      recovery: "cleared_storage",
+    });
     try {
       localStorage.removeItem("pole-height-store");
     } catch {
