@@ -1,0 +1,106 @@
+{
+  "timestamp": "2026-01-26T18:05:27.222Z",
+  "baseline": {
+    "environment": {
+      "node": "v22.22.0",
+      "npm": "10.9.4",
+      "os": "darwin",
+      "arch": "arm64"
+    },
+    "package": {
+      "name": "pole-height-app",
+      "version": "0.2.0",
+      "react": "^18.2.0",
+      "vite": "^7.1.9",
+      "zustand": "^5.0.8",
+      "zod": "^3.23.8",
+      "vitest": "^1.6.0",
+      "playwright": "^1.48.0"
+    },
+    "lint": {
+      "success": false,
+      "exitCode": 1
+    },
+    "build": {
+      "success": true,
+      "duration": 2243,
+      "exitCode": 0
+    },
+    "artifacts": {
+      "distIndexHtml": true
+    }
+  },
+  "moduleVerification": {
+    "modules": {
+      "src/utils/dataOperations.js": true,
+      "src/utils/fieldWorkflow.js": true,
+      "src/utils/enhancedStoreActions.js": true,
+      "src/components/workflow/panels/EnhancedFieldCollectionPanel.jsx": true
+    },
+    "dataOperationsUsage": 2,
+    "fieldWorkflowUsage": 1,
+    "enhancedStoreActionsUsage": 0,
+    "EnhancedFieldCollectionPanelUsage": 1,
+    "zodUsage": 1
+  },
+  "integration": {},
+  "performance": {
+    "importTests": [
+      {
+        "size": 100,
+        "target": 50,
+        "measured": "N/A (requires runtime test)"
+      },
+      {
+        "size": 1000,
+        "target": 450,
+        "measured": "N/A (requires runtime test)"
+      }
+    ]
+  },
+  "tests": {
+    "unit": {
+      "success": true,
+      "duration": 9887,
+      "exitCode": 0
+    },
+    "api": {
+      "success": true,
+      "duration": 3365,
+      "exitCode": 0
+    },
+    "e2e": {
+      "configured": false
+    }
+  },
+  "issues": [
+    {
+      "severity": "high",
+      "category": "baseline",
+      "issue": "Lint errors present",
+      "details": "Command failed: npm run lint"
+    }
+  ],
+  "recommendations": [
+    {
+      "priority": "high",
+      "item": "Integrate enhancedStoreActions into active code paths or remove"
+    },
+    {
+      "priority": "high",
+      "item": "Add automated performance benchmarks with pass/fail thresholds"
+    },
+    {
+      "priority": "high",
+      "item": "Add Playwright E2E tests for critical workflows"
+    },
+    {
+      "priority": "medium",
+      "item": "Fix some security vulnerabilities: npm audit fix"
+    }
+  ],
+  "security": {
+    "auditRun": true,
+    "hasVulnerabilities": true
+  }
+}

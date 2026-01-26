@@ -307,7 +307,7 @@ export function setupGlobalErrorHandlers() {
   });
 
   // Global errors
-  window.addEventListener("error", (event) => {
+  globalThis.addEventListener("error", (event) => {
     errorMonitor.logError(event.error || event.message, {
       type: "globalError",
       filename: event.filename,

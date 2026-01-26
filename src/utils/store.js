@@ -6,6 +6,10 @@ import {
 } from "./calculations.js";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { errorMonitor } from "./errorMonitoring.js";
+import {
+  enhancedPoleActions,
+  enhancedSpanActions,
+} from "./enhancedStoreActions.js";
 
 // Preflight: if persisted state is corrupt JSON or missing required fields, clear it to avoid runtime crash
 function validateStoreState() {
@@ -63,7 +67,7 @@ const useAppStore = create(
       featureFlags: {
         templateSharing: true,
         analyticsDashboard: false,
-        batchOperations: false,
+        batchOperations: true, // ENABLED: Enhanced store actions
         smartValidation: false,
         collaboration: false,
       },
@@ -517,6 +521,11 @@ const useAppStore = create(
           if (index >= 0 && index < arr.length) arr.splice(index, 1);
           return { collectedPoles: arr };
         }),
+
+      // Enhanced batch operations (gated by featureFlags.batchOperations)
+      // These provide optimized bulk data management with validation
+      ...enhancedPoleActions(set, get),
+      ...enhancedSpanActions(set, get),
       importedSpans: [],
       setImportedSpans: (arr) => set({ importedSpans: arr || [] }),
       updateImportedSpan: (index, patch) =>

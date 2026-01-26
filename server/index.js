@@ -16,6 +16,7 @@ import dotenv from 'dotenv';
 import { authRouter } from './routes/auth.js';
 import { apiRouter } from './routes/api.js';
 import { healthRouter } from './routes/health.js';
+import { diagnosticsRouter } from './routes/diagnostics.js';
 // import { adminRouter } from './routes/admin.js'; // TODO: Create admin routes
 // import { geospatialRouter } from './routes/geospatial.js'; // TODO: Create geospatial routes
 import { projectsRouter } from './routes/projects.js';
@@ -110,6 +111,9 @@ app.use(Sentry.Handlers.requestHandler());
 // Health check route (must be before auth)
 app.use('/health', healthRouter);
 app.use('/api/health', healthRouter);
+
+// Diagnostics routes (with optional auth for sensitive data)
+app.use('/api/diagnostics', diagnosticsRouter);
 
 // Authentication routes
 app.use('/auth', authRouter);
