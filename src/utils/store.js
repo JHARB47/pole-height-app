@@ -10,6 +10,10 @@ import {
   enhancedPoleActions,
   enhancedSpanActions,
 } from "./enhancedStoreActions.js";
+import {
+  getWorkflowRequirements,
+  DELIVERABLE_TYPES,
+} from "./workflowEngine.js";
 
 // Preflight: if persisted state is corrupt JSON or missing required fields, clear it to avoid runtime crash
 function validateStoreState() {
@@ -26,6 +30,8 @@ function validateStoreState() {
         "collectedPoles",
         "importedSpans",
         "jobs",
+        "selectedDeliverables", // Workflow engine state
+        "workflowRequirements", // Workflow engine state
       ];
       for (const field of required) {
         if (!(field in parsed.state)) {
@@ -593,6 +599,71 @@ const useAppStore = create(
           layouts[jobId] = byJob;
           return { pdfLayouts: layouts };
         }),
+
+      // ============================================================
+      // Workflow Engine State (Deliverable-Based)
+      // ============================================================
+      selectedDeliverables: [], // Array of DELIVERABLE_TYPES values
+      setSelectedDeliverables: (deliverables) =>
+        set((state) => {
+          const newDeliverables = Array.isArray(deliverables)
+            ? deliverables
+            : [];
+          // Recompute workflow requirements when deliverables change
+          const workflowRequirements = getWorkflowRequirements({
+            selectedDeliverables: newDeliverables,
+            jobState: state,
+          });
+          return {
+            selectedDeliverables: newDeliverables,
+            workflowRequirements,
+          };
+        }),
+
+      workflowRequirements: null, // Computed by getWorkflowRequirements()
+
+      // Update workflow requirements based on current state
+      // Call this after state changes that affect data availability
+      updateWorkflowRequirements: () =>
+        set((state) => ({
+          workflowRequirements: getWorkflowRequirements({
+            selectedDeliverables: state.selectedDeliverables,
+            jobState: state,
+          }),
+        })),
+
+      // Helper: Check if a specific deliverable is selected
+      isDeliverableSelected: (deliverableId) => {
+        const state = get();
+        // If no deliverables selected, default to all (backward compatibility)
+        if (!state.selectedDeliverables?.length) return true;
+        return state.selectedDeliverables.includes(deliverableId);
+      },
+
+      // Helper: Toggle a deliverable on/off
+      toggleDeliverable: (deliverableId) =>
+        set((state) => {
+          const current = state.selectedDeliverables || [];
+          const isSelected = current.includes(deliverableId);
+          const newDeliverables = isSelected
+            ? current.filter((id) => id !== deliverableId)
+            : [...current, deliverableId];
+
+          const workflowRequirements = getWorkflowRequirements({
+            selectedDeliverables: newDeliverables,
+            jobState: state,
+          });
+
+          return {
+            selectedDeliverables: newDeliverables,
+            workflowRequirements,
+          };
+        }),
+
+      // ============================================================
+      // End Workflow Engine State
+      // ============================================================
+
       // Reset all state
       reset: () =>
         set({
@@ -772,6 +843,8 @@ const useAppStore = create(
             makeReadyHeight: "makeReadyHeight",
           },
           pdfLayouts: {},
+          selectedDeliverables: [],
+          workflowRequirements: null,
         }),
     }),
     {
