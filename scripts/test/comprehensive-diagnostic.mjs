@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+// @ts-nocheck
+// Reason: editor TS checkJs noise in Node scripts; CI does not typecheck these.
 /**
  * Comprehensive Diagnostic System
  * Tests all application operations with example inputs to discover issues

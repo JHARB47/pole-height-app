@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+// @ts-nocheck
+// Reason: editor TS checkJs noise in Node scripts; CI does not typecheck these.
 /**
  * API Endpoint Testing with Example Inputs
  * Tests all API endpoints with real-world example data

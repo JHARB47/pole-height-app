@@ -1,3 +1,5 @@
+// @ts-nocheck
+// Reason: editor TS checkJs noise in Node scripts; CI does not typecheck these.
 /**
  * Enhanced Diagnostics API Routes
  * Provides detailed system diagnostics and health monitoring
