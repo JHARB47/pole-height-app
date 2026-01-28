@@ -248,7 +248,7 @@ export async function parseShapefile(file) {
   }
 }
 
-function normalizeGeoJSON(geo) {
+export function normalizeGeoJSON(geo) {
   if (!geo) return { type: "FeatureCollection", features: [] };
   if (geo.type === "FeatureCollection") return geo;
   if (geo.type === "Feature")

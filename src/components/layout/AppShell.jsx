@@ -77,6 +77,7 @@ export function AppHeader({
           className="ppp-header__menu-btn"
           onClick={onMenuClick}
           aria-label="Toggle navigation"
+          data-testid="nav-menu-button"
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path
@@ -268,8 +269,20 @@ export function StepNavigation({
   onLockedStepClick, // Callback for mobile tap feedback on locked steps
   disabled = false,
 }) {
+  const getBadgeTestId = (badge) => {
+    const label = badge?.label?.toLowerCase?.();
+    if (label === "required") return "step-badge-required";
+    if (label === "optional") return "step-badge-optional";
+    if (label === "complete") return "step-badge-complete";
+    return undefined;
+  };
+
   return (
-    <nav className="ppp-step-nav" aria-label="Workflow steps">
+    <nav
+      className="ppp-step-nav"
+      aria-label="Workflow steps"
+      data-testid="step-navigation"
+    >
       <ul className="ppp-step-nav__list">
         {steps.map((step, index) => {
           const isActive = activeStep === step.id;
@@ -300,6 +313,7 @@ export function StepNavigation({
                 aria-current={isActive ? "step" : undefined}
                 aria-disabled={isDisabled || undefined}
                 tabIndex={isDisabled ? -1 : 0}
+                data-testid={`step-nav-${step.id}`}
               >
                 <span className="ppp-step-nav__indicator">
                   {renderStepIndicator(isCompleted, isDisabled, index)}
@@ -318,6 +332,7 @@ export function StepNavigation({
                 {step.badge && (
                   <span
                     className={`ppp-step-nav__badge ppp-step-nav__badge--${step.badge.type || "default"}`}
+                    data-testid={getBadgeTestId(step.badge)}
                   >
                     {step.badge.label}
                   </span>

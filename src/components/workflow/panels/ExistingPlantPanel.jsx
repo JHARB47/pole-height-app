@@ -6,7 +6,7 @@ import React from "react";
 import useAppStore from "../../../utils/store";
 import { useShallow } from "zustand/react/shallow";
 import { Card, CardHeader, CardBody } from "../../ui";
-import { StatusBadge } from "../../ui";
+import { Button, StatusBadge } from "../../ui";
 
 // Lazy load the existing lines editor
 const ExistingLinesEditor = React.lazy(
@@ -14,15 +14,27 @@ const ExistingLinesEditor = React.lazy(
 );
 
 export default function ExistingPlantPanel() {
-  const { existingLines, currentJobId } = useAppStore(
+  const { existingLines, currentJobId, workflowRequirements } = useAppStore(
     useShallow((s) => ({
       existingLines: s.existingLines || [],
       currentJobId: s.currentJobId,
+      workflowRequirements: s.workflowRequirements,
     })),
   );
 
   const makeReadyCount = existingLines.filter((l) => l.makeReady).length;
   const totalLines = existingLines.length;
+  const isOptional =
+    workflowRequirements?.requiredSteps?.existingPlant === false;
+
+  const handleSkip = () => {
+    // AI: rationale — optional steps should be skippable without blocking outputs.
+    window.dispatchEvent(
+      new CustomEvent("ppp:skip-step", {
+        detail: { stepId: "existing-plant" },
+      }),
+    );
+  };
 
   return (
     <div className="ppp-main-content">
@@ -75,6 +87,30 @@ export default function ExistingPlantPanel() {
             <strong>Tip:</strong> Create a job in Project Setup to save
             attachment data to a project.
           </span>
+        </div>
+      )}
+
+      {isOptional && (
+        <div
+          className="ppp-info-banner"
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "var(--space-3)",
+            padding: "var(--space-3) var(--space-4)",
+            backgroundColor: "var(--surface-2)",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius-md)",
+            marginBottom: "var(--space-4)",
+          }}
+        >
+          <span style={{ fontSize: "0.875rem", color: "var(--text-muted)" }}>
+            This step is optional for your selected deliverables.
+          </span>
+          <Button variant="ghost" size="sm" onClick={handleSkip}>
+            Skip for now
+          </Button>
         </div>
       )}
 

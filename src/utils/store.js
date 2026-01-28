@@ -14,6 +14,10 @@ import {
   getWorkflowRequirements,
   DELIVERABLE_TYPES,
 } from "./workflowEngine.js";
+import {
+  logDeliverablesChanged,
+  logWorkflowRequirementsUpdated,
+} from "./telemetry.js";
 
 // Preflight: if persisted state is corrupt JSON or missing required fields, clear it to avoid runtime crash
 function validateStoreState() {
@@ -614,6 +618,16 @@ const useAppStore = create(
             selectedDeliverables: newDeliverables,
             jobState: state,
           });
+          // AI: rationale — log deliverable changes for diagnostics.
+          logDeliverablesChanged({ selectedCount: newDeliverables.length });
+          logWorkflowRequirementsUpdated({
+            requiredCount: Object.values(
+              workflowRequirements?.requiredSteps || {},
+            ).filter(Boolean).length,
+            optionalCount: Object.values(
+              workflowRequirements?.requiredSteps || {},
+            ).filter((value) => value === false).length,
+          });
           return {
             selectedDeliverables: newDeliverables,
             workflowRequirements,
@@ -625,12 +639,21 @@ const useAppStore = create(
       // Update workflow requirements based on current state
       // Call this after state changes that affect data availability
       updateWorkflowRequirements: () =>
-        set((state) => ({
-          workflowRequirements: getWorkflowRequirements({
+        set((state) => {
+          const workflowRequirements = getWorkflowRequirements({
             selectedDeliverables: state.selectedDeliverables,
             jobState: state,
-          }),
-        })),
+          });
+          logWorkflowRequirementsUpdated({
+            requiredCount: Object.values(
+              workflowRequirements?.requiredSteps || {},
+            ).filter(Boolean).length,
+            optionalCount: Object.values(
+              workflowRequirements?.requiredSteps || {},
+            ).filter((value) => value === false).length,
+          });
+          return { workflowRequirements };
+        }),
 
       // Helper: Check if a specific deliverable is selected
       isDeliverableSelected: (deliverableId) => {
@@ -652,6 +675,15 @@ const useAppStore = create(
           const workflowRequirements = getWorkflowRequirements({
             selectedDeliverables: newDeliverables,
             jobState: state,
+          });
+          logDeliverablesChanged({ selectedCount: newDeliverables.length });
+          logWorkflowRequirementsUpdated({
+            requiredCount: Object.values(
+              workflowRequirements?.requiredSteps || {},
+            ).filter(Boolean).length,
+            optionalCount: Object.values(
+              workflowRequirements?.requiredSteps || {},
+            ).filter((value) => value === false).length,
           });
 
           return {

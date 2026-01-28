@@ -299,6 +299,28 @@ export function logImportError({
 }
 
 /**
+ * Log import start
+ */
+export function logImportStarted({ format, fileSize, mappingMode }) {
+  logEvent("import_started", {
+    format,
+    fileSize,
+    mappingMode: mappingMode || "auto",
+  });
+}
+
+/**
+ * Log import completion
+ */
+export function logImportCompleted({ format, rowCount, durationMs }) {
+  logEvent("import_completed", {
+    format,
+    rowCount,
+    durationMs: durationMs ? Math.round(durationMs) : undefined,
+  });
+}
+
+/**
  * Log export success
  */
 export function logExportSuccess({ format, itemCount, durationMs }) {
@@ -310,6 +332,15 @@ export function logExportSuccess({ format, itemCount, durationMs }) {
 }
 
 /**
+ * Log export start
+ */
+export function logExportStarted({ format }) {
+  logEvent("export_started", {
+    format,
+  });
+}
+
+/**
  * Log export error
  */
 export function logExportError({ format, errorMessage, durationMs }) {
@@ -317,6 +348,17 @@ export function logExportError({ format, errorMessage, durationMs }) {
     format,
     errorMessage,
     durationMs: durationMs ? Math.round(durationMs) : undefined,
+  });
+}
+
+/**
+ * Log validation failures for preflight checks
+ */
+export function logValidationFailed({ scope, codes, exportType }) {
+  logEvent("validation_failed", {
+    scope,
+    codes: Array.isArray(codes) ? codes.slice(0, 10) : [],
+    exportType,
   });
 }
 
@@ -346,6 +388,38 @@ export function logStepComplete({ stepId, durationMs }) {
 export function logStepEnter({ stepId }) {
   logEvent("step_enter", {
     stepId,
+  });
+}
+
+/**
+ * Log deliverable selection changes
+ */
+export function logDeliverablesChanged({ selectedCount }) {
+  logEvent("deliverables_changed", {
+    selectedCount,
+  });
+}
+
+/**
+ * Log workflow requirements updates
+ */
+export function logWorkflowRequirementsUpdated({
+  requiredCount,
+  optionalCount,
+}) {
+  logEvent("workflow_requirements_updated", {
+    requiredCount,
+    optionalCount,
+  });
+}
+
+/**
+ * Log calculation failure with structured code
+ */
+export function logCalculationFailed({ subsystem, code }) {
+  logEvent("calculation_failed", {
+    subsystem,
+    code,
   });
 }
 

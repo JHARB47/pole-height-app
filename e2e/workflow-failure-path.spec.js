@@ -5,10 +5,28 @@
 
 import { test, expect } from "@playwright/test";
 
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem("ppp_help_seen", "1");
+  });
+});
+
+const openNavigationIfNeeded = async (page) => {
+  const menuButton = page.getByTestId("nav-menu-button");
+  if (await menuButton.isVisible()) {
+    await menuButton.click();
+  }
+};
+
 test.describe("Failure Path: Error Handling", () => {
   test("should handle invalid data gracefully", async ({ page }) => {
     await page.goto("/");
     await page.waitForLoadState("domcontentloaded");
+
+    await expect(page.getByTestId("workflow-requirements-ready")).toHaveAttribute(
+      "data-ready",
+      "true",
+    );
 
     // App should load without crashing
     const errors = [];
@@ -38,6 +56,10 @@ test.describe("Failure Path: Error Handling", () => {
 
     // Now should load
     await page.goto("/");
+    await expect(page.getByTestId("workflow-requirements-ready")).toHaveAttribute(
+      "data-ready",
+      "true",
+    );
     await expect(page.locator("body")).toBeVisible();
 
     console.log("✅ Recovered from offline state");
@@ -46,6 +68,11 @@ test.describe("Failure Path: Error Handling", () => {
   test("should validate form inputs", async ({ page }) => {
     await page.goto("/");
     await page.waitForLoadState("networkidle", { timeout: 10000 });
+
+    await expect(page.getByTestId("workflow-requirements-ready")).toHaveAttribute(
+      "data-ready",
+      "true",
+    );
 
     // Look for input fields
     const inputs = await page
@@ -75,27 +102,16 @@ test.describe("Failure Path: Error Handling", () => {
     await page.goto("/");
     await page.waitForLoadState("domcontentloaded");
 
-    // Try to trigger export without data
-    const exportButton = page
-      .locator('button:has-text("Export"), button:has-text("Download")')
-      .first();
+    await expect(page.getByTestId("workflow-requirements-ready")).toHaveAttribute(
+      "data-ready",
+      "true",
+    );
 
-    if (await exportButton.isVisible({ timeout: 3000 })) {
-      const isDisabled = await exportButton.isDisabled();
+    await openNavigationIfNeeded(page);
+    await page.getByTestId("step-nav-outputs").click();
+    await expect(page.getByTestId("missing-data-warning")).toBeVisible();
 
-      if (!isDisabled) {
-        await exportButton.click();
-
-        // Should show error or do nothing gracefully
-        const hasError =
-          (await page.locator('[role="alert"], .error, .warning').count()) > 0;
-        const noErrors = (await page.locator("body").count()) > 0;
-
-        expect(noErrors || hasError).toBeTruthy();
-      }
-
-      console.log("✅ Export without data handled gracefully");
-    }
+    console.log("✅ Export without data handled gracefully");
   });
 });
 
@@ -107,6 +123,11 @@ test.describe("CDN Fallback Scenario", () => {
 
     await page.goto("/");
     await page.waitForLoadState("domcontentloaded");
+
+    await expect(page.getByTestId("workflow-requirements-ready")).toHaveAttribute(
+      "data-ready",
+      "true",
+    );
 
     // App should still load even with CDN blocked
     const body = await page.locator("body").first();
@@ -121,6 +142,11 @@ test.describe("CDN Fallback Scenario", () => {
 
     await page.goto("/");
     await page.waitForLoadState("networkidle", { timeout: 10000 });
+
+    await expect(page.getByTestId("workflow-requirements-ready")).toHaveAttribute(
+      "data-ready",
+      "true",
+    );
 
     // The app should still function (shapefile export falls back to GeoJSON)
     const isWorking = await page.locator("body").isVisible();

@@ -8,7 +8,17 @@ import { useShallow } from "zustand/react/shallow";
 import { Card, CardHeader, CardBody } from "../../ui";
 import { Button, StatusBadge } from "../../ui";
 import PropTypes from "prop-types";
-import { logExportSuccess, logExportError } from "../../../utils/telemetry";
+import {
+  logExportSuccess,
+  logExportError,
+  logExportStarted,
+  logValidationFailed,
+} from "../../../utils/telemetry";
+import PreflightCheckPanel from "../../PreflightCheckPanel";
+import {
+  validateForExportType,
+  getExportDeliverable,
+} from "../../../utils/preflightValidation";
 
 // Import exporters dynamically to keep bundle small
 const exportData = async (format, data) => {
@@ -37,6 +47,7 @@ export default function OutputsPanel({ toast }) {
     importedSpans,
     existingLines,
     analysis,
+    isDeliverableSelected,
   } = useAppStore(
     useShallow((s) => ({
       currentJobId: s.currentJobId,
@@ -45,15 +56,74 @@ export default function OutputsPanel({ toast }) {
       importedSpans: s.importedSpans || [],
       existingLines: s.existingLines || [],
       analysis: s.analysis,
+      isDeliverableSelected: s.isDeliverableSelected,
     })),
   );
 
   const [exporting, setExporting] = React.useState(null);
   const [exportError, setExportError] = React.useState(null);
+  const [preflightResult, setPreflightResult] = React.useState(null);
+  const [preflightTitle, setPreflightTitle] = React.useState(null);
 
   const hasData = collectedPoles.length > 0 || importedSpans.length > 0;
   const doneCount = collectedPoles.filter((p) => p.status === "done").length;
   const totalPoles = collectedPoles.length;
+
+  const exportOptions = [
+    {
+      id: "poles-csv",
+      label: "Poles CSV",
+      filename: `${projectName || "poles"}.csv`,
+      disabled: collectedPoles.length === 0,
+    },
+    {
+      id: "spans-csv",
+      label: "Spans CSV",
+      filename: `${projectName || "spans"}_spans.csv`,
+      disabled: importedSpans.length === 0,
+    },
+    {
+      id: "existing-csv",
+      label: "Existing Lines CSV",
+      filename: `${projectName || "existing"}_lines.csv`,
+      disabled: existingLines.length === 0,
+    },
+    {
+      id: "geojson",
+      label: "GeoJSON",
+      filename: `${projectName || "project"}.geojson`,
+      disabled: false,
+    },
+    {
+      id: "shapefile",
+      label: "Shapefile (ZIP)",
+      filename: `${projectName || "project"}-shapefile.zip`,
+      disabled: false,
+    },
+    {
+      id: "kml",
+      label: "KML (Google Earth)",
+      filename: `${projectName || "project"}.kml`,
+      disabled: false,
+    },
+  ];
+
+  const filteredExportOptions = exportOptions.filter((option) => {
+    const deliverable = getExportDeliverable(option.id);
+    return deliverable ? isDeliverableSelected(deliverable) : true;
+  });
+
+  const withTimeout = (promise, timeoutMs, label) => {
+    let timeoutId;
+    const timeoutPromise = new Promise((_, reject) => {
+      timeoutId = setTimeout(() => {
+        reject(new Error(`${label} timed out after ${timeoutMs}ms`));
+      }, timeoutMs);
+    });
+    return Promise.race([promise, timeoutPromise]).finally(() => {
+      clearTimeout(timeoutId);
+    });
+  };
 
   const handleExport = async (format, filename) => {
     // Guard against rapid double-clicks on the same export type
@@ -61,15 +131,74 @@ export default function OutputsPanel({ toast }) {
 
     setExporting(format);
     setExportError(null);
+    setPreflightResult(null);
+    setPreflightTitle(null);
     const startTime = performance.now();
 
     try {
+      const preflight = validateForExportType(useAppStore.getState(), format);
+      if (!preflight.ok) {
+        // AI: rationale — block export when required fields are missing and surface actionable errors.
+        setPreflightResult(preflight);
+        setPreflightTitle("Export Preflight Failed");
+        logValidationFailed({
+          scope: "export",
+          codes: preflight.errors.map((e) => e.code),
+          exportType: format,
+        });
+        toast?.error("Export blocked: missing required fields");
+        return;
+      }
+
+      logExportStarted({ format });
       const data = { collectedPoles, importedSpans, existingLines };
-      const result = await exportData(format, data);
+      if (format === "shapefile") {
+        const { buildGeoJSON, exportShapefile } =
+          await import("../../../utils/geodata");
+        const fc = buildGeoJSON({
+          poles: collectedPoles,
+          spans: importedSpans,
+          job: { id: currentJobId, name: projectName },
+        });
+        const shpBlob = await withTimeout(
+          exportShapefile(fc, filename, false),
+          15000,
+          "Export",
+        );
+        const isGeoFallback = shpBlob?.type === "application/json";
+        const downloadName = isGeoFallback
+          ? filename.replace(/\.zip$/i, ".geojson")
+          : filename;
+
+        const url = URL.createObjectURL(shpBlob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = downloadName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        const durationMs = performance.now() - startTime;
+        const itemCount =
+          collectedPoles.length + importedSpans.length + existingLines.length;
+        logExportSuccess({ format, itemCount, durationMs });
+        toast?.success(`Exported ${downloadName} successfully`);
+        return;
+      }
+
+      const result = await withTimeout(
+        exportData(format, data),
+        15000,
+        "Export",
+      );
       const durationMs = performance.now() - startTime;
 
       // Trigger download
-      const blob = new Blob([result], { type: "text/plain;charset=utf-8" });
+      const blob =
+        result instanceof Blob
+          ? result
+          : new Blob([result], { type: "text/plain;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -105,6 +234,26 @@ export default function OutputsPanel({ toast }) {
     } finally {
       setExporting(null);
     }
+  };
+
+  const handlePermitGenerate = async () => {
+    const preflight = validateForExportType(
+      useAppStore.getState(),
+      "permit-pdf",
+    );
+
+    if (!preflight.ok) {
+      setPreflightResult(preflight);
+      setPreflightTitle("Permit Preflight Failed");
+      logValidationFailed({
+        scope: "permit",
+        codes: preflight.errors.map((e) => e.code),
+      });
+      toast?.error("Permit generation blocked: missing required fields");
+      return;
+    }
+
+    toast?.info("Permit PDF generation is not configured yet.");
   };
 
   return (
@@ -167,9 +316,7 @@ export default function OutputsPanel({ toast }) {
 
       {/* Summary */}
       <Card>
-        <CardHeader>
-          <span>Project Summary</span>
-        </CardHeader>
+        <CardHeader title="Project Summary" />
         <CardBody>
           <div className="ppp-data-grid">
             <div className="ppp-data-item">
@@ -205,13 +352,12 @@ export default function OutputsPanel({ toast }) {
 
       {/* Export Options */}
       <Card>
-        <CardHeader step={6}>
-          <span>Export Data</span>
-        </CardHeader>
+        <CardHeader title="Export Data" stepNumber={6} />
         <CardBody>
           {!hasData ? (
             <div
               className="ppp-empty-state"
+              data-testid="missing-data-warning"
               style={{ background: "transparent", border: "none" }}
             >
               <svg
@@ -241,185 +387,106 @@ export default function OutputsPanel({ toast }) {
                     color: "var(--danger)",
                     fontSize: "0.875rem",
                   }}
+                  data-testid="export-error"
                 >
                   {exportError}
                 </div>
               )}
-              <div className="ppp-data-grid">
-                <div
-                  className="ppp-data-item"
-                  style={{
-                    cursor: exporting === "poles-csv" ? "wait" : "pointer",
-                  }}
-                  onClick={() =>
-                    handleExport("poles-csv", `${projectName || "poles"}.csv`)
-                  }
-                >
-                  <span className="ppp-data-item__label">Poles CSV</span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={exporting === "poles-csv"}
-                  >
-                    {exporting === "poles-csv" ? (
-                      <>
-                        <span className="ppp-spinner" aria-hidden="true" />{" "}
-                        Exporting...
-                      </>
-                    ) : (
-                      "Download"
-                    )}
-                  </Button>
+              {preflightResult && (
+                <div style={{ marginBottom: "var(--space-4)" }}>
+                  <PreflightCheckPanel
+                    title={preflightTitle}
+                    result={preflightResult}
+                    testId="preflight-panel"
+                  />
                 </div>
+              )}
+              {filteredExportOptions.length === 0 ? (
                 <div
-                  className="ppp-data-item"
-                  style={{
-                    cursor: exporting === "spans-csv" ? "wait" : "pointer",
-                  }}
-                  onClick={() =>
-                    handleExport(
-                      "spans-csv",
-                      `${projectName || "spans"}_spans.csv`,
-                    )
-                  }
+                  className="ppp-empty-state"
+                  data-testid="no-exports-required"
+                  style={{ background: "transparent", border: "none" }}
                 >
-                  <span className="ppp-data-item__label">Spans CSV</span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={
-                      exporting === "spans-csv" || importedSpans.length === 0
-                    }
-                  >
-                    {exporting === "spans-csv" ? (
-                      <>
-                        <span className="ppp-spinner" aria-hidden="true" />{" "}
-                        Exporting...
-                      </>
-                    ) : (
-                      "Download"
-                    )}
-                  </Button>
+                  <h3 className="ppp-empty-state__title">
+                    No exports required
+                  </h3>
+                  <p className="ppp-empty-state__description">
+                    Your selected deliverables do not require data exports.
+                  </p>
                 </div>
-                <div
-                  className="ppp-data-item"
-                  style={{
-                    cursor: exporting === "existing-csv" ? "wait" : "pointer",
-                  }}
-                  onClick={() =>
-                    handleExport(
-                      "existing-csv",
-                      `${projectName || "existing"}_lines.csv`,
-                    )
-                  }
-                >
-                  <span className="ppp-data-item__label">
-                    Existing Lines CSV
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={
-                      exporting === "existing-csv" || existingLines.length === 0
-                    }
-                  >
-                    {exporting === "existing-csv" ? (
-                      <>
-                        <span className="ppp-spinner" aria-hidden="true" />{" "}
-                        Exporting...
-                      </>
-                    ) : (
-                      "Download"
-                    )}
-                  </Button>
+              ) : (
+                <div className="ppp-data-grid" data-testid="export-options">
+                  {filteredExportOptions.map((option) => (
+                    <div
+                      key={option.id}
+                      className="ppp-data-item"
+                      style={{
+                        cursor: exporting === option.id ? "wait" : "pointer",
+                      }}
+                      onClick={() => handleExport(option.id, option.filename)}
+                      data-testid={`export-item-${option.id}`}
+                    >
+                      <span className="ppp-data-item__label">
+                        {option.label}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={exporting === option.id || option.disabled}
+                        data-testid={`export-button-${option.id}`}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleExport(option.id, option.filename);
+                        }}
+                      >
+                        {exporting === option.id ? (
+                          <>
+                            <span className="ppp-spinner" aria-hidden="true" />{" "}
+                            Exporting...
+                          </>
+                        ) : (
+                          "Download"
+                        )}
+                      </Button>
+                    </div>
+                  ))}
                 </div>
-                <div
-                  className="ppp-data-item"
-                  style={{
-                    cursor: exporting === "geojson" ? "wait" : "pointer",
-                  }}
-                  onClick={() =>
-                    handleExport(
-                      "geojson",
-                      `${projectName || "project"}.geojson`,
-                    )
-                  }
-                >
-                  <span className="ppp-data-item__label">GeoJSON</span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={exporting === "geojson"}
-                  >
-                    {exporting === "geojson" ? (
-                      <>
-                        <span className="ppp-spinner" aria-hidden="true" />{" "}
-                        Exporting...
-                      </>
-                    ) : (
-                      "Download"
-                    )}
-                  </Button>
-                </div>
-                <div
-                  className="ppp-data-item"
-                  style={{ cursor: exporting === "kml" ? "wait" : "pointer" }}
-                  onClick={() =>
-                    handleExport("kml", `${projectName || "project"}.kml`)
-                  }
-                >
-                  <span className="ppp-data-item__label">
-                    KML (Google Earth)
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={exporting === "kml"}
-                  >
-                    {exporting === "kml" ? (
-                      <>
-                        <span className="ppp-spinner" aria-hidden="true" />{" "}
-                        Exporting...
-                      </>
-                    ) : (
-                      "Download"
-                    )}
-                  </Button>
-                </div>
-              </div>
+              )}
             </>
           )}
         </CardBody>
       </Card>
 
       {/* Permit Generation */}
-      <Card>
-        <CardHeader>
-          <span>Generate Permit Package</span>
-        </CardHeader>
-        <CardBody>
-          <p
-            style={{
-              color: "var(--text-muted)",
-              fontSize: "0.875rem",
-              marginBottom: "var(--space-4)",
-            }}
-          >
-            Generate a complete permit application package including clearance
-            analysis, make-ready summary, and attachment diagrams.
-          </p>
-          <Button variant="primary" disabled={!hasData}>
-            Generate Permit PDF
-          </Button>
-        </CardBody>
-      </Card>
+      {isDeliverableSelected("permit_report") && (
+        <Card>
+          <CardHeader title="Generate Permit Package" />
+          <CardBody>
+            <p
+              style={{
+                color: "var(--text-muted)",
+                fontSize: "0.875rem",
+                marginBottom: "var(--space-4)",
+              }}
+            >
+              Generate a complete permit application package including clearance
+              analysis, make-ready summary, and attachment diagrams.
+            </p>
+            <Button
+              variant="primary"
+              disabled={!hasData}
+              onClick={handlePermitGenerate}
+            >
+              Generate Permit PDF
+            </Button>
+          </CardBody>
+        </Card>
+      )}
 
       {/* Analysis Results */}
-      {analysis && (
+      {analysis && isDeliverableSelected("clearance_analysis") && (
         <Card>
-          <CardHeader>
-            <span>Clearance Analysis Results</span>
-          </CardHeader>
+          <CardHeader title="Clearance Analysis Results" />
           <CardBody>
             <div className="ppp-data-grid">
               <div className="ppp-data-item">

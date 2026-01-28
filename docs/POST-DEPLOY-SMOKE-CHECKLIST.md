@@ -1,0 +1,21 @@
+# Post-Deploy Smoke Checklist (5 minutes)
+
+- Routing refresh
+  - Load /
+  - Deep-link to Outputs (/#outputs or /?step=outputs if supported)
+  - Refresh → app renders (no blank screen)
+- Data Intake import
+  - Import small CSV (2–3 poles)
+  - Confirm count/rows appear in Data Intake
+  - Confirm no console errors
+- Export
+  - Export GeoJSON
+  - Open downloaded file → contains expected FeatureCollection/features
+- Mobile UI
+  - Open nav drawer
+  - Switch steps
+  - Bottom bar renders and updates correctly
+- Monitoring / diagnostics
+  - Health: /health, /api/health
+  - Diagnostics: /api/diagnostics/health, /api/diagnostics/system
+  - ErrorBoundary: trigger known error path → “Copy Diagnostics” copies JSON without throwing

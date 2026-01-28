@@ -97,14 +97,14 @@ Similar to shapefileFallback - attempts to mock global `window.shpwrite` deletio
 ## Summary
 
 **Total Quarantined:** 2 tests  
-**Test Pass Rate:** 281/281 active tests = 100%  
-**Overall Coverage:** 283 total tests (281 passing + 2 quarantined)
+**Test Pass Rate:** 317/317 active tests = 100%  
+**Overall Coverage:** 319 total tests (317 passing + 2 quarantined)
 
 **Deployment Impact:** NONE - Both skipped tests cover CDN fallback scenarios that are:
 
 1. Verified manually in production browsers
 2. Low-risk (fallback to GeoJSON export)
-3. Better suited for E2E testing (Playwright with network control)
+3. Better suited for E2E testing (Playwright with network control) — covered in E2E suite
 
 **Action Items:**
 
@@ -114,6 +114,6 @@ Similar to shapefileFallback - attempts to mock global `window.shpwrite` deletio
 
 ---
 
-**Last Updated:** 2026-01-26  
+**Last Updated:** 2026-01-27  
 **Reviewed By:** AI QA Agent  
 **Approved For Production:** YES (with E2E coverage)

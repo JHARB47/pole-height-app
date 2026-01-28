@@ -5,7 +5,7 @@
  * which in turn determines required vs optional workflow steps.
  */
 
-import { useState } from "react";
+import React, { useState } from "react";
 import useAppStore from "../utils/store.js";
 import { DELIVERABLE_METADATA } from "../utils/workflowEngine.js";
 
@@ -48,13 +48,23 @@ export default function DeliverablePicker({ compact = false }) {
     useAppStore.getState().setSelectedDeliverables([]);
   };
 
+  const handleCustomizeSelection = () => {
+    // AI: rationale — switch from implicit "all" mode to explicit selection so users can uncheck items.
+    const allIds = Object.values(DELIVERABLE_METADATA).map((d) => d.id);
+    useAppStore.getState().setSelectedDeliverables(allIds);
+  };
+
   if (compact && !isExpanded) {
     return (
-      <div className="deliverable-picker-compact">
+      <div
+        className="deliverable-picker-compact"
+        data-testid="deliverable-picker"
+      >
         <button
           onClick={() => setIsExpanded(true)}
           className="btn btn-sm btn-outline"
           aria-label="Select deliverables"
+          data-testid="deliverable-picker-toggle"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -90,7 +100,7 @@ export default function DeliverablePicker({ compact = false }) {
   }
 
   return (
-    <div className="deliverable-picker card">
+    <div className="deliverable-picker card" data-testid="deliverable-picker">
       <div className="card-header">
         <h3 className="card-title">Select Deliverables</h3>
         {compact && (
@@ -131,6 +141,7 @@ export default function DeliverablePicker({ compact = false }) {
               Object.keys(DELIVERABLE_METADATA).length ===
               selectedDeliverables.length
             }
+            data-testid="deliverable-select-all"
           >
             Select All
           </button>
@@ -138,15 +149,37 @@ export default function DeliverablePicker({ compact = false }) {
             onClick={handleClearAll}
             className="btn btn-sm btn-outline"
             disabled={selectedDeliverables.length === 0}
+            data-testid="deliverable-clear-all"
           >
             Clear All
           </button>
+          {isAllMode && (
+            <button
+              onClick={handleCustomizeSelection}
+              className="btn btn-sm btn-outline"
+              data-testid="deliverable-customize"
+            >
+              Customize Selection
+            </button>
+          )}
         </div>
 
         {isAllMode && (
-          <div className="alert alert-info mb-3">
+          <div
+            className="alert alert-info mb-3"
+            data-testid="deliverable-all-mode"
+          >
             <strong>All deliverables enabled</strong> - Full 6-step workflow
             required (classic mode)
+            <div style={{ marginTop: "var(--space-2)" }}>
+              <button
+                onClick={handleCustomizeSelection}
+                className="btn btn-sm btn-outline"
+                data-testid="deliverable-customize-inline"
+              >
+                Switch to Custom Selection
+              </button>
+            </div>
           </div>
         )}
 
@@ -164,12 +197,14 @@ export default function DeliverablePicker({ compact = false }) {
                     <label
                       key={meta.id}
                       className={`deliverable-item ${isSelected ? "selected" : ""}`}
+                      data-testid={`deliverable-item-${meta.id}`}
                     >
                       <input
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => handleToggle(meta.id)}
                         disabled={isAllMode}
+                        data-testid={`deliverable-checkbox-${meta.id}`}
                       />
                       <div className="deliverable-content">
                         <div className="deliverable-name">

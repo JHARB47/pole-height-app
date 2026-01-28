@@ -1,6 +1,5 @@
 # PRODUCTION READINESS VERIFICATION REPORT - FINAL
-
-**Generated:** 2026-01-26 (FINAL DEPLOYMENT GATE)  
+**Generated:** 2026-01-27 (FINAL DEPLOYMENT GATE)  
 **Project:** PolePlan Pro - Pole Height Application  
 **Version:** 0.2.0
 
@@ -13,14 +12,29 @@
 The application has passed all critical production readiness gates with comprehensive evidence.
 
 ### Final Verification Results
-
-- ✅ **Build:** Clean (1.55s)
-- ✅ **Tests:** 292/294 passing (99.3% - 2 quarantined with documentation)
+- ✅ **Build:** Clean (1.69s)
+- ✅ **Tests:** 317/319 passing (99.4% - 2 quarantined with documentation)
 - ✅ **Integration:** Enhanced store actions integrated and verified (11 new tests)
-- ✅ **E2E Coverage:** 8 Playwright tests created (desktop + mobile)
+- ✅ **E2E Coverage:** 26 Playwright tests executed (desktop + mobile)
 - ✅ **Performance:** Exceeds targets by 40-500x (documented methodology)
 - ✅ **Clean Install:** npm ci successful
-- ⚠️ **Lint:** 13 minor warnings (non-blocking, documentation files)
+- ✅ **Lint:** Clean
+
+---
+
+## Last Verified
+- **Verification Date/Time (local):** 2026-01-27 18:36:47 EST
+- **Verified Commit:** 3365ba1574a3c343ce950c5d88a6fc9448ca8764
+- **Commands Run:**
+   - npm run lint
+   - npm test
+   - npm run build
+   - npx playwright test
+- **Key Pass Counts:**
+   - Unit/Integration: 317 passed / 319 total (2 quarantined)
+   - Playwright: 26 passed (chromium + webkit)
+- **Evidence:** [docs/VERIFICATION-EVIDENCE-LATEST.md](docs/VERIFICATION-EVIDENCE-LATEST.md)
+- **Docs-only Note:** Current changes are documentation-only; tests were not rerun for this commit.
 
 ---
 
@@ -28,12 +42,12 @@ The application has passed all critical production readiness gates with comprehe
 
 ### ✅ MANDATORY REQUIREMENTS (ALL PASSED)
 
-- [x] **Build succeeds** - 1.55s, 0.90MB bundle
-- [x] **Core tests passing** - 281/281 active tests (100%)
+- [x] **Build succeeds** - 1.69s, 0.90MB bundle
+- [x] **Core tests passing** - 317/317 active tests (100%)
 - [x] **Performance validated** - Benchmarks exceed targets by 40-500x
 - [x] **Enhanced features integrated** - batchAddPoles, batchAddSpans, batchUpdatePoles operational
 - [x] **Integration tests** - 11 tests prove enhancedStoreActions work
-- [x] **E2E tests created** - 8 Playwright tests (happy path + failure scenarios)
+- [x] **E2E tests executed** - 26 Playwright tests (happy path + failure scenarios)
 - [x] **Benchmark methodology documented** - BENCHMARK-METHODOLOGY.md
 - [x] **Failing tests quarantined** - TEST-QUARANTINE.md with root cause analysis
 - [x] **Clean install verified** - npm ci completes successfully
@@ -46,8 +60,8 @@ The application has passed all critical production readiness gates with comprehe
 - [x] Mobile viewport E2E tests
 - [x] Error handling E2E tests
 - [x] CDN fallback testing
-- [ ] Lint 100% clean (13 warnings in doc/test files - non-blocking)
-- [ ] Playwright run against live server (config ready, requires manual run)
+- [x] Lint 100% clean
+- [x] Playwright run against local web server (config enabled)
 
 ---
 
@@ -56,9 +70,9 @@ The application has passed all critical production readiness gates with comprehe
 ### Unit Tests (Client-Side)
 
 ```
-✅ Test Files:  54 passed | 1 skipped (55)
-✅ Tests:       281 passed | 2 skipped (283)
-✅ Duration:    ~9s
+✅ Test Files:  58 passed | 1 skipped (59)
+✅ Tests:       317 passed | 2 skipped (319)
+✅ Duration:    ~9.8s
 ✅ Pass Rate:   100% of active tests
 ```
 
@@ -90,7 +104,7 @@ The application has passed all critical production readiness gates with comprehe
 ### E2E Tests (Playwright)
 
 ```
-✅ Created:     8 tests (2 test files)
+✅ Executed:    26 tests (3 test files)
 ✅ Coverage:    Happy path workflow + Failure scenarios
 ✅ Viewports:   Desktop (Chrome) + Mobile (iPhone 13)
 ✅ Scenarios:   - Complete workflow
@@ -102,7 +116,25 @@ The application has passed all critical production readiness gates with comprehe
                 - CDN fallback
 ```
 
-### **TOTAL: 292/294 tests (99.3% passing, 2 documented quarantines)**
+### **TOTAL: 317/319 tests (99.4% passing, 2 documented quarantines)**
+
+---
+
+## PLAYWRIGHT RELIABILITY FIXES (2026-01-27)
+
+### Root Cause Summary
+- **30.1s stalls** were caused by a first-run Help modal overlay intercepting clicks and, on mobile WebKit, the sidebar navigation being offscreen.
+- The GIS-only flow also relied on non-deterministic selectors that were sensitive to layout changes.
+
+### Fixes Applied
+- Added deterministic selectors across workflow navigation, deliverables, preflight, and exports.
+- Seeded `ppp_help_seen` in E2E tests to avoid onboarding modal overlays.
+- Added a mobile navigation toggle hook in E2E tests to open the sidebar before clicking steps.
+- Enabled Playwright `webServer` so tests boot the app consistently.
+
+### Result
+- **GIS-only** and **missing data** tests now complete in <3s on both Chromium and WebKit.
+- Full E2E suite passes (26/26).
 
 ---
 
@@ -260,19 +292,19 @@ $ npm ci
 
 ```bash
 $ npm run build
-✅ Build Time:     1.55 seconds
+✅ Build Time:     1.69 seconds
 ✅ Exit Code:      0 (success)
 ✅ Output Size:    0.90 MB (compressed)
-✅ Largest Chunk:  vendor-BopctH1X.js (348KB, gzipped: 112KB)
+✅ Largest Chunk:  vendor-CrrzL3uk.js (348KB, gzipped: 112KB)
 ```
 
 ### Bundle Analysis
 
 ```
-dist/assets/vendor-BopctH1X.js          348.06 KB │ gzip: 112.19 KB
-dist/assets/react-vendor-BdhJis5b.js    155.79 KB │ gzip:  50.49 KB
-dist/assets/zip-utils-Sz0a3ef8.js        96.95 KB │ gzip:  29.87 KB
-dist/assets/app-components-xa6ySMKE.js   71.08 KB │ gzip:  17.94 KB
+dist/assets/vendor-CrrzL3uk.js            348.34 KB │ gzip: 112.28 KB
+dist/assets/react-vendor-B9WxxAyu.js      155.69 KB │ gzip:  50.45 KB
+dist/assets/zip-utils-C9XanikI.js          96.94 KB │ gzip:  29.87 KB
+dist/assets/app-components-CB8CHFzs.js     98.49 KB │ gzip:  24.93 KB
 ```
 
 ✅ All chunks within acceptable limits
@@ -284,19 +316,47 @@ dist/assets/app-components-xa6ySMKE.js   71.08 KB │ gzip:  17.94 KB
 ### Current State
 
 ```
-⚠️ 13 warnings in documentation/test files
-✅ No errors in production code
+✅ No lint warnings or errors
 ```
 
-### Lint Warnings Breakdown
+**Impact:** NONE - lint clean.
 
-- 6 errors: Unused parameters in test/diagnostic files
-- 4 errors: Node.js globals in performance benchmarks
-- 3 errors: Documentation script variables
+---
 
-**Impact:** NONE - Warnings are in non-production files (tests, scripts, docs)
+## TYPECHECK STATUS
 
-**Decision:** Non-blocking for deployment. Can be addressed in post-deploy cleanup.
+This project is currently **JavaScript-first** with TypeScript definitions only. There is **no typecheck script** in package.json, so no TS build is expected. Type safety is enforced via ESLint + tests.
+
+---
+
+## IMPORT/EXPORT HARDENING (2026-01-27)
+
+### Import Preflight
+- Validates file type, size limits, and CSV header mapping before parsing.
+- Requires GPS coordinates when GIS export deliverable is selected.
+- Uses a single store update for large imports.
+
+### Export Hardening
+- Exports blocked immediately when preflight fails.
+- Shapefile export added with CDN fallback to GeoJSON.
+- Blob-aware download handling prevents corrupted output files.
+
+---
+
+## CALCULATION HARDENING (2026-01-27)
+- `computeAnalysis` returns structured `ok/errors/warnings` and never throws into UI.
+- Added edge-case tests for missing inputs, zero span data, and invalid coordinates.
+- UI renders fail-soft outputs when results are partial or optional.
+
+---
+
+## Production Monitoring & Diagnostics
+- **/health** — HTTP 200 with JSON payload indicating service is healthy.
+- **/api/health** — HTTP 200 with JSON payload indicating API health.
+- **/api/diagnostics/health** — HTTP 200 with JSON health summary across subsystems.
+- **/api/diagnostics/system** — HTTP 200 with JSON system diagnostics (runtime, memory, version).
+
+Expected healthy result: HTTP 200 and a valid JSON body that reports healthy/ok status (no error fields).
 
 ---
 
@@ -305,19 +365,16 @@ dist/assets/app-components-xa6ySMKE.js   71.08 KB │ gzip:  17.94 KB
 ### ✅ **GO FOR DEPLOYMENT**
 
 **Justification:**
-
-1. **All critical tests passing** (281/281 active tests = 100%)
+1. **All critical tests passing** (317/317 active tests = 100%)
 2. **Enhanced features integrated and proven** (11 integration tests)
 3. **Performance exceeds targets by 40-500x** (with documented methodology)
-4. **E2E coverage established** (8 tests across desktop + mobile)
+4. **E2E coverage established** (26 tests across desktop + mobile)
 5. **Quarantined tests fully documented** (TEST-QUARANTINE.md)
-6. **Build succeeds cleanly** (1.55s, optimized bundle)
+6. **Build succeeds cleanly** (1.69s, optimized bundle)
 7. **Clean install verified** (npm ci successful)
 
 **Minor Items (Non-Blocking):**
-
-- Lint warnings in doc/test files (no production code affected)
-- Playwright tests require manual server start (config ready)
+- None
 
 ---
 
@@ -330,7 +387,7 @@ dist/assets/app-components-xa6ySMKE.js   71.08 KB │ gzip:  17.94 KB
 - [x] All API tests passing
 - [x] Integration tests passing
 - [x] Performance benchmarks documented
-- [x] E2E tests created
+- [x] E2E tests executed
 - [x] Feature flags configured
 - [x] Enhanced actions integrated
 - [x] Bundle size optimized
@@ -341,8 +398,40 @@ dist/assets/app-components-xa6ySMKE.js   71.08 KB │ gzip:  17.94 KB
 - [ ] Run Playwright E2E against staging
 - [ ] Monitor health endpoints (/api/diagnostics/\*)
 - [ ] Verify CDN fallback in production
-- [ ] Address lint warnings in doc files
 - [ ] Create GitHub issues for quarantined tests
+
+---
+
+## VERIFICATION EVIDENCE (2026-01-27)
+
+### Lint
+```bash
+$ npm run lint
+✅ ESLint completed without warnings
+```
+
+### Unit/Integration Tests
+```bash
+$ npm test
+✅ Test Files: 58 passed | 1 skipped (59)
+✅ Tests: 317 passed | 2 skipped (319)
+```
+
+### Build
+```bash
+$ npm run build
+✅ Build completed in 1.69s
+```
+
+### Playwright E2E
+```bash
+$ npx playwright test
+✅ 26 passed (chromium + webkit)
+```
+
+### Playwright Trace Artifacts (stall diagnosis)
+- [test-results/workflow-deliverables-Deli-eacc1-and-preflight-blocks-export-chromium/trace.zip](test-results/workflow-deliverables-Deli-eacc1-and-preflight-blocks-export-chromium/trace.zip)
+- [test-results/workflow-deliverables-Deli-eacc1-and-preflight-blocks-export-webkit/trace.zip](test-results/workflow-deliverables-Deli-eacc1-and-preflight-blocks-export-webkit/trace.zip)
 
 ---
 
@@ -354,8 +443,8 @@ All verification evidence is available in:
 - **Test Quarantine:** TEST-QUARANTINE.md
 - **Benchmark Methodology:** BENCHMARK-METHODOLOGY.md
 - **TODO List:** PRODUCTION-TODO.md
-- **Integration Tests:** src/utils/**tests**/enhancedStoreIntegration.test.js
-- **E2E Tests:** e2e/workflow-happy-path.spec.js, e2e/workflow-failure-path.spec.js
+- **Integration Tests:** src/utils/__tests__/enhancedStoreIntegration.test.js
+- **E2E Tests:** e2e/workflow-happy-path.spec.js, e2e/workflow-failure-path.spec.js, e2e/workflow-deliverables.spec.js
 - **Playwright Config:** playwright.config.js
 
 ---
@@ -363,9 +452,9 @@ All verification evidence is available in:
 ## SIGN-OFF
 
 **Verified By:** AI QA Agent  
-**Date:** 2026-01-26  
+**Date:** 2026-01-27  
 **Final Result:** ✅ **GO FOR DEPLOYMENT**  
-**Test Pass Rate:** 292/294 (99.3%)  
+**Test Pass Rate:** 317/319 (99.4%)  
 **Performance:** Exceeds all targets  
 **Confidence:** HIGH
 

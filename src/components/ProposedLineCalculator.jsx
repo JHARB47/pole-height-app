@@ -276,7 +276,7 @@ export default function ProposedLineCalculator() {
           ...(activeJob?.submissionProfileOverrides || {}),
         }
       : undefined;
-    const { results, warnings, notes, cost, errors } = computeAnalysis({
+    const { ok, results, warnings, notes, cost } = computeAnalysis({
       poleHeight,
       poleClass,
       poleLatitude,
@@ -304,7 +304,7 @@ export default function ProposedLineCalculator() {
       jobOwner,
       submissionProfile: mergedProfile,
     });
-    if (errors) {
+    if (!ok) {
       setAnalysis({ results: null, warnings: [], notes: [], cost: null });
       return;
     }
@@ -4434,7 +4434,7 @@ function FieldCollection({ openHelp, showBottomActions = true }) {
         submissionProfile: mergedProfile,
         adjacentPowerHeight: b.powerHeight,
       });
-      if (out?.results) {
+      if (out?.ok && out?.results) {
         rows.push({
           id: s.id || `${a.id}-${b.id}`,
           from: a.id,
@@ -5263,7 +5263,7 @@ function BatchReport() {
           (p) => p.name === store.currentSubmissionProfile,
         ),
       });
-      if (out?.results) rows.push({ span: s, from, to, ...out });
+      if (out?.ok && out?.results) rows.push({ span: s, from, to, ...out });
     }
     return rows;
   }, [store, poleById]);

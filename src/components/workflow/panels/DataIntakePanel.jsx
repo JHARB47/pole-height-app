@@ -12,17 +12,28 @@ import { Button } from "../../ui";
 const LazyImportPanel = React.lazy(() => import("../../LazyImportPanel"));
 
 export default function DataIntakePanel() {
-  const { importedSpans, collectedPoles, currentJobId } = useAppStore(
-    useShallow((s) => ({
-      importedSpans: s.importedSpans || [],
-      collectedPoles: s.collectedPoles || [],
-      currentJobId: s.currentJobId,
-    })),
-  );
+  const { importedSpans, collectedPoles, currentJobId, workflowRequirements } =
+    useAppStore(
+      useShallow((s) => ({
+        importedSpans: s.importedSpans || [],
+        collectedPoles: s.collectedPoles || [],
+        currentJobId: s.currentJobId,
+        workflowRequirements: s.workflowRequirements,
+      })),
+    );
 
   const totalPoles =
     collectedPoles.length +
     (importedSpans.length > 0 ? importedSpans.length : 0);
+
+  const isOptional = workflowRequirements?.requiredSteps?.dataIntake === false;
+
+  const handleSkip = () => {
+    // AI: rationale — optional steps should be skippable without blocking outputs.
+    window.dispatchEvent(
+      new CustomEvent("ppp:skip-step", { detail: { stepId: "data-intake" } }),
+    );
+  };
 
   return (
     <div className="ppp-main-content">
@@ -73,6 +84,30 @@ export default function DataIntakePanel() {
             <strong>Tip:</strong> Create a job in Project Setup to save imported
             data to a project.
           </span>
+        </div>
+      )}
+
+      {isOptional && (
+        <div
+          className="ppp-info-banner"
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "var(--space-3)",
+            padding: "var(--space-3) var(--space-4)",
+            backgroundColor: "var(--surface-2)",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius-md)",
+            marginBottom: "var(--space-4)",
+          }}
+        >
+          <span style={{ fontSize: "0.875rem", color: "var(--text-muted)" }}>
+            This step is optional for your selected deliverables.
+          </span>
+          <Button variant="ghost" size="sm" onClick={handleSkip}>
+            Skip for now
+          </Button>
         </div>
       )}
 

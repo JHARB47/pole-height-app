@@ -70,6 +70,7 @@ export default function EnhancedFieldCollectionPanel() {
   }, [isOnline, fieldManager.pendingQueue.length, handleSync]);
 
   // Statistics
+  // AI: rationale — field stats are derived from the manager, so use a stable dependency list.
   const stats = useMemo(() => fieldManager.getFieldStats(), [fieldManager]);
 
   const handleCaptureGPS = async () => {

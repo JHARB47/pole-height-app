@@ -9,11 +9,17 @@ import { Card, CardHeader, CardBody } from "../../ui";
 import { Button, StatusBadge } from "../../ui";
 
 export default function FieldCollectionPanel() {
-  const { collectedPoles, updateCollectedPole, currentJobId } = useAppStore(
+  const {
+    collectedPoles,
+    updateCollectedPole,
+    currentJobId,
+    workflowRequirements,
+  } = useAppStore(
     useShallow((s) => ({
       collectedPoles: s.collectedPoles || [],
       updateCollectedPole: s.updateCollectedPole,
       currentJobId: s.currentJobId,
+      workflowRequirements: s.workflowRequirements,
     })),
   );
 
@@ -23,6 +29,17 @@ export default function FieldCollectionPanel() {
   ).length;
   const totalPoles = collectedPoles.length;
   const progress = totalPoles > 0 ? (doneCount / totalPoles) * 100 : 0;
+  const isOptional =
+    workflowRequirements?.requiredSteps?.fieldCollection === false;
+
+  const handleSkip = () => {
+    // AI: rationale — optional steps should be skippable without blocking outputs.
+    window.dispatchEvent(
+      new CustomEvent("ppp:skip-step", {
+        detail: { stepId: "field-collection" },
+      }),
+    );
+  };
 
   const handleMarkDone = (index) => {
     updateCollectedPole(index, { status: "done" });
@@ -89,6 +106,30 @@ export default function FieldCollectionPanel() {
             <strong>Tip:</strong> Create a job in Project Setup to save field
             collection data to a project.
           </span>
+        </div>
+      )}
+
+      {isOptional && (
+        <div
+          className="ppp-info-banner"
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "var(--space-3)",
+            padding: "var(--space-3) var(--space-4)",
+            backgroundColor: "var(--surface-2)",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius-md)",
+            marginBottom: "var(--space-4)",
+          }}
+        >
+          <span style={{ fontSize: "0.875rem", color: "var(--text-muted)" }}>
+            This step is optional for your selected deliverables.
+          </span>
+          <Button variant="ghost" size="sm" onClick={handleSkip}>
+            Skip for now
+          </Button>
         </div>
       )}
 

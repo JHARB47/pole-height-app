@@ -8,6 +8,7 @@ import { useShallow } from "zustand/react/shallow";
 import { Card, CardHeader, CardBody, CardSection } from "../../ui";
 import { Button } from "../../ui";
 import { HelpTooltip } from "../../ui";
+import DeliverablePicker from "../../DeliverablePicker";
 
 export default function JobSetupPanel() {
   const {
@@ -37,6 +38,7 @@ export default function JobSetupPanel() {
     submissionProfiles,
     currentSubmissionProfile,
     setCurrentSubmissionProfile,
+    selectedDeliverables,
   } = useAppStore(
     useShallow((s) => ({
       jobs: s.jobs,
@@ -65,6 +67,7 @@ export default function JobSetupPanel() {
       submissionProfiles: s.submissionProfiles,
       currentSubmissionProfile: s.currentSubmissionProfile,
       setCurrentSubmissionProfile: s.setCurrentSubmissionProfile,
+      selectedDeliverables: s.selectedDeliverables || [],
     })),
   );
 
@@ -162,9 +165,7 @@ export default function JobSetupPanel() {
       {/* Job Selector */}
       {!showNewJobInput && jobs?.length > 0 && (
         <Card>
-          <CardHeader>
-            <span>Select Job</span>
-          </CardHeader>
+          <CardHeader title="Select Job" />
           <CardBody>
             <div className="ppp-field">
               <select
@@ -209,9 +210,7 @@ export default function JobSetupPanel() {
       {currentJobId && currentJob && (
         <>
           <Card>
-            <CardHeader step={1}>
-              <span>Job Metadata</span>
-            </CardHeader>
+            <CardHeader title="Job Metadata" stepNumber={1} />
             <CardBody>
               <div className="ppp-field-group">
                 <div className="ppp-field">
@@ -262,9 +261,32 @@ export default function JobSetupPanel() {
           </Card>
 
           <Card>
-            <CardHeader step={1}>
-              <span>Regulatory Profile</span>
-            </CardHeader>
+            <CardHeader title="Deliverables" />
+            <CardBody>
+              {/* AI: rationale — deliverables must be chosen early to drive required vs optional steps. */}
+              <div data-testid="deliverables-section">
+                <DeliverablePicker />
+              </div>
+              {selectedDeliverables.length === 0 && (
+                <div
+                  className="ppp-info-banner"
+                  data-testid="full-workflow-banner"
+                  style={{
+                    marginTop: "var(--space-4)",
+                    backgroundColor: "var(--blue-50, #eff6ff)",
+                    border: "1px solid var(--blue-200, #bfdbfe)",
+                    color: "var(--blue-800, #1e40af)",
+                  }}
+                >
+                  <strong>Full Workflow Mode:</strong> All deliverables are
+                  enabled by default for backward compatibility.
+                </div>
+              )}
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader title="Regulatory Profile" stepNumber={1} />
             <CardBody>
               <div className="ppp-field">
                 <label className="ppp-field__label">

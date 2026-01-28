@@ -1,3 +1,5 @@
+import { logCalculationFailed } from "./telemetry.js";
+
 // Core math helpers (deduplicated)
 export function clamp(value, min, max) {
   if (Number.isNaN(value)) return min;
@@ -535,618 +537,664 @@ export function getFirstEnergyRequirements() {
 
 // ---------- pure analysis for reuse (UI and batch) ----------
 export function computeAnalysis(inputs) {
-  const {
-    poleHeight,
-    poleClass,
-    poleLatitude,
-    poleLongitude,
-    adjacentPoleLatitude,
-    adjacentPoleLongitude,
-    existingPowerHeight,
-    existingPowerVoltage = "distribution",
-    spanDistance,
-    isNewConstruction,
-    adjacentPoleHeight,
-    adjacentPowerHeight,
-    adjacentProposedAttachFt,
-    attachmentType,
-    cableDiameter,
-    windSpeed,
-    spanEnvironment = "road",
-    // streetLightHeight,
-    dripLoopHeight,
-    proposedLineHeight,
-    existingLines = [],
-    iceThicknessIn,
-    hasTransformer,
-    presetProfile,
-    customMinTopSpace,
-    customRoadClearance,
-    customCommToPower,
-    powerReference,
-    jobOwner,
-    submissionProfile,
-  } = inputs || {};
-
-  const errs = {};
-  if (!poleHeight) errs.poleHeight = "Pole height required for analysis";
-  if (
-    !isNewConstruction &&
-    !existingPowerHeight &&
-    existingPowerVoltage !== "communication"
-  )
-    errs.existingPowerHeight =
-      "Power wire height required for existing pole analysis";
-  if (Object.keys(errs).length) return { errors: errs };
-
-  const poleData = getPoleBurialData(Number(poleHeight) || 0, poleClass);
-  const cableData =
-    DEFAULTS.cableTypes.find((c) => c.value === attachmentType) ||
-    DEFAULTS.cableTypes[0];
-  // If span distance missing, try to compute from geolocation (haversine)
-  let spanFt = Number(spanDistance) || 0;
-  if (
-    !spanFt &&
-    Number.isFinite(Number(poleLatitude)) &&
-    Number.isFinite(Number(poleLongitude)) &&
-    Number.isFinite(Number(adjacentPoleLatitude)) &&
-    Number.isFinite(Number(adjacentPoleLongitude))
-  ) {
-    const toRad = (d) => (Number(d) * Math.PI) / 180;
-    const Rm = 6371000;
-    const lat1 = Number(poleLatitude),
-      lon1 = Number(poleLongitude);
-    const lat2 = Number(adjacentPoleLatitude),
-      lon2 = Number(adjacentPoleLongitude);
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
-    const a =
-      Math.sin(dLat / 2) ** 2 +
-      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const meters = Rm * c;
-    spanFt = meters * 3.28084;
-  }
-  const wind = Number(windSpeed) || 90;
-  const adjacentPoleFt = Number(adjacentPoleHeight) || 0;
-  const proposedFt = parseFeet(proposedLineHeight);
-  // streetLightHeight not used in owner rule currently; drip loop governs
-  const dripFt = parseFeet(dripLoopHeight);
-
-  // Determine owner context early so we can influence baseline clearances
-  const companyNamesEarly = (existingLines || [])
-    .map((l) => String(l?.companyName || "").toLowerCase())
-    .filter(Boolean);
-  const isFEByPresetEarly =
-    presetProfile === "firstEnergy" || presetProfile === "firstEnergyMonPower";
-  const isFEByCompanyEarly = companyNamesEarly.some((name) =>
-    FIRST_ENERGY_OWNER_HINTS.some((h) => name.includes(h)),
-  );
-  const jobOwnerLcEarly = String(jobOwner || "").toLowerCase();
-  const isFEByJobOwnerEarly = jobOwnerLcEarly
-    ? FIRST_ENERGY_OWNER_HINTS.some((h) => jobOwnerLcEarly.includes(h))
-    : false;
-  const isFirstEnergyOwner =
-    isFEByPresetEarly || isFEByCompanyEarly || isFEByJobOwnerEarly;
-
-  let clearances = getNESCClearances(existingPowerVoltage, spanEnvironment);
-  clearances = applyPresetToClearances(clearances, presetProfile);
-  // Owner-type overrides: if FirstEnergy detected by jobOwner/lines/preset, enforce FE-like parameters
-  if (isFirstEnergyOwner) {
-    // Ensure comm-to-power separation reflects 44" (unless custom override is supplied later)
-    clearances.powerClearanceDistribution = Math.max(
-      clearances.powerClearanceDistribution || 0,
-      44 / 12,
-    );
-    // Ensure minimum top space at least 2 ft
-    clearances.minimumPoleTopSpace = Math.max(
-      clearances.minimumPoleTopSpace || 0,
-      2.0,
-    );
-    // Road environments: enforce 18 ft ground target minimum
-    if (spanEnvironment === "road") {
-      clearances.groundClearance = Math.max(
-        clearances.groundClearance || 0,
-        18.0,
-      );
-    }
-  }
-  // Submission profile overrides (adjustable per utility/region)
-  if (submissionProfile && typeof submissionProfile === "object") {
+  // AI: rationale — calculations should never throw; return structured diagnostics instead.
+  try {
     const {
-      commToPowerIn,
-      minTopSpaceFt,
-      roadClearanceFt,
-      envRoadFt,
-      envResidentialFt,
-      envPedestrianFt,
-      envFieldFt,
-      envResidentialYardFt,
-      envResidentialDrivewayFt,
-      envNonResidentialDrivewayFt,
-      envWaterwayFt,
-      envWVHighwayFt,
-      envInterstateFt,
-      envInterstateNewCrossingFt,
-      envRailroadFt,
-    } = submissionProfile;
-    if (Number.isFinite(commToPowerIn))
+      poleHeight,
+      poleClass,
+      poleLatitude,
+      poleLongitude,
+      adjacentPoleLatitude,
+      adjacentPoleLongitude,
+      existingPowerHeight,
+      existingPowerVoltage = "distribution",
+      spanDistance,
+      isNewConstruction,
+      adjacentPoleHeight,
+      adjacentPowerHeight,
+      adjacentProposedAttachFt,
+      attachmentType,
+      cableDiameter,
+      windSpeed,
+      spanEnvironment = "road",
+      // streetLightHeight,
+      dripLoopHeight,
+      proposedLineHeight,
+      existingLines = [],
+      iceThicknessIn,
+      hasTransformer,
+      presetProfile,
+      customMinTopSpace,
+      customRoadClearance,
+      customCommToPower,
+      powerReference,
+      jobOwner,
+      submissionProfile,
+    } = inputs || {};
+
+    const errs = {};
+    if (!poleHeight) errs.poleHeight = "Pole height required for analysis";
+    if (
+      !isNewConstruction &&
+      !existingPowerHeight &&
+      existingPowerVoltage !== "communication"
+    )
+      errs.existingPowerHeight =
+        "Power wire height required for existing pole analysis";
+    if (Object.keys(errs).length) {
+      logCalculationFailed({ subsystem: "computeAnalysis", code: "ERR_INPUT" });
+      return {
+        ok: false,
+        errors: errs,
+        warnings: [],
+        notes: [],
+        cost: null,
+        results: null,
+      };
+    }
+
+    const poleData = getPoleBurialData(Number(poleHeight) || 0, poleClass);
+    const cableData =
+      DEFAULTS.cableTypes.find((c) => c.value === attachmentType) ||
+      DEFAULTS.cableTypes[0];
+    // If span distance missing, try to compute from geolocation (haversine)
+    let spanFt = Number(spanDistance) || 0;
+    if (
+      !spanFt &&
+      Number.isFinite(Number(poleLatitude)) &&
+      Number.isFinite(Number(poleLongitude)) &&
+      Number.isFinite(Number(adjacentPoleLatitude)) &&
+      Number.isFinite(Number(adjacentPoleLongitude))
+    ) {
+      const toRad = (d) => (Number(d) * Math.PI) / 180;
+      const Rm = 6371000;
+      const lat1 = Number(poleLatitude),
+        lon1 = Number(poleLongitude);
+      const lat2 = Number(adjacentPoleLatitude),
+        lon2 = Number(adjacentPoleLongitude);
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      const meters = Rm * c;
+      spanFt = meters * 3.28084;
+    }
+    const wind = Number(windSpeed) || 90;
+    const adjacentPoleFt = Number(adjacentPoleHeight) || 0;
+    const proposedFt = parseFeet(proposedLineHeight);
+    // streetLightHeight not used in owner rule currently; drip loop governs
+    const dripFt = parseFeet(dripLoopHeight);
+
+    // Determine owner context early so we can influence baseline clearances
+    const companyNamesEarly = (existingLines || [])
+      .map((l) => String(l?.companyName || "").toLowerCase())
+      .filter(Boolean);
+    const isFEByPresetEarly =
+      presetProfile === "firstEnergy" ||
+      presetProfile === "firstEnergyMonPower";
+    const isFEByCompanyEarly = companyNamesEarly.some((name) =>
+      FIRST_ENERGY_OWNER_HINTS.some((h) => name.includes(h)),
+    );
+    const jobOwnerLcEarly = String(jobOwner || "").toLowerCase();
+    const isFEByJobOwnerEarly = jobOwnerLcEarly
+      ? FIRST_ENERGY_OWNER_HINTS.some((h) => jobOwnerLcEarly.includes(h))
+      : false;
+    const isFirstEnergyOwner =
+      isFEByPresetEarly || isFEByCompanyEarly || isFEByJobOwnerEarly;
+
+    let clearances = getNESCClearances(existingPowerVoltage, spanEnvironment);
+    clearances = applyPresetToClearances(clearances, presetProfile);
+    // Owner-type overrides: if FirstEnergy detected by jobOwner/lines/preset, enforce FE-like parameters
+    if (isFirstEnergyOwner) {
+      // Ensure comm-to-power separation reflects 44" (unless custom override is supplied later)
       clearances.powerClearanceDistribution = Math.max(
         clearances.powerClearanceDistribution || 0,
-        Number(commToPowerIn) / 12,
+        44 / 12,
       );
-    if (Number.isFinite(minTopSpaceFt))
+      // Ensure minimum top space at least 2 ft
       clearances.minimumPoleTopSpace = Math.max(
         clearances.minimumPoleTopSpace || 0,
-        Number(minTopSpaceFt),
+        2.0,
       );
-    if (Number.isFinite(roadClearanceFt) && spanEnvironment === "road")
-      clearances.groundClearance = Math.max(
-        clearances.groundClearance || 0,
-        Number(roadClearanceFt),
-      );
-    // Environment-specific midspan target overrides
-    if (spanEnvironment === "road" && Number.isFinite(envRoadFt))
-      clearances.groundClearance = Number(envRoadFt);
-    if (spanEnvironment === "residential" && Number.isFinite(envResidentialFt))
-      clearances.groundClearance = Number(envResidentialFt);
-    if (spanEnvironment === "pedestrian" && Number.isFinite(envPedestrianFt))
-      clearances.groundClearance = Number(envPedestrianFt);
-    if (spanEnvironment === "field" && Number.isFinite(envFieldFt))
-      clearances.groundClearance = Number(envFieldFt);
-    if (
-      spanEnvironment === "residentialYard" &&
-      Number.isFinite(envResidentialYardFt)
-    )
-      clearances.groundClearance = Number(envResidentialYardFt);
-    if (
-      spanEnvironment === "residentialDriveway" &&
-      Number.isFinite(envResidentialDrivewayFt)
-    )
-      clearances.groundClearance = Number(envResidentialDrivewayFt);
-    if (spanEnvironment === "waterway" && Number.isFinite(envWaterwayFt))
-      clearances.groundClearance = Number(envWaterwayFt);
-    if (spanEnvironment === "wvHighway" && Number.isFinite(envWVHighwayFt))
-      clearances.groundClearance = Number(envWVHighwayFt);
-    if (spanEnvironment === "interstate" && Number.isFinite(envInterstateFt))
-      clearances.groundClearance = Number(envInterstateFt);
-    if (
-      spanEnvironment === "interstateNewCrossing" &&
-      Number.isFinite(envInterstateNewCrossingFt)
-    )
-      clearances.groundClearance = Number(envInterstateNewCrossingFt);
-    if (
-      spanEnvironment === "nonResidentialDriveway" &&
-      Number.isFinite(envNonResidentialDrivewayFt)
-    )
-      clearances.groundClearance = Number(envNonResidentialDrivewayFt);
-    if (spanEnvironment === "railroad" && Number.isFinite(envRailroadFt))
-      clearances.groundClearance = Number(envRailroadFt);
-    // minCommAttachFt is applied after attach height is computed below
-  }
-  if (customMinTopSpace)
-    clearances.minimumPoleTopSpace =
-      Number(customMinTopSpace) || clearances.minimumPoleTopSpace;
-  if (customRoadClearance)
-    clearances.roadClearance =
-      Number(customRoadClearance) || clearances.roadClearance;
-  if (customCommToPower)
-    clearances.powerClearanceDistribution =
-      Number(customCommToPower) || clearances.powerClearanceDistribution;
-
-  let localWarnings = [];
-  let notes = [];
-  let calculatedCost = 0;
-
-  // Determine controlling power feature height
-
-  const heights = [];
-  const pushIf = (val, name) => {
-    const ft = parseFeet(val);
-    if (ft != null && Number.isFinite(ft) && ft > 0) heights.push({ name, ft });
-  };
-  pushIf(existingPowerHeight, "power conductor");
-  pushIf(dripLoopHeight, "drip loop");
-  // Scan existing lines for neutral/secondary heights
-  for (const line of existingLines || []) {
-    const t = String(line?.type || "").toLowerCase();
-    if (t.includes("neutral")) pushIf(line?.height, "neutral");
-    if (t.includes("secondary")) pushIf(line?.height, "secondary");
-  }
-  heights.sort((a, b) => a.ft - b.ft);
-  // Owner-selected reference override
-  let controlling = null;
-  const findByName = (n) => heights.find((h) => h.name === n) || null;
-  switch (powerReference || "auto") {
-    case "neutral":
-      controlling = findByName("neutral");
-      break;
-    case "secondary":
-      controlling = findByName("secondary");
-      break;
-    case "dripLoop":
-      controlling = findByName("drip loop");
-      break;
-    case "power":
-      controlling = findByName("power conductor");
-      break;
-    default:
-      controlling = heights[0] || null;
-      break;
-  }
-  const powerPresent = !!controlling;
-  const hasCommCompany = (existingLines || []).some(
-    (l) =>
-      String(l?.type || "")
-        .toLowerCase()
-        .includes("communication") &&
-      String(l?.companyName || "").trim().length > 0,
-  );
-  const commOwnerScenario =
-    !powerPresent &&
-    (existingPowerVoltage === "communication" || hasCommCompany);
-
-  // Determine effective separation between comm and controlling power-owned element
-  // Base on voltage class: transmission uses transmission separation; distribution uses distribution separation
-  const baseSeparationFt =
-    existingPowerVoltage === "transmission"
-      ? clearances.powerClearanceTransmission || 0
-      : clearances.powerClearanceDistribution || 0;
-  const ownerFloorFt =
-    existingPowerVoltage === "transmission"
-      ? baseSeparationFt // don't override transmission separation with owner floors
-      : isFirstEnergyOwner
-        ? 44 / 12
-        : 40 / 12;
-  const effectiveSeparationFt = Math.max(baseSeparationFt, ownerFloorFt);
-  const effectiveSeparationInches = Math.round(effectiveSeparationFt * 12);
-
-  let proposedAttachFt = null;
-  let ownerRecommendation = null;
-  if (commOwnerScenario) {
-    proposedAttachFt = Math.max(0, poleData.aboveGround - 1.0);
-    ownerRecommendation = {
-      basis: "owner-comm/no-power",
-      detail: "1ft below pole top (comm owner, no power measurements)",
-      clearanceIn: 12,
-      controlling: { name: "pole top", ft: poleData.aboveGround },
-    };
-    notes.push(
-      "Owner rule: No power measurements provided and communication company present — setting proposed attach 1ft below pole top.",
-    );
-    calculatedCost += isNewConstruction ? 150 : 200;
-  } else if (powerPresent) {
-    proposedAttachFt = controlling.ft - effectiveSeparationFt;
-    ownerRecommendation = {
-      basis:
-        existingPowerVoltage === "transmission"
-          ? "NESC-transmission"
-          : isFirstEnergyOwner
-            ? "FE"
-            : "NESC",
-      detail: `${effectiveSeparationInches}" below ${controlling.name}`,
-      clearanceIn: effectiveSeparationInches,
-      controlling,
-    };
-    notes.push(
-      `Owner rule: ${effectiveSeparationInches}" below ${controlling.name} (${formatFeetInches(controlling.ft)} → attach at ${formatFeetInches(proposedAttachFt)})`,
-    );
-    calculatedCost += 200;
-  } else if (isNewConstruction) {
-    proposedAttachFt = poleData.aboveGround - clearances.minimumPoleTopSpace;
-    ownerRecommendation = {
-      basis: "new-construction",
-      detail: `${Math.round(clearances.minimumPoleTopSpace * 12)}" below pole top`,
-      clearanceIn: Math.round(clearances.minimumPoleTopSpace * 12),
-      controlling: { name: "pole top", ft: poleData.aboveGround },
-    };
-    notes.push(
-      `New construction: attach ${formatFeetInches(clearances.minimumPoleTopSpace)} below pole top`,
-    );
-    calculatedCost += 150;
-  } else {
-    // Fallback to voltage-based rule if nothing else triggered
-    const pClear =
-      existingPowerVoltage === "transmission"
-        ? clearances.powerClearanceTransmission
-        : clearances.powerClearanceDistribution;
-    const powerFt = parseFeet(existingPowerHeight);
-    proposedAttachFt = (powerFt != null ? powerFt : 0) - pClear;
-    ownerRecommendation = {
-      basis: "voltage-default",
-      detail: `${Math.round((pClear || 0) * 12)}" below power conductor`,
-      clearanceIn: Math.round((pClear || 0) * 12),
-      controlling: { name: "power conductor", ft: powerFt || 0 },
-    };
-    notes.push(
-      `Default rule: ${Math.round((pClear || 0) * 12)}" below power conductor`,
-    );
-    calculatedCost += 200;
-  }
-
-  // Apply minimum communications attachment height if provided in submissionProfile
-  if (
-    submissionProfile &&
-    Number.isFinite(submissionProfile.minCommAttachFt) &&
-    proposedAttachFt != null
-  ) {
-    const minAttach = Number(submissionProfile.minCommAttachFt);
-    const allowedMax = powerPresent
-      ? controlling.ft - effectiveSeparationFt
-      : Infinity;
-    const clamped = Math.min(Math.max(proposedAttachFt, minAttach), allowedMax);
-    if (clamped !== proposedAttachFt) {
-      notes.push(
-        `Applied min communications attach height constraint: ${formatFeetInches(minAttach)} (clamped to maintain required separation if needed)`,
-      );
-      proposedAttachFt = clamped;
-    }
-  }
-
-  if (hasTransformer) {
-    notes.push(
-      "Transformer present: add clearance review and potential construction complexity",
-    );
-    calculatedCost += 300;
-  }
-
-  let sagFt = 0;
-  let midspanFt = null;
-  if (spanFt > 0 && adjacentPoleFt > 0 && proposedAttachFt != null) {
-    sagFt = calculateSag(
-      spanFt,
-      cableData.weight,
-      cableData.tension,
-      wind,
-      cableDiameter || cableData.diameter,
-      Number(iceThicknessIn) || 0,
-    );
-    const adjacentPoleData = getPoleBurialData(adjacentPoleFt);
-    // Estimate neighbor-end attach height
-    let neighborAttachFt = null;
-    if (
-      adjacentProposedAttachFt != null &&
-      Number.isFinite(Number(adjacentProposedAttachFt))
-    )
-      neighborAttachFt = Number(adjacentProposedAttachFt);
-    if (neighborAttachFt == null) {
-      const adjPowerFt = parseFeet(adjacentPowerHeight);
-      if (adjPowerFt != null)
-        neighborAttachFt = adjPowerFt - effectiveSeparationFt;
-    }
-    if (neighborAttachFt == null)
-      neighborAttachFt = Math.max(
-        0,
-        adjacentPoleData.aboveGround - clearances.minimumPoleTopSpace,
-      );
-    midspanFt = (proposedAttachFt + neighborAttachFt) / 2 - sagFt;
-    if (midspanFt < clearances.groundClearance) {
-      localWarnings.push(
-        `CRITICAL: midspan ${formatFeetInches(midspanFt)} < min ground clearance ${formatFeetInches(clearances.groundClearance)}`,
-      );
-    }
-    if (spanFt > 300) {
-      localWarnings.push(
-        "Spans > 300 ft require special engineering and utility approval",
-      );
-      calculatedCost += 500;
-    }
-    if (spanFt > 150 && String(attachmentType || "").includes("communication"))
-      localWarnings.push(
-        "Communication cable spans >150 ft may require intermediate support",
-      );
-  }
-
-  // Drip loop specific clearance check (owner-based inches)
-  if (proposedFt != null && dripFt != null) {
-    const dripGapIn = (dripFt - proposedFt) * 12;
-    const reqIn = effectiveSeparationInches; // align with pole separation to power-owned equipment
-    if (dripGapIn < reqIn) {
-      localWarnings.push(
-        `Comm-to-Drip Loop at pole: ${dripGapIn.toFixed(1)}" (need ${reqIn}")`,
-      );
-      if (hasTransformer) {
-        notes.push(
-          "Owner last‑resort: tuck drip loop to ~1ft above bottom of transformer to regain clearance (utility approval required).",
+      // Road environments: enforce 18 ft ground target minimum
+      if (spanEnvironment === "road") {
+        clearances.groundClearance = Math.max(
+          clearances.groundClearance || 0,
+          18.0,
         );
       }
     }
-  }
+    // Submission profile overrides (adjustable per utility/region)
+    if (submissionProfile && typeof submissionProfile === "object") {
+      const {
+        commToPowerIn,
+        minTopSpaceFt,
+        roadClearanceFt,
+        envRoadFt,
+        envResidentialFt,
+        envPedestrianFt,
+        envFieldFt,
+        envResidentialYardFt,
+        envResidentialDrivewayFt,
+        envNonResidentialDrivewayFt,
+        envWaterwayFt,
+        envWVHighwayFt,
+        envInterstateFt,
+        envInterstateNewCrossingFt,
+        envRailroadFt,
+      } = submissionProfile;
+      if (Number.isFinite(commToPowerIn))
+        clearances.powerClearanceDistribution = Math.max(
+          clearances.powerClearanceDistribution || 0,
+          Number(commToPowerIn) / 12,
+        );
+      if (Number.isFinite(minTopSpaceFt))
+        clearances.minimumPoleTopSpace = Math.max(
+          clearances.minimumPoleTopSpace || 0,
+          Number(minTopSpaceFt),
+        );
+      if (Number.isFinite(roadClearanceFt) && spanEnvironment === "road")
+        clearances.groundClearance = Math.max(
+          clearances.groundClearance || 0,
+          Number(roadClearanceFt),
+        );
+      // Environment-specific midspan target overrides
+      if (spanEnvironment === "road" && Number.isFinite(envRoadFt))
+        clearances.groundClearance = Number(envRoadFt);
+      if (
+        spanEnvironment === "residential" &&
+        Number.isFinite(envResidentialFt)
+      )
+        clearances.groundClearance = Number(envResidentialFt);
+      if (spanEnvironment === "pedestrian" && Number.isFinite(envPedestrianFt))
+        clearances.groundClearance = Number(envPedestrianFt);
+      if (spanEnvironment === "field" && Number.isFinite(envFieldFt))
+        clearances.groundClearance = Number(envFieldFt);
+      if (
+        spanEnvironment === "residentialYard" &&
+        Number.isFinite(envResidentialYardFt)
+      )
+        clearances.groundClearance = Number(envResidentialYardFt);
+      if (
+        spanEnvironment === "residentialDriveway" &&
+        Number.isFinite(envResidentialDrivewayFt)
+      )
+        clearances.groundClearance = Number(envResidentialDrivewayFt);
+      if (spanEnvironment === "waterway" && Number.isFinite(envWaterwayFt))
+        clearances.groundClearance = Number(envWaterwayFt);
+      if (spanEnvironment === "wvHighway" && Number.isFinite(envWVHighwayFt))
+        clearances.groundClearance = Number(envWVHighwayFt);
+      if (spanEnvironment === "interstate" && Number.isFinite(envInterstateFt))
+        clearances.groundClearance = Number(envInterstateFt);
+      if (
+        spanEnvironment === "interstateNewCrossing" &&
+        Number.isFinite(envInterstateNewCrossingFt)
+      )
+        clearances.groundClearance = Number(envInterstateNewCrossingFt);
+      if (
+        spanEnvironment === "nonResidentialDriveway" &&
+        Number.isFinite(envNonResidentialDrivewayFt)
+      )
+        clearances.groundClearance = Number(envNonResidentialDrivewayFt);
+      if (spanEnvironment === "railroad" && Number.isFinite(envRailroadFt))
+        clearances.groundClearance = Number(envRailroadFt);
+      // minCommAttachFt is applied after attach height is computed below
+    }
+    if (customMinTopSpace)
+      clearances.minimumPoleTopSpace =
+        Number(customMinTopSpace) || clearances.minimumPoleTopSpace;
+    if (customRoadClearance)
+      clearances.roadClearance =
+        Number(customRoadClearance) || clearances.roadClearance;
+    if (customCommToPower)
+      clearances.powerClearanceDistribution =
+        Number(customCommToPower) || clearances.powerClearanceDistribution;
 
-  // Additional owner rules and guidance (FirstEnergy/Mon Power style)
-  // These produce warnings or notes to guide field/design decisions; they don't hard-stop calculations.
-  if (isFirstEnergyOwner) {
-    // Minimum separations at pole to lowest power item; prefer stricter values if specified
-    const sepToPowerIn = effectiveSeparationInches; // 40" typical, 44" FE floor
-    if (proposedFt != null && controlling?.name) {
-      const gapIn = (controlling.ft - proposedFt) * 12;
-      if (gapIn < sepToPowerIn)
-        localWarnings.push(
-          `Comm-to-${controlling.name} at pole: ${gapIn.toFixed(1)}" (need ${sepToPowerIn}")`,
-        );
+    let localWarnings = [];
+    let notes = [];
+    let calculatedCost = 0;
+
+    // Determine controlling power feature height
+
+    const heights = [];
+    const pushIf = (val, name) => {
+      const ft = parseFeet(val);
+      if (ft != null && Number.isFinite(ft) && ft > 0)
+        heights.push({ name, ft });
+    };
+    pushIf(existingPowerHeight, "power conductor");
+    pushIf(dripLoopHeight, "drip loop");
+    // Scan existing lines for neutral/secondary heights
+    for (const line of existingLines || []) {
+      const t = String(line?.type || "").toLowerCase();
+      if (t.includes("neutral")) pushIf(line?.height, "neutral");
+      if (t.includes("secondary")) pushIf(line?.height, "secondary");
     }
-    // 30" below transformer bottom if that is lowest power control
-    const transformerBottomFt = (existingLines || []).find((l) =>
-      String(l?.type || "")
-        .toLowerCase()
-        .includes("transformer"),
-    )?.height
-      ? parseFeet(
-          (existingLines || []).find((l) =>
-            String(l?.type || "")
-              .toLowerCase()
-              .includes("transformer"),
-          ).height,
-        )
-      : null;
-    if (proposedFt != null && transformerBottomFt != null) {
-      const gapIn = (transformerBottomFt - proposedFt) * 12;
-      if (gapIn < 30)
-        localWarnings.push(
-          `Comm-to-Transformer bottom: ${gapIn.toFixed(1)}" (need 30")`,
-        );
+    heights.sort((a, b) => a.ft - b.ft);
+    // Owner-selected reference override
+    let controlling = null;
+    const findByName = (n) => heights.find((h) => h.name === n) || null;
+    switch (powerReference || "auto") {
+      case "neutral":
+        controlling = findByName("neutral");
+        break;
+      case "secondary":
+        controlling = findByName("secondary");
+        break;
+      case "dripLoop":
+        controlling = findByName("drip loop");
+        break;
+      case "power":
+        controlling = findByName("power conductor");
+        break;
+      default:
+        controlling = heights[0] || null;
+        break;
     }
-    // 20" below street light (4" if bonded)
-    const streetLightFt = parseFeet(inputs?.streetLightHeight);
-    if (proposedFt != null && streetLightFt != null) {
-      const bonded = false; // future: detect bonded flag
-      const req = bonded ? 4 : 20;
-      const gapIn = (streetLightFt - proposedFt) * 12;
-      if (gapIn < req)
-        localWarnings.push(
-          `Comm-to-Street Light: ${gapIn.toFixed(1)}" (need ${req}")`,
-        );
+    const powerPresent = !!controlling;
+    const hasCommCompany = (existingLines || []).some(
+      (l) =>
+        String(l?.type || "")
+          .toLowerCase()
+          .includes("communication") &&
+        String(l?.companyName || "").trim().length > 0,
+    );
+    const commOwnerScenario =
+      !powerPresent &&
+      (existingPowerVoltage === "communication" || hasCommCompany);
+
+    // Determine effective separation between comm and controlling power-owned element
+    // Base on voltage class: transmission uses transmission separation; distribution uses distribution separation
+    const baseSeparationFt =
+      existingPowerVoltage === "transmission"
+        ? clearances.powerClearanceTransmission || 0
+        : clearances.powerClearanceDistribution || 0;
+    const ownerFloorFt =
+      existingPowerVoltage === "transmission"
+        ? baseSeparationFt // don't override transmission separation with owner floors
+        : isFirstEnergyOwner
+          ? 44 / 12
+          : 40 / 12;
+    const effectiveSeparationFt = Math.max(baseSeparationFt, ownerFloorFt);
+    const effectiveSeparationInches = Math.round(effectiveSeparationFt * 12);
+
+    let proposedAttachFt = null;
+    let ownerRecommendation = null;
+    if (commOwnerScenario) {
+      proposedAttachFt = Math.max(0, poleData.aboveGround - 1.0);
+      ownerRecommendation = {
+        basis: "owner-comm/no-power",
+        detail: "1ft below pole top (comm owner, no power measurements)",
+        clearanceIn: 12,
+        controlling: { name: "pole top", ft: poleData.aboveGround },
+      };
+      notes.push(
+        "Owner rule: No power measurements provided and communication company present — setting proposed attach 1ft below pole top.",
+      );
+      calculatedCost += isNewConstruction ? 150 : 200;
+    } else if (powerPresent) {
+      proposedAttachFt = controlling.ft - effectiveSeparationFt;
+      ownerRecommendation = {
+        basis:
+          existingPowerVoltage === "transmission"
+            ? "NESC-transmission"
+            : isFirstEnergyOwner
+              ? "FE"
+              : "NESC",
+        detail: `${effectiveSeparationInches}" below ${controlling.name}`,
+        clearanceIn: effectiveSeparationInches,
+        controlling,
+      };
+      notes.push(
+        `Owner rule: ${effectiveSeparationInches}" below ${controlling.name} (${formatFeetInches(controlling.ft)} → attach at ${formatFeetInches(proposedAttachFt)})`,
+      );
+      calculatedCost += 200;
+    } else if (isNewConstruction) {
+      proposedAttachFt = poleData.aboveGround - clearances.minimumPoleTopSpace;
+      ownerRecommendation = {
+        basis: "new-construction",
+        detail: `${Math.round(clearances.minimumPoleTopSpace * 12)}" below pole top`,
+        clearanceIn: Math.round(clearances.minimumPoleTopSpace * 12),
+        controlling: { name: "pole top", ft: poleData.aboveGround },
+      };
+      notes.push(
+        `New construction: attach ${formatFeetInches(clearances.minimumPoleTopSpace)} below pole top`,
+      );
+      calculatedCost += 150;
+    } else {
+      // Fallback to voltage-based rule if nothing else triggered
+      const pClear =
+        existingPowerVoltage === "transmission"
+          ? clearances.powerClearanceTransmission
+          : clearances.powerClearanceDistribution;
+      const powerFt = parseFeet(existingPowerHeight);
+      proposedAttachFt = (powerFt != null ? powerFt : 0) - pClear;
+      ownerRecommendation = {
+        basis: "voltage-default",
+        detail: `${Math.round((pClear || 0) * 12)}" below power conductor`,
+        clearanceIn: Math.round((pClear || 0) * 12),
+        controlling: { name: "power conductor", ft: powerFt || 0 },
+      };
+      notes.push(
+        `Default rule: ${Math.round((pClear || 0) * 12)}" below power conductor`,
+      );
+      calculatedCost += 200;
     }
-    // 12" street light drip loop (12" if coated)
-    const slDripFt = (existingLines || []).find((l) =>
-      String(l?.type || "")
-        .toLowerCase()
-        .includes("street light drip"),
-    )?.height
-      ? parseFeet(
-          (existingLines || []).find((l) =>
-            String(l?.type || "")
-              .toLowerCase()
-              .includes("street light drip"),
-          ).height,
-        )
-      : null;
-    if (proposedFt != null && slDripFt != null) {
-      const gapIn = (slDripFt - proposedFt) * 12;
-      if (gapIn < 12)
-        localWarnings.push(
-          `Comm-to-Street Light Drip: ${gapIn.toFixed(1)}" (need 12")`,
-        );
-    }
-    // 4" above street light (if crossing above)
+
+    // Apply minimum communications attachment height if provided in submissionProfile
     if (
-      proposedFt != null &&
-      streetLightFt != null &&
-      proposedFt > streetLightFt
+      submissionProfile &&
+      Number.isFinite(submissionProfile.minCommAttachFt) &&
+      proposedAttachFt != null
     ) {
-      const gapIn = (proposedFt - streetLightFt) * 12;
-      if (gapIn < 4)
+      const minAttach = Number(submissionProfile.minCommAttachFt);
+      const allowedMax = powerPresent
+        ? controlling.ft - effectiveSeparationFt
+        : Infinity;
+      const clamped = Math.min(
+        Math.max(proposedAttachFt, minAttach),
+        allowedMax,
+      );
+      if (clamped !== proposedAttachFt) {
+        notes.push(
+          `Applied min communications attach height constraint: ${formatFeetInches(minAttach)} (clamped to maintain required separation if needed)`,
+        );
+        proposedAttachFt = clamped;
+      }
+    }
+
+    if (hasTransformer) {
+      notes.push(
+        "Transformer present: add clearance review and potential construction complexity",
+      );
+      calculatedCost += 300;
+    }
+
+    let sagFt = 0;
+    let midspanFt = null;
+    if (spanFt > 0 && adjacentPoleFt > 0 && proposedAttachFt != null) {
+      sagFt = calculateSag(
+        spanFt,
+        cableData.weight,
+        cableData.tension,
+        wind,
+        cableDiameter || cableData.diameter,
+        Number(iceThicknessIn) || 0,
+      );
+      const adjacentPoleData = getPoleBurialData(adjacentPoleFt);
+      // Estimate neighbor-end attach height
+      let neighborAttachFt = null;
+      if (
+        adjacentProposedAttachFt != null &&
+        Number.isFinite(Number(adjacentProposedAttachFt))
+      )
+        neighborAttachFt = Number(adjacentProposedAttachFt);
+      if (neighborAttachFt == null) {
+        const adjPowerFt = parseFeet(adjacentPowerHeight);
+        if (adjPowerFt != null)
+          neighborAttachFt = adjPowerFt - effectiveSeparationFt;
+      }
+      if (neighborAttachFt == null)
+        neighborAttachFt = Math.max(
+          0,
+          adjacentPoleData.aboveGround - clearances.minimumPoleTopSpace,
+        );
+      midspanFt = (proposedAttachFt + neighborAttachFt) / 2 - sagFt;
+      if (midspanFt < clearances.groundClearance) {
         localWarnings.push(
-          `Comm above Street Light: ${gapIn.toFixed(1)}" (need 4")`,
+          `CRITICAL: midspan ${formatFeetInches(midspanFt)} < min ground clearance ${formatFeetInches(clearances.groundClearance)}`,
+        );
+      }
+      if (spanFt > 300) {
+        localWarnings.push(
+          "Spans > 300 ft require special engineering and utility approval",
+        );
+        calculatedCost += 500;
+      }
+      if (
+        spanFt > 150 &&
+        String(attachmentType || "").includes("communication")
+      )
+        localWarnings.push(
+          "Communication cable spans >150 ft may require intermediate support",
         );
     }
-    // Midspan comm-to-comm: 12" mains/laterals; 4" drops
-    if (midspanFt != null) {
-      for (const line of existingLines || []) {
-        const t = String(line?.type || "").toLowerCase();
-        if (t.includes("communication")) {
-          const otherFt = parseFeet(line?.height);
-          if (otherFt != null) {
-            const gapIn = Math.abs((midspanFt - otherFt) * 12);
-            const isDrop = t.includes("drop");
-            const req = isDrop ? 4 : 12;
-            if (gapIn < req)
-              localWarnings.push(
-                `Midspan comm-to-comm (${isDrop ? "drop" : "main"}): ${gapIn.toFixed(1)}" (need ${req}")`,
-              );
+
+    // Drip loop specific clearance check (owner-based inches)
+    if (proposedFt != null && dripFt != null) {
+      const dripGapIn = (dripFt - proposedFt) * 12;
+      const reqIn = effectiveSeparationInches; // align with pole separation to power-owned equipment
+      if (dripGapIn < reqIn) {
+        localWarnings.push(
+          `Comm-to-Drip Loop at pole: ${dripGapIn.toFixed(1)}" (need ${reqIn}")`,
+        );
+        if (hasTransformer) {
+          notes.push(
+            "Owner last‑resort: tuck drip loop to ~1ft above bottom of transformer to regain clearance (utility approval required).",
+          );
+        }
+      }
+    }
+
+    // Additional owner rules and guidance (FirstEnergy/Mon Power style)
+    // These produce warnings or notes to guide field/design decisions; they don't hard-stop calculations.
+    if (isFirstEnergyOwner) {
+      // Minimum separations at pole to lowest power item; prefer stricter values if specified
+      const sepToPowerIn = effectiveSeparationInches; // 40" typical, 44" FE floor
+      if (proposedFt != null && controlling?.name) {
+        const gapIn = (controlling.ft - proposedFt) * 12;
+        if (gapIn < sepToPowerIn)
+          localWarnings.push(
+            `Comm-to-${controlling.name} at pole: ${gapIn.toFixed(1)}" (need ${sepToPowerIn}")`,
+          );
+      }
+      // 30" below transformer bottom if that is lowest power control
+      const transformerBottomFt = (existingLines || []).find((l) =>
+        String(l?.type || "")
+          .toLowerCase()
+          .includes("transformer"),
+      )?.height
+        ? parseFeet(
+            (existingLines || []).find((l) =>
+              String(l?.type || "")
+                .toLowerCase()
+                .includes("transformer"),
+            ).height,
+          )
+        : null;
+      if (proposedFt != null && transformerBottomFt != null) {
+        const gapIn = (transformerBottomFt - proposedFt) * 12;
+        if (gapIn < 30)
+          localWarnings.push(
+            `Comm-to-Transformer bottom: ${gapIn.toFixed(1)}" (need 30")`,
+          );
+      }
+      // 20" below street light (4" if bonded)
+      const streetLightFt = parseFeet(inputs?.streetLightHeight);
+      if (proposedFt != null && streetLightFt != null) {
+        const bonded = false; // future: detect bonded flag
+        const req = bonded ? 4 : 20;
+        const gapIn = (streetLightFt - proposedFt) * 12;
+        if (gapIn < req)
+          localWarnings.push(
+            `Comm-to-Street Light: ${gapIn.toFixed(1)}" (need ${req}")`,
+          );
+      }
+      // 12" street light drip loop (12" if coated)
+      const slDripFt = (existingLines || []).find((l) =>
+        String(l?.type || "")
+          .toLowerCase()
+          .includes("street light drip"),
+      )?.height
+        ? parseFeet(
+            (existingLines || []).find((l) =>
+              String(l?.type || "")
+                .toLowerCase()
+                .includes("street light drip"),
+            ).height,
+          )
+        : null;
+      if (proposedFt != null && slDripFt != null) {
+        const gapIn = (slDripFt - proposedFt) * 12;
+        if (gapIn < 12)
+          localWarnings.push(
+            `Comm-to-Street Light Drip: ${gapIn.toFixed(1)}" (need 12")`,
+          );
+      }
+      // 4" above street light (if crossing above)
+      if (
+        proposedFt != null &&
+        streetLightFt != null &&
+        proposedFt > streetLightFt
+      ) {
+        const gapIn = (proposedFt - streetLightFt) * 12;
+        if (gapIn < 4)
+          localWarnings.push(
+            `Comm above Street Light: ${gapIn.toFixed(1)}" (need 4")`,
+          );
+      }
+      // Midspan comm-to-comm: 12" mains/laterals; 4" drops
+      if (midspanFt != null) {
+        for (const line of existingLines || []) {
+          const t = String(line?.type || "").toLowerCase();
+          if (t.includes("communication")) {
+            const otherFt = parseFeet(line?.height);
+            if (otherFt != null) {
+              const gapIn = Math.abs((midspanFt - otherFt) * 12);
+              const isDrop = t.includes("drop");
+              const req = isDrop ? 4 : 12;
+              if (gapIn < req)
+                localWarnings.push(
+                  `Midspan comm-to-comm (${isDrop ? "drop" : "main"}): ${gapIn.toFixed(1)}" (need ${req}")`,
+                );
+            }
           }
         }
       }
-    }
-    // Ground targets: Interstate, Railroads, Water, Driveways, Yards
-    // (Targets are already applied via submissionProfile overrides; add contextual notes for clarity.)
-    if (spanEnvironment === "railroad")
-      notes.push("Railroad crossing: target 27 ft minimum ground clearance.");
-    if (spanEnvironment === "wvHighway" || spanEnvironment === "road")
-      notes.push(
-        "State roads/highways: 18 ft minimum; Interstate 21 ft for new crossings.",
-      );
-  }
-
-  let makeReadyTotal = 0;
-  if (proposedFt != null) {
-    existingLines.forEach((line) => {
-      if (!line?.type) return;
-      const lineNewFt =
-        line.makeReady && line.makeReadyHeight
-          ? parseFeet(line.makeReadyHeight)
-          : parseFeet(line.height);
-      if (lineNewFt == null) return;
-      const lineInches = lineNewFt * 12;
-      const proposedInches = proposedFt * 12;
-      const isDrop = String(line.type).toLowerCase().includes("drop");
-      const isNeutral = String(line.type).toLowerCase().includes("neutral");
-      const isSecondary = String(line.type).toLowerCase().includes("secondary");
-      let reqPoleIn = 12,
-        reqMidIn = 9;
-      if (isDrop) {
-        reqPoleIn = 6;
-        reqMidIn = 4;
-      } else if (isNeutral || isSecondary) {
-        // Owner-based clearance at pole: FE min 44", others min 40"; allow profile to increase via effective separation
-        reqPoleIn = effectiveSeparationInches;
-        reqMidIn = 15;
-      }
-      const poleGap = proposedInches - lineInches;
-      if (poleGap < reqPoleIn)
-        localWarnings.push(
-          `Pole clearance to ${line.type}: ${poleGap.toFixed(1)}" (need ${reqPoleIn}")`,
+      // Ground targets: Interstate, Railroads, Water, Driveways, Yards
+      // (Targets are already applied via submissionProfile overrides; add contextual notes for clarity.)
+      if (spanEnvironment === "railroad")
+        notes.push("Railroad crossing: target 27 ft minimum ground clearance.");
+      if (spanEnvironment === "wvHighway" || spanEnvironment === "road")
+        notes.push(
+          "State roads/highways: 18 ft minimum; Interstate 21 ft for new crossings.",
         );
-      if (midspanFt != null) {
-        const midGap = midspanFt * 12 - lineInches;
-        if (midGap < reqMidIn)
-          localWarnings.push(
-            `Midspan clearance to ${line.type}: ${midGap.toFixed(1)}" (need ${reqMidIn}")`,
-          );
-      }
-      if (line.makeReady && line.makeReadyHeight && line.height) {
-        const oldFt = parseFeet(line.height);
-        const newFt = parseFeet(line.makeReadyHeight);
-        if (oldFt != null && newFt != null) {
-          const diffIn = (newFt - oldFt) * 12;
-          makeReadyTotal += Math.abs(Math.round(diffIn)) * 12.5;
-        }
-      }
-    });
-  }
-
-  let guy = null;
-  if (spanFt > 0 && poleData.aboveGround > 0 && proposedAttachFt) {
-    guy = calculateDownGuy(
-      poleData.aboveGround,
-      proposedAttachFt,
-      cableData,
-      spanFt,
-      wind,
-    );
-    if (guy?.required) {
-      notes.push("Down-guy likely required based on span and wind loading");
-      calculatedCost += guy.totalCost || 0;
     }
+
+    let makeReadyTotal = 0;
+    if (proposedFt != null) {
+      existingLines.forEach((line) => {
+        if (!line?.type) return;
+        const lineNewFt =
+          line.makeReady && line.makeReadyHeight
+            ? parseFeet(line.makeReadyHeight)
+            : parseFeet(line.height);
+        if (lineNewFt == null) return;
+        const lineInches = lineNewFt * 12;
+        const proposedInches = proposedFt * 12;
+        const isDrop = String(line.type).toLowerCase().includes("drop");
+        const isNeutral = String(line.type).toLowerCase().includes("neutral");
+        const isSecondary = String(line.type)
+          .toLowerCase()
+          .includes("secondary");
+        let reqPoleIn = 12,
+          reqMidIn = 9;
+        if (isDrop) {
+          reqPoleIn = 6;
+          reqMidIn = 4;
+        } else if (isNeutral || isSecondary) {
+          // Owner-based clearance at pole: FE min 44", others min 40"; allow profile to increase via effective separation
+          reqPoleIn = effectiveSeparationInches;
+          reqMidIn = 15;
+        }
+        const poleGap = proposedInches - lineInches;
+        if (poleGap < reqPoleIn)
+          localWarnings.push(
+            `Pole clearance to ${line.type}: ${poleGap.toFixed(1)}" (need ${reqPoleIn}")`,
+          );
+        if (midspanFt != null) {
+          const midGap = midspanFt * 12 - lineInches;
+          if (midGap < reqMidIn)
+            localWarnings.push(
+              `Midspan clearance to ${line.type}: ${midGap.toFixed(1)}" (need ${reqMidIn}")`,
+            );
+        }
+        if (line.makeReady && line.makeReadyHeight && line.height) {
+          const oldFt = parseFeet(line.height);
+          const newFt = parseFeet(line.makeReadyHeight);
+          if (oldFt != null && newFt != null) {
+            const diffIn = (newFt - oldFt) * 12;
+            makeReadyTotal += Math.abs(Math.round(diffIn)) * 12.5;
+          }
+        }
+      });
+    }
+
+    let guy = null;
+    if (spanFt > 0 && poleData.aboveGround > 0 && proposedAttachFt) {
+      guy = calculateDownGuy(
+        poleData.aboveGround,
+        proposedAttachFt,
+        cableData,
+        spanFt,
+        wind,
+      );
+      if (guy?.required) {
+        notes.push("Down-guy likely required based on span and wind loading");
+        calculatedCost += guy.totalCost || 0;
+      }
+    }
+
+    const results = {
+      pole: {
+        inputHeight: Number(poleHeight) || 0,
+        buriedFt: poleData.buried,
+        aboveGroundFt: poleData.aboveGround,
+        classInfo: poleData.classInfo,
+        latitude: poleLatitude ?? null,
+        longitude: poleLongitude ?? null,
+      },
+      attach: {
+        proposedAttachFt,
+        proposedAttachFmt: formatFeetInches(proposedAttachFt),
+        recommendation: ownerRecommendation,
+      },
+      span: {
+        spanFt,
+        wind,
+        sagFt,
+        sagFmt: formatFeetInches(sagFt),
+        midspanFt,
+        midspanFmt: formatFeetInches(midspanFt),
+      },
+      clearances,
+      makeReadyTotal,
+      guy,
+    };
+
+    const cost = (calculatedCost || 0) + (results.makeReadyTotal || 0);
+    return {
+      ok: true,
+      results,
+      warnings: localWarnings,
+      notes,
+      cost,
+      errors: {},
+    };
+  } catch (error) {
+    logCalculationFailed({ subsystem: "computeAnalysis", code: "ERR_THROW" });
+    return {
+      ok: false,
+      errors: {
+        general:
+          error instanceof Error ? error.message : "Unexpected analysis error",
+      },
+      warnings: [],
+      notes: [],
+      cost: null,
+      results: null,
+    };
   }
-
-  const results = {
-    pole: {
-      inputHeight: Number(poleHeight) || 0,
-      buriedFt: poleData.buried,
-      aboveGroundFt: poleData.aboveGround,
-      classInfo: poleData.classInfo,
-      latitude: poleLatitude ?? null,
-      longitude: poleLongitude ?? null,
-    },
-    attach: {
-      proposedAttachFt,
-      proposedAttachFmt: formatFeetInches(proposedAttachFt),
-      recommendation: ownerRecommendation,
-    },
-    span: {
-      spanFt,
-      wind,
-      sagFt,
-      sagFmt: formatFeetInches(sagFt),
-      midspanFt,
-      midspanFmt: formatFeetInches(midspanFt),
-    },
-    clearances,
-    makeReadyTotal,
-    guy,
-  };
-
-  const cost = (calculatedCost || 0) + (results.makeReadyTotal || 0);
-  return { results, warnings: localWarnings, notes, cost };
 }

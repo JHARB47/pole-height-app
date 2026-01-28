@@ -106,62 +106,60 @@ export function getFirstEnergyRequirements(): {
   engineeringChecks: string[];
   makeReadyProcess: string[];
 };
-export function computeAnalysis(inputs: any):
-  | {
-      errors: {
-        poleHeight: string;
-        existingPowerHeight: string;
-      };
-      results?: undefined;
-      warnings?: undefined;
-      notes?: undefined;
-      cost?: undefined;
-    }
-  | {
-      results: {
-        pole: {
-          inputHeight: number;
-          buriedFt: number;
-          aboveGroundFt: number;
-          classInfo: string;
-          latitude: any;
-          longitude: any;
-        };
-        attach: {
-          proposedAttachFt: number;
-          proposedAttachFmt: string;
-          recommendation: {
-            basis: string;
-            detail: string;
-            clearanceIn: number;
-            controlling: any;
-          };
-        };
-        span: {
-          spanFt: number;
-          wind: number;
-          sagFt: number;
-          sagFmt: string;
-          midspanFt: number;
-          midspanFmt: string;
-        };
-        clearances: any;
-        makeReadyTotal: number;
-        guy: {
-          required: boolean;
-          tension: number;
-          angle: number;
-          leadDistance: number;
-          guyHeight: number;
-          pullDirection: number;
-          totalCost: number;
-        };
-      };
-      warnings: string[];
-      notes: string[];
-      cost: number;
-      errors?: undefined;
+export function computeAnalysis(inputs: any): {
+  ok: boolean;
+  results: {
+    pole: {
+      inputHeight: number;
+      buriedFt: number;
+      aboveGroundFt: number;
+      classInfo: string;
+      latitude: any;
+      longitude: any;
     };
+    attach: {
+      proposedAttachFt: number;
+      proposedAttachFmt: string;
+      recommendation: {
+        basis: string;
+        detail: string;
+        clearanceIn: number;
+        controlling: any;
+      };
+    };
+    span: {
+      spanFt: number;
+      wind: number;
+      sagFt: number;
+      sagFmt: string;
+      midspanFt: number;
+      midspanFmt: string;
+    };
+    clearances: {
+      roadClearance: number;
+      minTopSpace: number;
+      commToPower: number;
+      powerSafety: number;
+    };
+    makeReadyTotal: number;
+    guy: {
+      required: boolean;
+      guyType: string;
+      guysRequired: number;
+      maxTension: number;
+      guyAngle: number;
+      guyLead: number;
+      guyHeight: number;
+      hardwareCost: number;
+      laborCost: number;
+      totalCost: number;
+    };
+  } | null;
+  warnings: string[];
+  notes: string[];
+  cost: number | null;
+  errors: Record<string, string>;
+};
 export namespace DEFAULTS {
   let cableTypes: {
     label: string;

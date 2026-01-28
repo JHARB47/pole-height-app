@@ -5,6 +5,19 @@
 
 import { test, expect } from "@playwright/test";
 
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem("ppp_help_seen", "1");
+  });
+});
+
+const openNavigationIfNeeded = async (page) => {
+  const menuButton = page.getByTestId("nav-menu-button");
+  if (await menuButton.isVisible()) {
+    await menuButton.click();
+  }
+};
+
 test.describe("Happy Path: Complete Workflow", () => {
   test("should complete full workflow from job creation to export", async ({
     page,
@@ -14,16 +27,12 @@ test.describe("Happy Path: Complete Workflow", () => {
 
     // Wait for app to load
     await page.waitForSelector("body", { timeout: 10000 });
+    await expect(page.getByTestId("workflow-requirements-ready")).toHaveAttribute(
+      "data-ready",
+      "true",
+    );
 
-    // Check if landing page or app loaded
-    const title = await page.title();
-    expect(title).toContain("Pole");
-
-    // Look for main calculator or workflow interface
-    const hasCalculator = await page
-      .locator('[data-testid="calculator"], [class*="calculator"], h1')
-      .count();
-    expect(hasCalculator).toBeGreaterThan(0);
+    await expect(page.getByTestId("step-navigation")).toBeVisible();
 
     // Test passed - basic app loads
     console.log("✅ App loaded successfully");
@@ -33,54 +42,55 @@ test.describe("Happy Path: Complete Workflow", () => {
     await page.goto("/");
     await page.waitForLoadState("networkidle", { timeout: 15000 });
 
-    // Look for import functionality
-    const importButton = page
-      .locator(
-        'button:has-text("Import"), button:has-text("Upload"), [data-testid="import"]',
-      )
-      .first();
+    await expect(page.getByTestId("workflow-requirements-ready")).toHaveAttribute(
+      "data-ready",
+      "true",
+    );
 
-    if (await importButton.isVisible({ timeout: 5000 })) {
-      console.log("✅ Import functionality found");
-
-      // Check for data display area
-      const hasDataArea = await page
-        .locator('[class*="data"], [class*="table"], [class*="grid"]')
-        .count();
-      expect(hasDataArea).toBeGreaterThan(0);
-    } else {
-      // Alternative: Check if app has data management
-      const hasContent = await page
-        .locator('main, [role="main"], .content')
-        .count();
-      expect(hasContent).toBeGreaterThan(0);
-    }
+    await expect(page.getByTestId("step-nav-data-intake")).toBeVisible();
   });
 
   test("should navigate between sections", async ({ page }) => {
     await page.goto("/");
     await page.waitForLoadState("domcontentloaded");
 
-    // Check for navigation elements
-    const navElements = await page
-      .locator('nav, [role="navigation"], a[href], button')
-      .count();
-    expect(navElements).toBeGreaterThan(0);
+    await expect(page.getByTestId("workflow-requirements-ready")).toHaveAttribute(
+      "data-ready",
+      "true",
+    );
 
-    console.log(`✅ Found ${navElements} navigation elements`);
+    await openNavigationIfNeeded(page);
+    await page.getByTestId("step-nav-outputs").click();
+    await expect(page.getByTestId("step-nav-outputs")).toHaveAttribute(
+      "aria-current",
+      "step",
+    );
+    await openNavigationIfNeeded(page);
+    await page.getByTestId("step-nav-project-setup").click();
+    await expect(page.getByTestId("step-nav-project-setup")).toHaveAttribute(
+      "aria-current",
+      "step",
+    );
+
+    console.log("✅ Navigation between sections works");
   });
 });
 
 test.describe("Mobile Experience", () => {
-  test("should be responsive on mobile viewport", async ({
-    page,
-    viewport,
-  }) => {
+  test("should be responsive on mobile viewport", async (
+    { page, viewport },
+    testInfo,
+  ) => {
     await page.goto("/");
     await page.waitForLoadState("domcontentloaded");
 
-    // Check viewport
-    if (viewport) {
+    await expect(page.getByTestId("workflow-requirements-ready")).toHaveAttribute(
+      "data-ready",
+      "true",
+    );
+
+    const isMobileProject = testInfo.project.name === "webkit";
+    if (isMobileProject && viewport) {
       expect(viewport.width).toBeLessThanOrEqual(428); // Mobile width
     }
 
@@ -95,8 +105,13 @@ test.describe("Mobile Experience", () => {
     await page.goto("/");
     await page.waitForLoadState("networkidle", { timeout: 10000 });
 
+    await expect(page.getByTestId("workflow-requirements-ready")).toHaveAttribute(
+      "data-ready",
+      "true",
+    );
+
     // Check for buttons (should be tap-friendly on mobile)
-    const buttons = await page.locator("button").all();
+    const buttons = await page.locator('[data-testid^="step-nav-"]').all();
 
     for (const button of buttons.slice(0, 3)) {
       // Check first 3 buttons

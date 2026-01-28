@@ -57,8 +57,8 @@ function polesToCSV(poles = []) {
   const rows = poles.map((p) => ({
     id: p.id,
     label: p.label,
-    latitude: formatNumber(p.lat),
-    longitude: formatNumber(p.lng),
+    latitude: formatNumber(p.latitude ?? p.lat),
+    longitude: formatNumber(p.longitude ?? p.lng),
     height_ft: formatNumber(p.heightFt),
     class: p.class || "",
     attach_height_ft: formatNumber(p.attachHeightFt),
@@ -103,8 +103,8 @@ function existingLinesToCSV(lines = []) {
   const rows = lines.map((l) => ({
     id: l.id,
     type: l.type || "",
-    latitude: formatNumber(l.lat),
-    longitude: formatNumber(l.lng),
+    latitude: formatNumber(l.latitude ?? l.lat),
+    longitude: formatNumber(l.longitude ?? l.lng),
     height_ft: formatNumber(l.heightFt),
     notes: l.notes || "",
   }));
@@ -118,9 +118,12 @@ export function buildExistingLinesCSV(lines = []) {
 function toGeoJSON({ poles = [], spans = [], existingLines = [] }) {
   const features = [];
   for (const p of poles) {
+    const lat = p.latitude ?? p.lat;
+    const lng = p.longitude ?? p.lng;
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
     features.push({
       type: "Feature",
-      geometry: { type: "Point", coordinates: [p.lng, p.lat] },
+      geometry: { type: "Point", coordinates: [lng, lat] },
       properties: {
         id: p.id,
         label: p.label,
@@ -133,11 +136,23 @@ function toGeoJSON({ poles = [], spans = [], existingLines = [] }) {
   }
   for (const s of spans) {
     if (s.coordinates && s.coordinates.length === 2) {
+      const normalized = s.coordinates.map((c) => {
+        if (Array.isArray(c)) return c;
+        if (c && typeof c === "object") {
+          return [c.lng ?? c.longitude, c.lat ?? c.latitude];
+        }
+        return c;
+      });
+      const isValid = normalized.every(
+        (c) =>
+          Array.isArray(c) && Number.isFinite(c[0]) && Number.isFinite(c[1]),
+      );
+      if (!isValid) continue;
       features.push({
         type: "Feature",
         geometry: {
           type: "LineString",
-          coordinates: s.coordinates.map((c) => [c.lng, c.lat]),
+          coordinates: normalized,
         },
         properties: {
           id: s.id,
@@ -149,9 +164,12 @@ function toGeoJSON({ poles = [], spans = [], existingLines = [] }) {
     }
   }
   for (const l of existingLines) {
+    const lat = l.latitude ?? l.lat;
+    const lng = l.longitude ?? l.lng;
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
     features.push({
       type: "Feature",
-      geometry: { type: "Point", coordinates: [l.lng, l.lat] },
+      geometry: { type: "Point", coordinates: [lng, lat] },
       properties: { id: l.id, type: l.type },
     });
   }

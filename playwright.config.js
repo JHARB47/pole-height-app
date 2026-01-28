@@ -15,20 +15,19 @@ export default defineConfig({
 
   projects: [
     {
-      name: "chromium-desktop",
+      name: "chromium",
       use: { ...devices["Desktop Chrome"] },
     },
     {
-      name: "mobile-safari",
+      name: "webkit",
       use: { ...devices["iPhone 13"] },
     },
   ],
 
-  // Web server config commented out for CI - start dev server separately
-  // webServer: {
-  //   command: 'npm run dev',
-  //   url: 'http://localhost:8888',
-  //   reuseExistingServer: !process.env.CI,
-  //   timeout: 120000,
-  // },
+  webServer: {
+    command: 'npm run dev -- --host --port 8888',
+    url: 'http://localhost:8888',
+    reuseExistingServer: !process.env.CI,
+    timeout: 120000,
+  },
 });

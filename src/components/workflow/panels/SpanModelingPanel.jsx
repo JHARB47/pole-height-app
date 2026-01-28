@@ -6,24 +6,37 @@ import React from "react";
 import useAppStore from "../../../utils/store";
 import { useShallow } from "zustand/react/shallow";
 import { Card, CardHeader, CardBody } from "../../ui";
-import { StatusBadge } from "../../ui";
+import { Button, StatusBadge } from "../../ui";
 
 // Lazy load span-related components
 const SpansEditor = React.lazy(() => import("../../SpansEditor"));
 const SpanDiagram = React.lazy(() => import("../../SpanDiagram"));
 
 export default function SpanModelingPanel() {
-  const { importedSpans, currentJobId, analysis } = useAppStore(
-    useShallow((s) => ({
-      importedSpans: s.importedSpans || [],
-      currentJobId: s.currentJobId,
-      analysis: s.analysis,
-    })),
-  );
+  const { importedSpans, currentJobId, analysis, workflowRequirements } =
+    useAppStore(
+      useShallow((s) => ({
+        importedSpans: s.importedSpans || [],
+        currentJobId: s.currentJobId,
+        analysis: s.analysis,
+        workflowRequirements: s.workflowRequirements,
+      })),
+    );
 
   const passCount = importedSpans.filter((s) => s.status === "PASS").length;
   const failCount = importedSpans.filter((s) => s.status === "FAIL").length;
   const totalSpans = importedSpans.length;
+  const isOptional =
+    workflowRequirements?.requiredSteps?.spanModeling === false;
+
+  const handleSkip = () => {
+    // AI: rationale — optional steps should be skippable without blocking outputs.
+    window.dispatchEvent(
+      new CustomEvent("ppp:skip-step", {
+        detail: { stepId: "span-modeling" },
+      }),
+    );
+  };
 
   return (
     <div className="ppp-main-content">
@@ -74,6 +87,30 @@ export default function SpanModelingPanel() {
             <strong>Tip:</strong> Create a job in Project Setup to save span
             calculations to a project.
           </span>
+        </div>
+      )}
+
+      {isOptional && (
+        <div
+          className="ppp-info-banner"
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "var(--space-3)",
+            padding: "var(--space-3) var(--space-4)",
+            backgroundColor: "var(--surface-2)",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius-md)",
+            marginBottom: "var(--space-4)",
+          }}
+        >
+          <span style={{ fontSize: "0.875rem", color: "var(--text-muted)" }}>
+            This step is optional for your selected deliverables.
+          </span>
+          <Button variant="ghost" size="sm" onClick={handleSkip}>
+            Skip for now
+          </Button>
         </div>
       )}
 

@@ -56,8 +56,9 @@ function within(x, min, max) {
 
 describe("computeAnalysis reliability", () => {
   it("produces a coherent analysis with typical inputs", () => {
-    const { results, cost, errors } = computeAnalysis(mockInputs());
-    expect(errors).toBeUndefined();
+    const { ok, results, cost, errors } = computeAnalysis(mockInputs());
+    expect(ok).toBe(true);
+    expect(Object.keys(errors || {}).length).toBe(0);
     expect(results).toBeTruthy();
 
     // Pole basics
@@ -99,7 +100,8 @@ describe("computeAnalysis reliability", () => {
     const out = computeAnalysis(
       mockInputs({ isNewConstruction: true, existingPowerHeight: "" }),
     );
-    expect(out.errors).toBeUndefined();
+    expect(out.ok).toBe(true);
+    expect(Object.keys(out.errors || {}).length).toBe(0);
     expect(out.results.attach.proposedAttachFt).toBeGreaterThan(0);
   });
 
@@ -125,7 +127,8 @@ describe("computeAnalysis reliability", () => {
         dripLoopHeight: "",
       }),
     );
-    expect(base.errors).toBeUndefined();
+    expect(base.ok).toBe(true);
+    expect(Object.keys(base.errors || {}).length).toBe(0);
     const sep40 = (35 - base.results.attach.proposedAttachFt) * 12; // inches
     // With FE subsidiary owner at job level: expect ~44"
     const fe = computeAnalysis(
@@ -137,7 +140,8 @@ describe("computeAnalysis reliability", () => {
         dripLoopHeight: "",
       }),
     );
-    expect(fe.errors).toBeUndefined();
+    expect(fe.ok).toBe(true);
+    expect(Object.keys(fe.errors || {}).length).toBe(0);
     const sep44 = (35 - fe.results.attach.proposedAttachFt) * 12;
     expect(Math.round(sep40)).toBe(40);
     expect(Math.round(sep44)).toBe(44);
@@ -150,7 +154,8 @@ describe("computeAnalysis reliability", () => {
         submissionProfile: { envResidentialFt: 16.5 },
       }),
     );
-    expect(out.errors).toBeUndefined();
+    expect(out.ok).toBe(true);
+    expect(Object.keys(out.errors || {}).length).toBe(0);
     expect(out.results.clearances.groundClearance).toBeCloseTo(16.5, 5);
   });
 
@@ -161,7 +166,8 @@ describe("computeAnalysis reliability", () => {
         submissionProfile: { envInterstateFt: 18.0 },
       }),
     );
-    expect(out.errors).toBeUndefined();
+    expect(out.ok).toBe(true);
+    expect(Object.keys(out.errors || {}).length).toBe(0);
     expect(out.results.clearances.groundClearance).toBeCloseTo(18.0, 5);
   });
 
@@ -172,7 +178,8 @@ describe("computeAnalysis reliability", () => {
         submissionProfile: { envInterstateNewCrossingFt: 21.0 },
       }),
     );
-    expect(out.errors).toBeUndefined();
+    expect(out.ok).toBe(true);
+    expect(Object.keys(out.errors || {}).length).toBe(0);
     expect(out.results.clearances.groundClearance).toBeCloseTo(21.0, 5);
   });
 
@@ -183,7 +190,8 @@ describe("computeAnalysis reliability", () => {
         submissionProfile: { envNonResidentialDrivewayFt: 16.0 },
       }),
     );
-    expect(out.errors).toBeUndefined();
+    expect(out.ok).toBe(true);
+    expect(Object.keys(out.errors || {}).length).toBe(0);
     expect(out.results.clearances.groundClearance).toBeCloseTo(16.0, 5);
   });
 
@@ -198,7 +206,39 @@ describe("computeAnalysis reliability", () => {
         submissionProfile: { minCommAttachFt: 14.0 },
       }),
     );
-    expect(out.errors).toBeUndefined();
+    expect(out.ok).toBe(true);
+    expect(Object.keys(out.errors || {}).length).toBe(0);
     expect(out.results.attach.proposedAttachFt).toBeGreaterThanOrEqual(14.0);
+  });
+
+  it("returns structured errors when required inputs are missing", () => {
+    const out = computeAnalysis(mockInputs({ poleHeight: 0 }));
+    expect(out.ok).toBe(false);
+    expect(out.errors?.poleHeight).toBeTruthy();
+    expect(out.results).toBeNull();
+  });
+
+  it("handles missing span data without throwing", () => {
+    const out = computeAnalysis(
+      mockInputs({ spanDistance: 0, adjacentPoleHeight: 0 }),
+    );
+    expect(out.ok).toBe(true);
+    expect(out.results).toBeTruthy();
+    expect(out.results.span.spanFt).toBe(0);
+    expect(out.results.span.midspanFt).toBeNull();
+  });
+
+  it("skips haversine span when coordinates are invalid", () => {
+    const out = computeAnalysis(
+      mockInputs({
+        spanDistance: 0,
+        poleLatitude: "",
+        poleLongitude: "",
+        adjacentPoleLatitude: "",
+        adjacentPoleLongitude: "",
+      }),
+    );
+    expect(out.ok).toBe(true);
+    expect(out.results.span.spanFt).toBe(0);
   });
 });

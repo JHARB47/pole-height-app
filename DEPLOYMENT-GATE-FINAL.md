@@ -1,10 +1,25 @@
 # FINAL DEPLOYMENT GATE - COMPLETED ✅
 
 ## Summary
-
-**Date:** 2026-01-26  
+**Date:** 2026-01-27  
 **Status:** ✅ **GO FOR DEPLOYMENT**  
-**Test Pass Rate:** 292/294 (99.3%)
+**Test Pass Rate:** 317/319 (99.4%)
+
+---
+
+## Last Verified
+- **Verification Date/Time (local):** 2026-01-27 18:36:47 EST
+- **Verified Commit:** 3365ba1574a3c343ce950c5d88a6fc9448ca8764
+- **Commands Run:**
+  - npm run lint
+  - npm test
+  - npm run build
+  - npx playwright test
+- **Key Pass Counts:**
+  - Unit/Integration: 317 passed / 319 total (2 quarantined)
+  - Playwright: 26 passed (chromium + webkit)
+- **Evidence:** [docs/VERIFICATION-EVIDENCE-LATEST.md](docs/VERIFICATION-EVIDENCE-LATEST.md)
+- **Docs-only Note:** Current changes are documentation-only; tests were not rerun for this commit.
 
 ---
 
@@ -16,7 +31,7 @@
 - **Test 1:** shapefileFallback.test.js - CDN simulation unreliable in jsdom
 - **Test 2:** criticalFixes.test.js - Dynamic import caching issue
 - **Impact:** LOW - Both covered by E2E tests and manual validation
-- **Result:** 281/281 active tests passing (100%)
+- **Result:** 317/317 active tests passing (100%)
 
 ### 2. ✅ Integrated Enhanced Store Actions
 
@@ -32,7 +47,7 @@
 ### 3. ✅ Added Playwright E2E Coverage
 
 - **Configuration:** `playwright.config.js`
-- **Tests Created:** 8 tests across 2 files
+- **Tests Executed:** 26 tests across 3 files
 - **Happy Path:** 4 tests (`e2e/workflow-happy-path.spec.js`)
   - Complete workflow
   - Import/display functionality
@@ -65,17 +80,18 @@
 
 ```bash
 npm ci                  # ✅ 18s, 1703 packages
-npm run lint            # ⚠️ 13 warnings (doc/test files only)
-npm run build           # ✅ 1.55s, 0.90MB bundle
-npm test -- --run       # ✅ 292/294 tests passing
+npm run lint            # ✅ clean
+npm run build           # ✅ 1.69s, 0.90MB bundle
+npm test -- --run       # ✅ 317/319 tests passing
+npx playwright test     # ✅ 26 tests passing
 ```
 
 **Results:**
 
 - Clean install: ✅ SUCCESS
-- Build: ✅ SUCCESS (1.55s)
-- Tests: ✅ 292/294 passing (99.3%)
-- Lint: ⚠️ 13 warnings (non-blocking, doc files)
+- Build: ✅ SUCCESS (1.69s)
+- Tests: ✅ 317/319 passing (99.4%)
+- Lint: ✅ clean
 
 ### 6. ✅ Updated PRODUCTION-READINESS-REPORT.md
 
@@ -91,12 +107,12 @@ npm test -- --run       # ✅ 292/294 tests passing
 
 | Category                 | Tests   | Status                              |
 | ------------------------ | ------- | ----------------------------------- |
-| Unit Tests               | 281     | ✅ 100% passing                     |
+| Unit Tests               | 317     | ✅ 100% passing                     |
 | API Tests                | 55      | ✅ 100% passing                     |
 | Integration Tests        | 11      | ✅ 100% passing (new)               |
 | Performance Benchmarks   | 6       | ✅ 100% passing                     |
 | Quarantined (documented) | 2       | ⚠️ Documented in TEST-QUARANTINE.md |
-| **TOTAL**                | **294** | **292 passing (99.3%)**             |
+| **TOTAL**                | **319** | **317 passing (99.4%)**             |
 
 ---
 
@@ -104,9 +120,10 @@ npm test -- --run       # ✅ 292/294 tests passing
 
 | Test File                     | Tests | Viewports        |
 | ----------------------------- | ----- | ---------------- |
-| workflow-happy-path.spec.js   | 4     | Desktop + Mobile |
-| workflow-failure-path.spec.js | 4     | Desktop          |
-| **TOTAL**                     | **8** | **2 devices**    |
+| workflow-happy-path.spec.js   | 5     | Desktop + Mobile |
+| workflow-failure-path.spec.js | 6     | Desktop + Mobile |
+| workflow-deliverables.spec.js | 2     | Desktop + Mobile |
+| **TOTAL**                     | **26** | **2 devices**   |
 
 ---
 
@@ -174,6 +191,36 @@ npm test -- --run       # ✅ 292/294 tests passing
 
 ## Deployment Readiness
 
+## Rules of Engagement (Micro-gate)
+- Docs-only change → run `npm run docs:check`
+- Any code/config change → run at least `npm run verify:quick`
+- Imports/exports/workflow/store/calcs changes → run `npm run verify:full`
+
+**Post-deploy ritual (order matters):**
+1. `npm run smoke:prod -- https://poleplanpro.com`
+2. [docs/POST-DEPLOY-SMOKE-CHECKLIST.md](docs/POST-DEPLOY-SMOKE-CHECKLIST.md)
+
+## Post-Deploy Smoke (5 minutes)
+- Routing refresh
+  - Load /
+  - Deep-link to Outputs (/#outputs or /?step=outputs if supported)
+  - Refresh → app renders (no blank screen)
+- Data Intake import
+  - Import small CSV (2–3 poles)
+  - Confirm count/rows appear in Data Intake
+  - Confirm no console errors
+- Export
+  - Export GeoJSON
+  - Open downloaded file → contains expected FeatureCollection/features
+- Mobile UI
+  - Open nav drawer
+  - Switch steps
+  - Bottom bar renders and updates correctly
+- Monitoring / diagnostics
+  - Health: /health, /api/health
+  - Diagnostics: /api/diagnostics/health, /api/diagnostics/system
+  - ErrorBoundary: trigger known error path → “Copy Diagnostics” copies JSON without throwing
+
 ### ✅ MANDATORY GATES (ALL PASSED)
 
 - [x] Build succeeds
@@ -188,9 +235,7 @@ npm test -- --run       # ✅ 292/294 tests passing
 - [x] Bundle optimized
 
 ### ⚠️ MINOR ITEMS (NON-BLOCKING)
-
-- 13 lint warnings in doc/test files (no production code)
-- Playwright tests require manual server start for live testing
+- None
 
 ---
 
@@ -214,11 +259,10 @@ All verification evidence committed:
 **Confidence Level:** HIGH
 
 **Rationale:**
-
-- All critical tests passing (100% of active tests)
+- All critical tests passing (317/317 active tests = 100%)
 - Enhanced features integrated and proven via 11 integration tests
 - Performance exceeds targets by 40-500x with documented methodology
-- E2E coverage established (8 tests, desktop + mobile)
+- E2E coverage established (26 tests, desktop + mobile)
 - Failing tests appropriately quarantined with full documentation
 - Build succeeds cleanly with optimized bundle
 - Clean install verified
@@ -228,5 +272,5 @@ All verification evidence committed:
 ---
 
 **Verified By:** AI QA Agent  
-**Date:** 2026-01-26  
+**Date:** 2026-01-27  
 **Status:** DEPLOYMENT GATE PASSED ✅

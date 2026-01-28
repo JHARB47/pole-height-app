@@ -87,6 +87,20 @@ function WorkflowAppContent() {
     collectedPoles,
     importedSpans,
     existingLines,
+    workflowRequirements,
+    selectedDeliverables,
+    updateWorkflowRequirements,
+    projectName,
+    jobNumber,
+    applicantName,
+    jobOwner,
+    currentSubmissionProfile,
+    existingPowerHeight,
+    existingPowerVoltage,
+    spanDistance,
+    spanEnvironment,
+    poleHeight,
+    proposedLineHeight,
   } = useAppStore(
     useShallow((s) => ({
       jobs: s.jobs,
@@ -95,6 +109,20 @@ function WorkflowAppContent() {
       collectedPoles: s.collectedPoles || [],
       importedSpans: s.importedSpans || [],
       existingLines: s.existingLines || [],
+      workflowRequirements: s.workflowRequirements,
+      selectedDeliverables: s.selectedDeliverables || [],
+      updateWorkflowRequirements: s.updateWorkflowRequirements,
+      projectName: s.projectName,
+      jobNumber: s.jobNumber,
+      applicantName: s.applicantName,
+      jobOwner: s.jobOwner,
+      currentSubmissionProfile: s.currentSubmissionProfile,
+      existingPowerHeight: s.existingPowerHeight,
+      existingPowerVoltage: s.existingPowerVoltage,
+      spanDistance: s.spanDistance,
+      spanEnvironment: s.spanEnvironment,
+      poleHeight: s.poleHeight,
+      proposedLineHeight: s.proposedLineHeight,
     })),
   );
 
@@ -117,6 +145,50 @@ function WorkflowAppContent() {
     (p) => p.status === "done",
   ).length;
 
+  const stepKeyMap = React.useMemo(
+    () => ({
+      "project-setup": "projectSetup",
+      "data-intake": "dataIntake",
+      "existing-plant": "existingPlant",
+      "span-modeling": "spanModeling",
+      "field-collection": "fieldCollection",
+      outputs: "outputs",
+    }),
+    [],
+  );
+
+  const getStepBadge = React.useCallback(
+    (stepId) => {
+      const stepKey = stepKeyMap[stepId];
+      const required = workflowRequirements?.requiredSteps?.[stepKey];
+      const status = workflowRequirements?.stepCompletionStatus?.[stepKey];
+
+      if (required === false) {
+        return { type: "default", label: "Optional" };
+      }
+
+      if (status === "complete") {
+        return { type: "success", label: "Complete" };
+      }
+
+      if (required === true) {
+        return { type: "warning", label: "Required" };
+      }
+
+      return undefined;
+    },
+    [stepKeyMap, workflowRequirements],
+  );
+
+  const getStepStatus = React.useCallback(
+    (stepKey, fallbackComplete) => {
+      const status = workflowRequirements?.stepCompletionStatus?.[stepKey];
+      if (status === "complete") return "complete";
+      return fallbackComplete ? "complete" : "pending";
+    },
+    [workflowRequirements],
+  );
+
   // Step configuration - all steps are now accessible without strict prerequisites
   // Users can explore features and import data without creating a job first
   const steps = React.useMemo(
@@ -125,7 +197,8 @@ function WorkflowAppContent() {
         id: "project-setup",
         label: "Project Setup",
         subtitle: "Job metadata & standards",
-        status: hasJob ? "complete" : "pending",
+        status: getStepStatus("projectSetup", hasJob),
+        badge: getStepBadge("project-setup"),
         // No requires - always accessible
       },
       {
@@ -133,7 +206,8 @@ function WorkflowAppContent() {
         label: "Data Intake",
         subtitle: "Import & field mapping",
         count: importedSpans.length,
-        status: hasPoles ? "complete" : "pending",
+        status: getStepStatus("dataIntake", hasPoles),
+        badge: getStepBadge("data-intake"),
         // No requires - allow data import without job
       },
       {
@@ -141,7 +215,8 @@ function WorkflowAppContent() {
         label: "Existing Plant",
         subtitle: "Attachments & make-ready",
         count: existingLines.length,
-        status: hasExistingLines ? "complete" : "pending",
+        status: getStepStatus("existingPlant", hasExistingLines),
+        badge: getStepBadge("existing-plant"),
         // No requires - allow exploration without job
       },
       {
@@ -149,7 +224,8 @@ function WorkflowAppContent() {
         label: "Span & Clearance",
         subtitle: "Compute clearances",
         count: importedSpans.length,
-        status: importedSpans.length > 0 ? "complete" : "pending",
+        status: getStepStatus("spanModeling", importedSpans.length > 0),
+        badge: getStepBadge("span-modeling"),
         // No requires - allow span modeling without job
       },
       {
@@ -157,21 +233,18 @@ function WorkflowAppContent() {
         label: "Field Collection",
         subtitle: "GPS, photos, status",
         count: collectedPoles.length,
-        badge:
-          donePolesCount > 0
-            ? {
-                type: "success",
-                label: `${donePolesCount} Done`,
-              }
-            : undefined,
-        status: donePolesCount > 0 ? "complete" : "pending",
+        status: getStepStatus("fieldCollection", donePolesCount > 0),
+        badge: getStepBadge("field-collection"),
         // No requires - allow field collection without job
       },
       {
         id: "outputs",
         label: "Outputs",
         subtitle: "Reports & exports",
-        status: hasPoles ? "complete" : "pending",
+        status: workflowRequirements?.canProceedToOutputs
+          ? "complete"
+          : getStepStatus("outputs", hasPoles),
+        badge: getStepBadge("outputs"),
         // No requires - allow exports when data exists
       },
     ],
@@ -183,8 +256,34 @@ function WorkflowAppContent() {
       importedSpans.length,
       collectedPoles.length,
       existingLines.length,
+      workflowRequirements,
+      getStepBadge,
+      getStepStatus,
     ],
   );
+
+  React.useEffect(() => {
+    // AI: rationale — keep workflow requirements synced with the latest store data.
+    updateWorkflowRequirements?.();
+  }, [
+    updateWorkflowRequirements,
+    selectedDeliverables,
+    projectName,
+    jobNumber,
+    applicantName,
+    jobOwner,
+    currentJobId,
+    currentSubmissionProfile,
+    existingPowerHeight,
+    existingPowerVoltage,
+    spanDistance,
+    spanEnvironment,
+    poleHeight,
+    proposedLineHeight,
+    collectedPoles,
+    importedSpans,
+    existingLines,
+  ]);
 
   // Handle step navigation
   const handleStepClick = (stepId) => {
@@ -216,6 +315,9 @@ function WorkflowAppContent() {
   // Get current step info for mobile bar
   const currentStepIndex = steps.findIndex((s) => s.id === activeStep);
   const currentStep = steps[currentStepIndex];
+  const currentStepKey = stepKeyMap[currentStep?.id];
+  const currentStepRequired =
+    workflowRequirements?.requiredSteps?.[currentStepKey] !== false;
 
   // Job selector component
   const jobSelector = (
@@ -246,6 +348,34 @@ function WorkflowAppContent() {
       </React.Suspense>
     );
   };
+
+  React.useEffect(() => {
+    const handleGoToStep = (event) => {
+      const targetStep = event?.detail?.stepId;
+      if (targetStep) {
+        setActiveStep(targetStep);
+        setSidebarOpen(false);
+      }
+    };
+
+    const handleSkipStep = (event) => {
+      const fromStep = event?.detail?.stepId;
+      const fromIndex = steps.findIndex((s) => s.id === fromStep);
+      const nextStep = steps[fromIndex + 1] || steps[steps.length - 1];
+      if (nextStep?.id) {
+        setActiveStep(nextStep.id);
+        setSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener("ppp:goto-step", handleGoToStep);
+    window.addEventListener("ppp:skip-step", handleSkipStep);
+
+    return () => {
+      window.removeEventListener("ppp:goto-step", handleGoToStep);
+      window.removeEventListener("ppp:skip-step", handleSkipStep);
+    };
+  }, [steps]);
 
   // Handle save with toast feedback
   const handleSave = () => {
@@ -286,6 +416,11 @@ function WorkflowAppContent() {
           />
         }
       >
+        <div
+          data-testid="workflow-requirements-ready"
+          data-ready={Boolean(workflowRequirements)}
+          style={{ display: "none" }}
+        />
         {/* AI: Pass activeStep as resetKey so errors clear when switching panels */}
         <ErrorBoundary fallback={PanelError} resetKey={activeStep}>
           {renderActivePanel()}
@@ -297,7 +432,10 @@ function WorkflowAppContent() {
         stepInfo={{
           current: currentStepIndex + 1,
           total: steps.length,
-          label: currentStep?.label || "",
+          label:
+            currentStep?.label && currentStepRequired === false
+              ? `${currentStep.label} (Optional)`
+              : currentStep?.label || "",
         }}
         primaryAction={
           <Button variant="primary" size="md" onClick={handleSave}>

@@ -327,15 +327,17 @@ export default function SpansEditor() {
           jobOwner: store.jobOwner,
           submissionProfile: getEffectiveProfile(),
         });
-        const target =
-          controllingTargetFromSegments(
-            s.segments,
-            s.environment || store.spanEnvironment,
-          ) ?? a?.results?.clearances?.groundClearance;
-        const mid = a?.results?.span?.midspanFt;
-        if (mid != null && target != null) {
-          pass = Number(mid) >= Number(target);
-          fail = !pass;
+        if (a?.ok && a?.results) {
+          const target =
+            controllingTargetFromSegments(
+              s.segments,
+              s.environment || store.spanEnvironment,
+            ) ?? a?.results?.clearances?.groundClearance;
+          const mid = a?.results?.span?.midspanFt;
+          if (mid != null && target != null) {
+            pass = Number(mid) >= Number(target);
+            fail = !pass;
+          }
         }
       } catch {
         /* intentionally ignore analysis errors for summary */
@@ -428,6 +430,7 @@ export default function SpansEditor() {
         ? autoLen || s.lengthFt || s.estimatedLengthFt || 0
         : s.lengthFt || s.estimatedLengthFt || autoLen || 0;
       const a = computeAnalysis(buildAnalysisInput(s, spanDistance));
+      if (!a?.ok || !a?.results) return null;
       const target =
         controllingTargetFromSegments(
           s.segments,
@@ -443,6 +446,7 @@ export default function SpansEditor() {
   const computeAutoDetailStatus = (s, autoLen) => {
     try {
       const a = computeAnalysis(buildAnalysisInput(s, autoLen || 0));
+      if (!a?.ok || !a?.results) return { mid: null, target: null, ok: null };
       const target =
         controllingTargetFromSegments(
           s.segments,
@@ -510,7 +514,7 @@ export default function SpansEditor() {
       ? autoLen || s.lengthFt || s.estimatedLengthFt || 0
       : s.lengthFt || s.estimatedLengthFt || autoLen || 0;
     const a = computeAnalysis(buildAnalysisInput(s, spanDistance));
-    if (a?.results) {
+    if (a?.ok && a?.results) {
       const controllingTargetFt = controllingTargetFromSegments(
         s.segments,
         s.environment || store.spanEnvironment,

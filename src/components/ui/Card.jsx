@@ -33,7 +33,10 @@ export function CardHeader({
   status,
   action,
   className = "",
+  children,
 }) {
+  const resolvedTitle = title ?? children;
+
   return (
     <div className={`ppp-card__header ${className}`.trim()}>
       <div className="ppp-card__header-content">
@@ -41,7 +44,9 @@ export function CardHeader({
           {stepNumber && (
             <span className="ppp-card__step-badge">{stepNumber}</span>
           )}
-          <h2 className="ppp-card__title">{title}</h2>
+          {resolvedTitle && (
+            <h2 className="ppp-card__title">{resolvedTitle}</h2>
+          )}
           {status && (
             <span
               className={`ppp-badge ppp-badge--${status.type || "default"}`}
@@ -58,7 +63,7 @@ export function CardHeader({
 }
 
 CardHeader.propTypes = {
-  title: PropTypes.string.isRequired,
+  title: PropTypes.string,
   description: PropTypes.string,
   stepNumber: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   status: PropTypes.shape({
@@ -67,6 +72,7 @@ CardHeader.propTypes = {
   }),
   action: PropTypes.node,
   className: PropTypes.string,
+  children: PropTypes.node,
 };
 
 /**
