@@ -159,7 +159,7 @@ Your application is **production-ready** with:
 Your application is **production-ready** with:
 
 - Optimized build process ✅
-- Comprehensive documentation ✅  
+- Comprehensive documentation ✅
 - Quality testing ✅
 - Performance optimization ✅
 - Security configuration ✅
@@ -215,7 +215,11 @@ curl -s http://localhost:8888/.netlify/functions/health | jq
 Expected response:
 
 ```json
-{ "ok": true, "service": "netlify-functions", "env": { "hasDb": false, "nextSkip": true } }
+{
+  "ok": true,
+  "service": "netlify-functions",
+  "env": { "hasDb": false, "nextSkip": true }
+}
 ```
 
 1. Set your DATABASE_URL for db_test

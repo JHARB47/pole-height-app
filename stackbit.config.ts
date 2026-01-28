@@ -1,110 +1,114 @@
-import { defineStackbitConfig } from '@stackbit/types';
+import { defineStackbitConfig } from "@stackbit/types";
 
 export default defineStackbitConfig({
-  stackbitVersion: '~0.6.0',
-  ssgName: 'custom',
-  nodeVersion: '22.20.0',
+  stackbitVersion: "~0.6.0",
+  ssgName: "custom",
+  nodeVersion: "22.20.0",
   contentSources: [
     /**
      * Stackbit typing is looser in practice; cast to avoid TS complaints while keeping structure explicit.
      */
     {
-      type: 'git',
-      rootPath: 'content',
-      contentDirs: ['pages'],
+      type: "git",
+      rootPath: "content",
+      contentDirs: ["pages"],
       models: [
         {
-          name: 'Page',
-          type: 'page',
-          urlPath: '/{slug}',
-          filePath: 'pages/{slug}.json',
+          name: "Page",
+          type: "page",
+          urlPath: "/{slug}",
+          filePath: "pages/{slug}.json",
           fields: [
-            { name: 'title', type: 'string', required: true },
-            { name: 'slug', type: 'slug', required: true },
-            { name: 'body', type: 'markdown', required: false },
-            { name: 'seoDescription', type: 'string', required: false },
+            { name: "title", type: "string", required: true },
+            { name: "slug", type: "slug", required: true },
+            { name: "body", type: "markdown", required: false },
+            { name: "seoDescription", type: "string", required: false },
             {
-              name: 'sections',
-              type: 'list',
+              name: "sections",
+              type: "list",
               of: [
                 {
-                  name: 'HeroSection',
-                  type: 'object',
+                  name: "HeroSection",
+                  type: "object",
                   fields: [
-                    { name: 'type', type: 'string', const: 'HeroSection' },
-                    { name: 'title', type: 'string', required: true },
-                    { name: 'subtitle', type: 'string', required: false },
-                    { name: 'backgroundImage', type: 'image', required: false },
-                    { name: 'ctaLabel', type: 'string', required: false },
-                    { name: 'ctaUrl', type: 'string', required: false }
-                  ]
+                    { name: "type", type: "string", const: "HeroSection" },
+                    { name: "title", type: "string", required: true },
+                    { name: "subtitle", type: "string", required: false },
+                    { name: "backgroundImage", type: "image", required: false },
+                    { name: "ctaLabel", type: "string", required: false },
+                    { name: "ctaUrl", type: "string", required: false },
+                  ],
                 },
                 {
-                  name: 'RichTextSection',
-                  type: 'object',
+                  name: "RichTextSection",
+                  type: "object",
                   fields: [
-                    { name: 'type', type: 'string', const: 'RichTextSection' },
-                    { name: 'content', type: 'markdown', required: true }
-                  ]
+                    { name: "type", type: "string", const: "RichTextSection" },
+                    { name: "content", type: "markdown", required: true },
+                  ],
                 },
                 {
-                  name: 'FeatureSection',
-                  type: 'object',
+                  name: "FeatureSection",
+                  type: "object",
                   fields: [
-                    { name: 'type', type: 'string', const: 'FeatureSection' },
-                    { name: 'heading', type: 'string', required: true },
+                    { name: "type", type: "string", const: "FeatureSection" },
+                    { name: "heading", type: "string", required: true },
                     {
-                      name: 'features',
-                      type: 'list',
+                      name: "features",
+                      type: "list",
                       of: {
-                        name: 'FeatureItem',
-                        type: 'object',
+                        name: "FeatureItem",
+                        type: "object",
                         fields: [
-                          { name: 'type', type: 'string', const: 'FeatureItem' },
-                          { name: 'title', type: 'string', required: true },
-                          { name: 'text', type: 'text', required: true }
-                        ]
-                      }
-                    }
-                  ]
+                          {
+                            name: "type",
+                            type: "string",
+                            const: "FeatureItem",
+                          },
+                          { name: "title", type: "string", required: true },
+                          { name: "text", type: "text", required: true },
+                        ],
+                      },
+                    },
+                  ],
                 },
                 {
-                  name: 'CtaSection',
-                  type: 'object',
+                  name: "CtaSection",
+                  type: "object",
                   fields: [
-                    { name: 'type', type: 'string', const: 'CtaSection' },
-                    { name: 'text', type: 'text', required: true },
-                    { name: 'buttonLabel', type: 'string', required: true },
-                    { name: 'buttonUrl', type: 'string', required: true }
-                  ]
-                }
-              ]
-            }
-          ]
+                    { name: "type", type: "string", const: "CtaSection" },
+                    { name: "text", type: "text", required: true },
+                    { name: "buttonLabel", type: "string", required: true },
+                    { name: "buttonUrl", type: "string", required: true },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         {
-          name: 'SiteConfig',
-          type: 'config',
-          filePath: 'site.json',
+          name: "SiteConfig",
+          type: "config",
+          filePath: "site.json",
           fields: [
-            { name: 'siteTitle', type: 'string', required: true },
-            { name: 'logo', type: 'image', required: false },
-            { name: 'primaryColor', type: 'color', required: false },
-            { name: 'secondaryColor', type: 'color', required: false },
+            { name: "siteTitle", type: "string", required: true },
+            { name: "logo", type: "image", required: false },
+            { name: "primaryColor", type: "color", required: false },
+            { name: "secondaryColor", type: "color", required: false },
             {
-              name: 'navigation',
-              type: 'list',
+              name: "navigation",
+              type: "list",
               of: {
-                type: 'object',
+                type: "object",
                 fields: [
-                  { name: 'label', type: 'string', required: true },
-                  { name: 'url', type: 'string', required: true }
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    } as any
-  ]
+                  { name: "label", type: "string", required: true },
+                  { name: "url", type: "string", required: true },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    } as any,
+  ],
 });

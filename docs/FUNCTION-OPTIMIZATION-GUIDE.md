@@ -9,9 +9,11 @@ This document outlines the comprehensive optimization of the Pole Height App's f
 ### 1. **Unified Data Operations Layer** (`src/utils/dataOperations.js`)
 
 #### Purpose
+
 Provides consistent interface for all data manipulation across field collection, manual input, and imports.
 
 #### Features
+
 - **Data Source Tracking**: Every pole/span knows its origin (field_collection, manual_input, csv_import, gis_import, api_sync)
 - **Normalization**: Handles various input formats and converts to consistent internal structure
 - **Validation Integration**: Automatic Zod schema validation with graceful error handling
@@ -22,7 +24,12 @@ Provides consistent interface for all data manipulation across field collection,
 #### Usage Examples
 
 ```javascript
-import { normalizePoleData, validateAndNormalizePole, prepareBatchPoleOperation, DATA_SOURCES } from './utils/dataOperations';
+import {
+  normalizePoleData,
+  validateAndNormalizePole,
+  prepareBatchPoleOperation,
+  DATA_SOURCES,
+} from "./utils/dataOperations";
 
 // Normalize single pole
 const normalized = normalizePoleData(rawPole, DATA_SOURCES.FIELD_COLLECTION);
@@ -37,7 +44,9 @@ if (result.valid) {
 
 // Batch operation
 const batch = prepareBatchPoleOperation(poles, DATA_SOURCES.CSV_IMPORT);
-console.log(`Valid: ${batch.summary.validCount}, Invalid: ${batch.summary.invalidCount}`);
+console.log(
+  `Valid: ${batch.summary.validCount}, Invalid: ${batch.summary.invalidCount}`,
+);
 addPoles(batch.valid);
 reportErrors(batch.invalid);
 ```
@@ -47,9 +56,11 @@ reportErrors(batch.invalid);
 ### 2. **Field Workflow Orchestration** (`src/utils/fieldWorkflow.js`)
 
 #### Purpose
+
 Manages field collection lifecycle with offline-first architecture.
 
 #### Features
+
 - **Offline Queue**: Automatic queueing of operations when offline
 - **Auto-Sync**: Syncs pending operations when connection restored
 - **GPS Integration**: Browser Geolocation API with configurable accuracy
@@ -61,8 +72,8 @@ Manages field collection lifecycle with offline-first architecture.
 #### Usage Examples
 
 ```javascript
-import { createFieldWorkflow } from './utils/fieldWorkflow';
-import useAppStore from './utils/store';
+import { createFieldWorkflow } from "./utils/fieldWorkflow";
+import useAppStore from "./utils/store";
 
 // Create manager instance
 const fieldManager = createFieldWorkflow(useAppStore);
@@ -72,28 +83,33 @@ const result = await fieldManager.addFieldPole(
   {
     height: "35ft",
     class: "2",
-    notes: "Near intersection"
+    notes: "Near intersection",
   },
   {
     captureGPS: true,
     autoValidate: true,
-    allowInvalid: false
-  }
+    allowInvalid: false,
+  },
 );
 
 // Update pole
-fieldManager.updateFieldPole(poleId, { status: "done", notes: "Completed survey" });
+fieldManager.updateFieldPole(poleId, {
+  status: "done",
+  notes: "Completed survey",
+});
 
 // Attach photo
 await fieldManager.attachPhoto(poleId, {
   dataUrl: "data:image/jpeg;base64,...",
   caption: "Pole tag photo",
-  type: "pole_tag"
+  type: "pole_tag",
 });
 
 // Get statistics
 const stats = fieldManager.getFieldStats();
-console.log(`Total: ${stats.total}, Done: ${stats.done}, Pending Sync: ${stats.pendingSync}`);
+console.log(
+  `Total: ${stats.total}, Done: ${stats.done}, Pending Sync: ${stats.pendingSync}`,
+);
 
 // Manual sync
 await fieldManager.syncPendingOperations();
@@ -104,9 +120,11 @@ await fieldManager.syncPendingOperations();
 ### 3. **Enhanced Store Actions** (`src/utils/enhancedStoreActions.js`)
 
 #### Purpose
+
 Optimized batch operations for Zustand store with performance monitoring.
 
 #### Features
+
 - **Batch Add/Update**: Process hundreds of poles/spans efficiently
 - **Smart Merge**: Combine imported data with existing field collection
 - **Unified Queries**: Get all poles regardless of source
@@ -119,18 +137,18 @@ Optimized batch operations for Zustand store with performance monitoring.
 Add to your `src/utils/store.js`:
 
 ```javascript
-import { enhancedPoleActions } from './enhancedStoreActions';
+import { enhancedPoleActions } from "./enhancedStoreActions";
 
 const useAppStore = create(
   persist(
     (set, get) => ({
       // ... existing state ...
-      
+
       // Add enhanced actions
       ...enhancedPoleActions(set, get),
     }),
     // ... persist config ...
-  )
+  ),
 );
 ```
 
@@ -140,31 +158,33 @@ const useAppStore = create(
 const store = useAppStore();
 
 // Batch add poles
-const result = store.batchAddPoles(
-  poles,
-  DATA_SOURCES.CSV_IMPORT,
-  { merge: true, validate: true }
-);
+const result = store.batchAddPoles(poles, DATA_SOURCES.CSV_IMPORT, {
+  merge: true,
+  validate: true,
+});
 console.log(`Added: ${result.added}, Failed: ${result.summary.failed}`);
 
 // Batch update
 store.batchUpdatePoles([
-  { id: 'pole-1', status: 'done' },
-  { id: 'pole-2', height: '40ft' }
+  { id: "pole-1", status: "done" },
+  { id: "pole-2", height: "40ft" },
 ]);
 
 // Smart merge (import + field data)
-store.smartMergeData({
-  poles: importedPoles,
-  spans: importedSpans
-}, { preferField: true });
+store.smartMergeData(
+  {
+    poles: importedPoles,
+    spans: importedSpans,
+  },
+  { preferField: true },
+);
 
 // Get all poles (unified query)
 const allPoles = store.getAllPoles();
 
 // Filter poles
 const fieldPoles = store.filterPoles({ source: DATA_SOURCES.FIELD_COLLECTION });
-const pendingPoles = store.filterPoles({ status: 'pending' });
+const pendingPoles = store.filterPoles({ status: "pending" });
 const polesWithGPS = store.filterPoles({ hasGPS: true });
 
 // Get statistics
@@ -177,9 +197,11 @@ console.log(stats.poles.bySource.fieldCollection);
 ### 4. **Enhanced Field Collection Panel** (`src/components/workflow/panels/EnhancedFieldCollectionPanel.jsx`)
 
 #### Purpose
+
 Modern UI for field collection with GPS capture, photo management, and offline sync.
 
 #### Features
+
 - **GPS Capture**: One-click GPS coordinate capture with accuracy display
 - **Add Pole Form**: Inline form with validation
 - **Photo Attachment**: Camera/file input with data URL storage
@@ -205,8 +227,8 @@ import EnhancedFieldCollectionPanel from "./panels/EnhancedFieldCollectionPanel"
 import FieldCollectionPanel from "./panels/FieldCollectionPanel";
 
 // Use enhanced version in workflow
-const FieldCollectionPanel = React.lazy(() => 
-  import("./panels/EnhancedFieldCollectionPanel")
+const FieldCollectionPanel = React.lazy(
+  () => import("./panels/EnhancedFieldCollectionPanel"),
 );
 ```
 
@@ -225,10 +247,13 @@ const FieldCollectionPanel = React.lazy(() =>
 
 ```javascript
 // Old
-import { validatePoles } from '../utils/validation';
+import { validatePoles } from "../utils/validation";
 
 // New
-import { validateAndNormalizePole, DATA_SOURCES } from '../utils/dataOperations';
+import {
+  validateAndNormalizePole,
+  DATA_SOURCES,
+} from "../utils/dataOperations";
 ```
 
 ### Step 2: Enhance Store
@@ -237,21 +262,21 @@ Add enhanced actions to your store:
 
 ```javascript
 // src/utils/store.js
-import { enhancedPoleActions } from './enhancedStoreActions';
+import { enhancedPoleActions } from "./enhancedStoreActions";
 
 const useAppStore = create(
   persist(
     (set, get) => ({
       // ... existing state ...
-      
+
       // Enhanced batch operations
       ...enhancedPoleActions(set, get),
-      
+
       // Maintain backward compatibility
       // Your existing actions remain unchanged
     }),
     // ... persist config ...
-  )
+  ),
 );
 ```
 
@@ -269,7 +294,7 @@ export { default as FieldCollectionPanel } from "./EnhancedFieldCollectionPanel"
 ```javascript
 // src/components/workflow/WorkflowApp.jsx
 const FieldCollectionPanel = React.lazy(() => {
-  const useEnhanced = store.isFeatureEnabled('enhancedFieldCollection');
+  const useEnhanced = store.isFeatureEnabled("enhancedFieldCollection");
   return useEnhanced
     ? import("./panels/EnhancedFieldCollectionPanel")
     : import("./panels/FieldCollectionPanel");
@@ -286,7 +311,10 @@ const poles = parsePolesCSV(csv);
 store.setImportedPoles(poles);
 
 // After
-import { prepareBatchPoleOperation, DATA_SOURCES } from './utils/dataOperations';
+import {
+  prepareBatchPoleOperation,
+  DATA_SOURCES,
+} from "./utils/dataOperations";
 
 const rawPoles = parsePolesCSV(csv);
 const result = prepareBatchPoleOperation(rawPoles, DATA_SOURCES.CSV_IMPORT);
@@ -308,14 +336,16 @@ store.smartMergeData({ poles: result.valid }, { preferField: true });
 ### Batch Operations
 
 **Before:**
+
 ```javascript
 // O(n) individual updates - triggers n re-renders
-poles.forEach(pole => {
+poles.forEach((pole) => {
   store.addCollectedPole(pole);
 });
 ```
 
 **After:**
+
 ```javascript
 // O(1) batch update - triggers 1 re-render
 const result = store.batchAddPoles(poles, DATA_SOURCES.CSV_IMPORT);
@@ -326,6 +356,7 @@ const result = store.batchAddPoles(poles, DATA_SOURCES.CSV_IMPORT);
 ### Smart Merging
 
 **Before:**
+
 ```javascript
 // Overwrites field data
 store.setImportedPoles(csvPoles);
@@ -333,6 +364,7 @@ store.setImportedPoles(csvPoles);
 ```
 
 **After:**
+
 ```javascript
 // Preserves field data, merges new poles
 store.smartMergeData({ poles: csvPoles }, { preferField: true });
@@ -356,25 +388,30 @@ exportErrors(batch.invalid); // Errors already computed
 ## 🔐 Data Integrity Features
 
 ### 1. **Source Tracking**
+
 Every data point knows its origin:
+
 ```javascript
-pole.source // 'field_collection' | 'manual_input' | 'csv_import' | 'gis_import'
+pole.source; // 'field_collection' | 'manual_input' | 'csv_import' | 'gis_import'
 ```
 
 ### 2. **Timestamp Tracking**
+
 ```javascript
-pole.createdAt  // ISO timestamp
-pole.updatedAt  // ISO timestamp
-pole.fieldCapturedAt  // Field collection timestamp
+pole.createdAt; // ISO timestamp
+pole.updatedAt; // ISO timestamp
+pole.fieldCapturedAt; // Field collection timestamp
 ```
 
 ### 3. **Conflict Resolution**
+
 ```javascript
 // Smart merge priority: field > manual > import
-mergePoles(existing, imported, 'prefer-field');
+mergePoles(existing, imported, "prefer-field");
 ```
 
 ### 4. **Validation Layers**
+
 ```javascript
 // Input normalization
 const normalized = normalizePoleData(raw, source);
@@ -421,10 +458,10 @@ await fieldManager.syncPendingOperations();
 ```javascript
 // Export for offline backup
 const backup = fieldManager.exportFieldData();
-downloadJSON(backup, 'field-backup.json');
+downloadJSON(backup, "field-backup.json");
 
 // Restore from backup
-const data = await loadJSON('field-backup.json');
+const data = await loadJSON("field-backup.json");
 fieldManager.importFieldData(data);
 ```
 
@@ -436,29 +473,29 @@ fieldManager.importFieldData(data);
 
 ```javascript
 // Test normalization
-test('normalizes pole data from various formats', () => {
-  const raw = { poleId: 'ABC-123', height: '35ft 6in' };
+test("normalizes pole data from various formats", () => {
+  const raw = { poleId: "ABC-123", height: "35ft 6in" };
   const normalized = normalizePoleData(raw, DATA_SOURCES.MANUAL_INPUT);
-  
-  expect(normalized.id).toBe('ABC-123');
+
+  expect(normalized.id).toBe("ABC-123");
   expect(normalized.source).toBe(DATA_SOURCES.MANUAL_INPUT);
   expect(normalized.height).toBeDefined();
 });
 
 // Test validation
-test('validates pole data with Zod schema', () => {
-  const invalid = { latitude: 'not-a-number' };
+test("validates pole data with Zod schema", () => {
+  const invalid = { latitude: "not-a-number" };
   const result = validateAndNormalizePole(invalid);
-  
+
   expect(result.valid).toBe(false);
   expect(result.errors.length).toBeGreaterThan(0);
 });
 
 // Test batch operations
-test('batch adds poles with validation', () => {
+test("batch adds poles with validation", () => {
   const poles = [validPole, invalidPole, validPole];
   const result = prepareBatchPoleOperation(poles, DATA_SOURCES.CSV_IMPORT);
-  
+
   expect(result.summary.validCount).toBe(2);
   expect(result.summary.invalidCount).toBe(1);
 });
@@ -467,18 +504,18 @@ test('batch adds poles with validation', () => {
 ### Integration Tests
 
 ```javascript
-test('field workflow handles offline/online transitions', async () => {
+test("field workflow handles offline/online transitions", async () => {
   const manager = createFieldWorkflow(mockStore);
-  
+
   // Simulate offline
-  Object.defineProperty(navigator, 'onLine', { value: false });
-  
+  Object.defineProperty(navigator, "onLine", { value: false });
+
   await manager.addFieldPole(poleData);
   expect(manager.pendingQueue.length).toBe(1);
-  
+
   // Simulate online
-  Object.defineProperty(navigator, 'onLine', { value: true });
-  
+  Object.defineProperty(navigator, "onLine", { value: true });
+
   await manager.syncPendingOperations();
   expect(manager.pendingQueue.length).toBe(0);
 });
@@ -491,9 +528,9 @@ test('field workflow handles offline/online transitions', async () => {
 ### Performance Tracking
 
 ```javascript
-import { monitorBatchOperation } from './utils/enhancedStoreActions';
+import { monitorBatchOperation } from "./utils/enhancedStoreActions";
 
-const result = monitorBatchOperation('batch_add_poles', poles.length, () => {
+const result = monitorBatchOperation("batch_add_poles", poles.length, () => {
   return store.batchAddPoles(poles, source);
 });
 
@@ -507,7 +544,7 @@ const result = monitorBatchOperation('batch_add_poles', poles.length, () => {
 ### Error Monitoring
 
 ```javascript
-import { errorMonitor } from './utils/errorMonitoring';
+import { errorMonitor } from "./utils/errorMonitoring";
 
 // Errors automatically logged with context
 const result = await fieldManager.addFieldPole(poleData);

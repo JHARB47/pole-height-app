@@ -3,16 +3,17 @@
  * Global Error Handling Middleware
  * Normalizes error responses, preserves HttpError status codes, and logs details.
  */
-import { isHttpError, HttpError } from '../utils/errors.js';
-import { Logger } from '../services/logger.js';
-import { Sentry } from '../instrument.js';
+import { isHttpError, HttpError } from "../utils/errors.js";
+import { Logger } from "../services/logger.js";
+import { Sentry } from "../instrument.js";
 
 const logger = new Logger();
 
 // Shape contract:
 // Input: (err, req, res, next)
 // Output: JSON { error, message, ...(details) , requestId? }
-export function errorHandler(err, req, res, _next) { // eslint-disable-line no-unused-vars
+export function errorHandler(err, req, res, _next) {
+  // eslint-disable-line no-unused-vars
   try {
     const status = isHttpError(err) ? err.status : 500;
     const isOperational = isHttpError(err);
@@ -20,9 +21,9 @@ export function errorHandler(err, req, res, _next) { // eslint-disable-line no-u
     // Build safe response payload
     const payload = {
       error: httpStatusText(status),
-      message: err.message || 'Internal Server Error',
+      message: err.message || "Internal Server Error",
       status,
-      ...(req.id && { requestId: req.id })
+      ...(req.id && { requestId: req.id }),
     };
 
     if (err.details) {
@@ -30,8 +31,8 @@ export function errorHandler(err, req, res, _next) { // eslint-disable-line no-u
     }
 
     // Never leak stack traces to clients in production
-    if (process.env.NODE_ENV !== 'production' && err.stack) {
-      payload.stack = err.stack.split('\n').slice(0, 5).join('\n');
+    if (process.env.NODE_ENV !== "production" && err.stack) {
+      payload.stack = err.stack.split("\n").slice(0, 5).join("\n");
     }
 
     const context = {
@@ -41,11 +42,11 @@ export function errorHandler(err, req, res, _next) { // eslint-disable-line no-u
       userId: req.user?.id,
       ip: req.ip,
       requestId: req.id,
-      isOperational
+      isOperational,
     };
 
     // Log full error with context
-    logger.error('Request failed', err, context);
+    logger.error("Request failed", err, context);
 
     // Capture exception with Sentry (structured context)
     Sentry.captureException(err, {
@@ -64,40 +65,42 @@ export function errorHandler(err, req, res, _next) { // eslint-disable-line no-u
   } catch (internalHandlerError) {
     // Last-resort logging
     try {
-      logger.error('Error handler failure', internalHandlerError);
+      logger.error("Error handler failure", internalHandlerError);
       Sentry.captureException(internalHandlerError);
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     if (!res.headersSent) {
-      res.status(500).json({ error: 'Internal', message: 'Unhandled error' });
+      res.status(500).json({ error: "Internal", message: "Unhandled error" });
     }
   }
 }
 
 function httpStatusText(code) {
   const map = {
-    400: 'BadRequest',
-    401: 'Unauthorized',
-    403: 'Forbidden',
-    404: 'NotFound',
-    422: 'Unprocessable',
-    429: 'TooManyRequests',
-    500: 'Internal'
+    400: "BadRequest",
+    401: "Unauthorized",
+    403: "Forbidden",
+    404: "NotFound",
+    422: "Unprocessable",
+    429: "TooManyRequests",
+    500: "Internal",
   };
-  return map[code] || 'Error';
+  return map[code] || "Error";
 }
 
 function sanitizeDetails(details) {
-  if (!details || typeof details !== 'object') return details;
-  const redactedKeys = ['password', 'token', 'secret', 'apiKey', 'privateKey'];
+  if (!details || typeof details !== "object") return details;
+  const redactedKeys = ["password", "token", "secret", "apiKey", "privateKey"];
   const out = Array.isArray(details) ? [] : {};
   for (const [k, v] of Object.entries(details)) {
     if (
-      redactedKeys.some(rk => k.toLowerCase().includes(rk.toLowerCase())) ||
-      (typeof v === 'string' &&
-        redactedKeys.some(rk => v.toLowerCase().includes(rk.toLowerCase())))
+      redactedKeys.some((rk) => k.toLowerCase().includes(rk.toLowerCase())) ||
+      (typeof v === "string" &&
+        redactedKeys.some((rk) => v.toLowerCase().includes(rk.toLowerCase())))
     ) {
-      out[k] = '[REDACTED]';
-    } else if (v && typeof v === 'object') {
+      out[k] = "[REDACTED]";
+    } else if (v && typeof v === "object") {
       out[k] = sanitizeDetails(v);
     } else {
       out[k] = v;
@@ -108,4 +111,3 @@ function sanitizeDetails(details) {
 
 // Express expects 4-arity for error middleware; ensure exported signature length
 errorHandler.length;
-

@@ -1,4 +1,5 @@
 <!-- markdownlint-disable MD013 MD026 MD031 MD032 -->
+
 # White Page Fix - Root Routing Issue
 
 **Date:** October 2, 2025  
@@ -10,6 +11,7 @@
 ## Problem Analysis
 
 ### Root Cause
+
 The application was showing a blank white page because:
 
 1. **Incorrect Routing:** The root path `/` was routed to `ContentPage` component with slug="home"
@@ -20,15 +22,17 @@ The application was showing a blank white page because:
 ### Technical Details
 
 **Original Routing (src/main.jsx):**
+
 ```jsx
 const router = createBrowserRouter([
-  { path: '/', element: <ContentPage slug="home" /> },  // ❌ Missing content
-  { path: '/app', element: <App /> },                    // ✅ Main calculator
-  { path: '/:slug', element: <ContentPage /> },
-])
+  { path: "/", element: <ContentPage slug="home" /> }, // ❌ Missing content
+  { path: "/app", element: <App /> }, // ✅ Main calculator
+  { path: "/:slug", element: <ContentPage /> },
+]);
 ```
 
 **Issue Chain:**
+
 1. User visits https://poleplanpro.com/
 2. React Router loads ContentPage for root path
 3. ContentPage tries: `import.meta.glob('../../content/pages/*.json')`
@@ -41,18 +45,21 @@ const router = createBrowserRouter([
 ## Solution
 
 ### Fix Applied
+
 Changed routing to display the main calculator app at root path:
 
 **Updated Routing (src/main.jsx):**
+
 ```jsx
 const router = createBrowserRouter([
-  { path: '/', element: <App /> },                       // ✅ Main calculator at root
-  { path: '/home', element: <ContentPage slug="home" /> }, // ℹ️ Content moved to /home
-  { path: '/:slug', element: <ContentPage /> },
-])
+  { path: "/", element: <App /> }, // ✅ Main calculator at root
+  { path: "/home", element: <ContentPage slug="home" /> }, // ℹ️ Content moved to /home
+  { path: "/:slug", element: <ContentPage /> },
+]);
 ```
 
 ### Changes Made
+
 - **File:** `src/main.jsx`
 - **Lines Changed:** 2 lines
 - **Commit:** `19022bf` - "fix: Change root route to display main calculator app"
@@ -63,6 +70,7 @@ const router = createBrowserRouter([
 ## Verification
 
 ### Local Testing
+
 ```bash
 ✓ npm run build                    # Build successful (2.21s)
 ✓ npx serve dist -p 3001           # Local server started
@@ -70,6 +78,7 @@ const router = createBrowserRouter([
 ```
 
 ### Production Deployment
+
 ```bash
 ✓ git push origin main             # Pushed to GitHub
 ✓ Netlify build triggered          # Automatic deployment
@@ -84,14 +93,17 @@ const router = createBrowserRouter([
 ## Why This Fix Works
 
 ### Before Fix
+
 - **Root Path (/):** ContentPage → Missing content → White page ❌
 - **App Path (/app):** ProposedLineCalculator → Works perfectly ✅
 
 ### After Fix
+
 - **Root Path (/):** ProposedLineCalculator → Works perfectly ✅
 - **Home Path (/home):** ContentPage → Content issue (not critical) ℹ️
 
 ### User Experience
+
 - Users expect the **calculator app** at the root URL
 - The calculator is the primary feature (pole height calculations, permits, exports)
 - ContentPage was intended for marketing/CMS but isn't essential
@@ -102,6 +114,7 @@ const router = createBrowserRouter([
 ## Alternative Solutions (Not Chosen)
 
 ### Option 1: Fix Content Loading (More Complex)
+
 ```javascript
 // Would require:
 1. Add content/ to public/ folder
@@ -109,25 +122,30 @@ const router = createBrowserRouter([
 3. Configure Vite to copy content files
 4. Test glob patterns work in production
 ```
+
 **Why not chosen:** More complex, content pages not critical for app functionality
 
 ### Option 2: Remove ContentPage Routing (Too Aggressive)
+
 ```javascript
 // Would remove marketing pages entirely
 const router = createBrowserRouter([
-  { path: '/', element: <App /> },
+  { path: "/", element: <App /> },
   // No content pages at all
-])
+]);
 ```
+
 **Why not chosen:** Keep flexibility for future content pages
 
 ### Option 3: Fallback to App (Redundant)
+
 ```javascript
 // Add fallback if content fails
 const router = createBrowserRouter([
-  { path: '/', element: <ContentPage slug="home" fallback={<App />} /> },
-])
+  { path: "/", element: <ContentPage slug="home" fallback={<App />} /> },
+]);
 ```
+
 **Why not chosen:** Unnecessary complexity, routing change is cleaner
 
 ---
@@ -137,6 +155,7 @@ const router = createBrowserRouter([
 ### After Deployment Completes
 
 **At https://poleplanpro.com:**
+
 - ✅ **Main calculator app** loads immediately
 - ✅ Pole height input fields visible
 - ✅ Span editor, existing lines editor visible
@@ -146,6 +165,7 @@ const router = createBrowserRouter([
 - ✅ GIS export (KML, Shapefile, GeoJSON) working
 
 **UI Elements Expected:**
+
 ```
 ┌─────────────────────────────────────────┐
 │ PolePlan Pro                            │
@@ -168,12 +188,14 @@ const router = createBrowserRouter([
 ## Monitoring
 
 ### Deployment Status
+
 1. **Check Netlify:** https://app.netlify.com/sites/poleplanpro/deploys
 2. **Wait for build:** Should complete in 2-3 minutes
 3. **Verify deployment:** Look for green "Published" status
 4. **Test production:** Visit https://poleplanpro.com
 
 ### Validation Steps
+
 ```bash
 # After deployment completes:
 1. Visit https://poleplanpro.com
@@ -189,9 +211,11 @@ const router = createBrowserRouter([
 ## Future Improvements
 
 ### Content Management System (Optional)
+
 If ContentPage functionality is needed in the future:
 
 **Option A: Move Content to Public Folder**
+
 ```bash
 mkdir public/content
 cp -r content/pages public/content/
@@ -199,16 +223,18 @@ cp -r content/pages public/content/
 ```
 
 **Option B: Bundle Content with Vite**
+
 ```javascript
 // vite.config.js
 export default defineConfig({
-  assetsInclude: ['**/*.json'],
-  publicDir: 'public',
+  assetsInclude: ["**/*.json"],
+  publicDir: "public",
   // Ensure content is copied
-})
+});
 ```
 
 **Option C: Use Static Site Generation**
+
 ```bash
 # Pre-render content pages at build time
 npm install vite-plugin-ssg
@@ -216,7 +242,9 @@ npm install vite-plugin-ssg
 ```
 
 ### Recommended Approach
+
 For now, **keep the fix as-is**. The main calculator app is what users need. If marketing pages are needed later, consider:
+
 1. Separate marketing site (e.g., landing page on Vercel)
 2. Use public/ folder for static content
 3. Or fetch content from CMS API (Contentful, Sanity, etc.)

@@ -3,8 +3,8 @@
  * Request Logging Middleware
  * Lightweight wrapper delegating to central Logger + Metrics.
  */
-import { Logger } from '../services/logger.js';
-import { MetricsService } from '../services/metrics.js';
+import { Logger } from "../services/logger.js";
+import { MetricsService } from "../services/metrics.js";
 
 // Default singletons; can be replaced via setRequestLoggerMetrics for tests
 const logger = new Logger();
@@ -19,10 +19,12 @@ export function requestLogger(req, res, next) {
 
   // Attach simple request id if not present
   if (!req.id) {
-    req.id = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+    req.id = crypto.randomUUID
+      ? crypto.randomUUID()
+      : Math.random().toString(36).slice(2);
   }
 
-  res.on('finish', () => {
+  res.on("finish", () => {
     const end = performance.now ? performance.now() : Date.now();
     const duration = Math.round(end - start);
 
@@ -31,20 +33,28 @@ export function requestLogger(req, res, next) {
 
     // Record metrics (path is normalized inside logger/metrics helpers)
     try {
-      metrics.recordHttpRequest(req.method, req.originalUrl, res.statusCode, duration);
+      metrics.recordHttpRequest(
+        req.method,
+        req.originalUrl,
+        res.statusCode,
+        duration,
+      );
     } catch (e) {
-      logger.debug('Failed to record HTTP metrics', { error: e.message });
+      logger.debug("Failed to record HTTP metrics", { error: e.message });
     }
 
     // Slow request warning threshold (configurable via env)
-    const slowMs = parseInt(process.env.SLOW_REQUEST_THRESHOLD_MS || '1500', 10);
+    const slowMs = parseInt(
+      process.env.SLOW_REQUEST_THRESHOLD_MS || "1500",
+      10,
+    );
     if (duration > slowMs) {
-      logger.warn('Slow request', {
+      logger.warn("Slow request", {
         path: req.originalUrl,
         method: req.method,
         duration_ms: duration,
         threshold_ms: slowMs,
-        requestId: req.id
+        requestId: req.id,
       });
     }
   });

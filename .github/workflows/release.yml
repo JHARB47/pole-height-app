@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
 
 jobs:
   publish:
@@ -19,10 +19,10 @@ jobs:
       - name: Setup Node.js 24
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
-          cache: 'npm'
-          registry-url: 'https://registry.npmjs.org'
-          scope: ''
+          node-version: "24"
+          cache: "npm"
+          registry-url: "https://registry.npmjs.org"
+          scope: ""
 
       - name: Install dependencies
         run: npm install
@@ -43,9 +43,9 @@ jobs:
       - name: Setup Node.js for GitHub Packages
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          registry-url: 'https://npm.pkg.github.com'
-          scope: '@${{ github.repository_owner }}'
+          node-version: "22"
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@${{ github.repository_owner }}"
       - name: Publish to GitHub Packages (optional)
         run: |
           IS_PRIVATE=$(node -p "require('./package.json').private ? 'true' : 'false'")

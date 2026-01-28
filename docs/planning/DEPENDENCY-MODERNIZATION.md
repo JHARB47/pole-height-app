@@ -45,7 +45,7 @@ Added npm overrides to replace vulnerable packages:
   "minimatch": "^9.0.5",          // Fixed ReDoS vulnerabilities
   "minimist": "^1.2.8",           // Fixed prototype pollution
   "lodash.pick": "npm:@babel/runtime@^7.25.0",    // Replaced with babel runtime
-  "lodash.set": "npm:@babel/runtime@^7.25.0",     // Replaced with babel runtime  
+  "lodash.set": "npm:@babel/runtime@^7.25.0",     // Replaced with babel runtime
   "lodash.get": "npm:@babel/runtime@^7.25.0",     // Replaced with babel runtime
   "lodash.omit": "npm:@babel/runtime@^7.25.0",    // Replaced with babel runtime
   "lodash.isequal": "npm:@babel/runtime@^7.25.0", // Replaced with babel runtime
@@ -84,7 +84,7 @@ Added npm overrides to replace vulnerable packages:
 ```text
 ✓ 260 modules transformed.
 ├── pdf-libs: 178.08 kB (largest chunk, still optimal)
-├── app-calculator: 153.54 kB  
+├── app-calculator: 153.54 kB
 ├── vendor: 142.94 kB (reduced from lodash removal)
 ├── react-dom: 129.95 kB
 └── (remaining chunks all < 100 kB)

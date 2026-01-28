@@ -31,28 +31,34 @@ Complete reference for configuring PolePlan Pro deployment on Netlify.
 ## Environment Variables
 
 ### Required
+
 None - application is fully client-side.
 
 ### Optional (Future Features)
+
 - `VITE_API_URL` - Backend API URL if adding server features
 - `VITE_MAPBOX_TOKEN` - For advanced mapping features
 
 ## Build Settings
 
 ### Node Version
+
 **Required**: Node 22.12.0 (specified in `netlify.toml`, `.nvmrc`)
 
 ### Build Command
+
 ```bash
 npm run build
 ```
 
 This runs:
+
 1. Vite production build
 2. Code splitting with manual chunks
 3. Bundle size verification
 
 ### Publish Directory
+
 `dist/` - Vite output directory
 
 ## Vite Configuration
@@ -60,6 +66,7 @@ This runs:
 Key settings from `vite.config.js`:
 
 ### Manual Chunking
+
 ```javascript
 manualChunks: {
   'calculations': ['./src/utils/calculations.js'],
@@ -69,10 +76,13 @@ manualChunks: {
 ```
 
 ### CDN Externals
+
 Heavy libraries loaded via CDN:
+
 - `@mapbox/shp-write` (shapefile export)
 
 ### Build Optimization
+
 - Tree shaking enabled
 - Minification on
 - Source maps for production debugging
@@ -92,32 +102,35 @@ Configured in `vite.config.js` via `vite-plugin-pwa`:
 
 ```javascript
 VitePWA({
-  registerType: 'autoUpdate',
+  registerType: "autoUpdate",
   workbox: {
-    globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+    globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
     runtimeCaching: [
       {
         urlPattern: /^https:\/\/unpkg\.com\/.*/i,
-        handler: 'CacheFirst'
-      }
-    ]
-  }
-})
+        handler: "CacheFirst",
+      },
+    ],
+  },
+});
 ```
 
 ## Troubleshooting
 
 ### Build Fails
+
 1. Check Node version: `node --version` (must be 22.12.0)
 2. Clear cache: `rm -rf node_modules dist && npm install`
 3. Check build logs in Netlify UI
 
 ### Deploy Succeeds but Site Broken
+
 1. Check browser console for errors
 2. Verify CSP headers not blocking resources
 3. Check service worker registration
 
 ### Performance Issues
+
 1. Run bundle analysis: `npm run build -- --profile`
 2. Check lazy loading working: Network tab in DevTools
 3. Verify CDN resources loading
@@ -125,6 +138,7 @@ VitePWA({
 ## Deployment Checklist
 
 Before deploying:
+
 - [ ] Tests pass: `npm test`
 - [ ] Build succeeds: `npm run build`
 - [ ] No security issues: `npm audit`
@@ -140,4 +154,4 @@ Before deploying:
 
 ---
 
-*Last Updated: October 5, 2025*
+_Last Updated: October 5, 2025_

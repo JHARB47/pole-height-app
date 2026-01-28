@@ -13,9 +13,10 @@
 ## Step 1: Deploy to Netlify
 
 ### Option A: Link Existing Site (Recommended)
+
 If you have an existing Netlify site for this project:
 
-```bash
+````bash
 
 # Link to existing site
 
@@ -129,10 +130,11 @@ In Netlify Dashboard > Visual Editor > Content Models, you should see:
 
 2.Click **Edit Site** or use the direct URL:
 
-   ```
+````
 
-   https://app.netlify.com/sites/[your-site-name]/visual-editor
-   ```
+https://app.netlify.com/sites/[your-site-name]/visual-editor
+
+````
 
 ### 4.2 Test Content Editing
 **Edit Site Configuration:**
@@ -239,10 +241,10 @@ For organizations requiring approval:
 
 3.Manage page sections:
 
-   - Add Hero for page headers
-   - Add RichText for detailed content
-   - Add Features for capability lists
-   - Add CTA for conversion points
+- Add Hero for page headers
+- Add RichText for detailed content
+- Add Features for capability lists
+- Add CTA for conversion points
 
 4.Preview changes in real-time
 
@@ -384,3 +386,4 @@ Your PolePlan Pro application now has:
 4.Establish content publishing workflow
 
 The Visual Editor provides powerful content management while preserving your sophisticated engineering application functionality.
+````

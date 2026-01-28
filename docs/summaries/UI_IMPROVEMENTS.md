@@ -134,7 +134,7 @@ This document outlines the comprehensive UI/UX improvements made to the Pole Hei
 // Before
 <input className="border rounded px-2 py-1" />
 
-// After  
+// After
 <input className="border rounded px-3 py-2 min-w-0 w-full text-base leading-normal bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
 ```
 

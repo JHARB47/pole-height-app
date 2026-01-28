@@ -1,12 +1,14 @@
 # PolePlan Pro Enterprise Architecture Plan
 
 ## 1. Current Baseline
+
 - React 18 SPA served via Vite 5.4.x with manual chunking tuned for GIS + PDF tooling.
 - Client-side state managed via Zustand, persistence limited to browser storage (no multi-user sync).
 - Netlify deploy targets static `dist/`, PWA service worker handles offline caching.
 - No dedicated backend beyond Netlify functions; optional GIS libraries dynamically imported.
 
 ## 2. Enterprise Goals
+
 1. **Authentication & Authorization** – Add SSO (OAuth 2.0 / OIDC with Azure AD as primary), fallback email+password for admins, enforced RBAC (Engineer, Manager, Admin).
 2. **Data Isolation & Collaboration** – Multi-tenant org/department hierarchy, scoped access to projects, shared dashboards, inline comments, audit history.
 3. **API Integrations** – REST API for projects, pole/span datasets, collaboration events, and API key management for external systems.
@@ -16,6 +18,7 @@
 ## 3. Delivery Strategy (Front → Persistence → API)
 
 ### 3.1 Front-end Iterations
+
 1. **Auth Shell**
    - New top-level route group `/auth` with `LoginPage`, `CallbackPage`, `LogoutPage`.
    - Context provider `AuthProvider` handling tokens, refresh, user/role metadata.
@@ -41,6 +44,7 @@
    - Visualization of usage metrics (surface uptime monitoring results).
 
 ### 3.2 Persistence Layer (PostgreSQL)
+
 - New database schema defined via migration files under `server/db/migrations` (use `node-pg-migrate`).
 - Core tables:
   - `organizations(id, name, external_id, created_at)`
@@ -57,6 +61,7 @@
 - Row-Level Security (RLS) policies ensure cross-org isolation directly at DB layer.
 
 ### 3.3 API / Service Layer (Express)
+
 - New `server/` workspace with Express app using modular routers.
 - Middleware stack:
   - `helmet`, `cors`, `compression`
@@ -79,11 +84,13 @@
 - WebSocket (or SSE) gateway under `/projects/:id/events` for live collaboration (phase 2).
 
 ### 3.4 Integration Points
+
 - **SSO Providers**: Start with Azure AD via `openid-client` (Authorization Code + PKCE). Plan extension hooks for Okta, Ping, generic SAML using separate handler module.
 - **Monitoring**: Provide `POST /internal/alerts` stub for integration with PagerDuty/Statuspage; embed `opentelemetry` instrumentation scaffolding for future metrics.
 - **API Keys**: Keys generated server-side (prefix+random secret). Store hashed (SHA-256 + salt). Expose one-way secret to admins.
 
 ## 4. Data Flow Overview
+
 1. User clicks “Continue with Azure AD” → front-end hits `/auth/sso/azure` to obtain redirect URL → user authenticates → callback goes to Express API.
 2. Express validates token, looks up/creates user + membership, verifies license state, issues signed JWT (short-lived) + refresh token cookie (HTTP-only, SameSite=strict).
 3. Front-end stores JWT in memory (Zustand auth slice), uses `ProjectService` to fetch scoped data from API. Service worker caches GET responses for offline usage.
@@ -91,6 +98,7 @@
 5. API writes changes to Postgres, records `audit_events`, broadcasts collaboration updates (via SSE/WebSocket) to connected clients.
 
 ## 5. Security & Compliance
+
 - **Tenant Isolation**: Enforce `organization_id` in every query; RLS + scoped JWT claims.
 - **Rate Limiting**: Add `express-rate-limit` per route group and per API key.
 - **Secrets Management**: `.env.example` documenting required variables (DB URL, Azure client IDs, JWT secret, Netlify context overrides).
@@ -98,6 +106,7 @@
 - **Monitoring Hooks**: `/health` for uptime checks, optional `/metrics` instrumented with Prometheus client.
 
 ## 6. Incremental Implementation Plan
+
 1. **Foundation**
    - Scaffold Express server (`server/index.js`) + shared config.
    - Add DB connection manager, migration scripts, and `.env` handling.
@@ -128,16 +137,19 @@
    - Update GitHub Actions to spin up Postgres service during tests and run full coverage.
 
 ## 7. Documentation Deliverables
+
 - `docs/api.md` – Endpoint specs, request/response models, auth requirements.
 - `docs/db-schema.md` – ERD, migrations summary, RLS policies.
 - `docs/operational-readiness.md` – Monitoring, alerting, SSO setup, troubleshooting.
 - README updates – quickstart for full-stack dev (`npm run dev:backend`, etc.), coverage commands, Vite pinned version notes and migration guide.
 
 ## 8. Risks & Mitigations
+
 - **Scope**: Enterprise feature set is large → execute in increments, maintain passing tests between phases.
 - **SSO Complexity**: Provide local dev stub provider (mock OIDC server) to unblock engineers.
 - **Database Ops**: Document migrations + seeding; incorporate `npm run db:migrate` in CI.
 - **Offline Sync Conflicts**: Start with last-write-wins; log conflicts and surface warnings in UI.
 
 ---
+
 This plan preserves the existing high-perf client experience while layering enterprise-grade identity, collaboration, and observability onto a maintainable Express/Postgres backend.

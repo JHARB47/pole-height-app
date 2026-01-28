@@ -12,19 +12,19 @@ export class HttpError extends Error {
 }
 
 export class UnauthorizedError extends HttpError {
-  constructor(message = 'Unauthorized') {
+  constructor(message = "Unauthorized") {
     super(401, message, undefined);
   }
 }
 
 export class ForbiddenError extends HttpError {
-  constructor(message = 'Forbidden') {
+  constructor(message = "Forbidden") {
     super(403, message, undefined);
   }
 }
 
 export class NotFoundError extends HttpError {
-  constructor(message = 'Not Found') {
+  constructor(message = "Not Found") {
     super(404, message, undefined);
   }
 }
@@ -33,7 +33,7 @@ export class ValidationError extends HttpError {
   /**
    * @param {any} details
    */
-  constructor(message = 'Invalid request', details) {
+  constructor(message = "Invalid request", details) {
     super(400, message, details);
   }
 }
@@ -43,7 +43,6 @@ export class ValidationError extends HttpError {
  */
 export function isHttpError(error) {
   return Boolean(
-    error instanceof HttpError ||
-    (error && typeof error.status === 'number')
+    error instanceof HttpError || (error && typeof error.status === "number"),
   );
 }

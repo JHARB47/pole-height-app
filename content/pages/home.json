@@ -20,9 +20,21 @@
       "type": "FeatureSection",
       "heading": "Why choose us",
       "features": [
-        { "type": "FeatureItem", "title": "Speed", "text": "Streamlined permit workflows." },
-        { "type": "FeatureItem", "title": "Accuracy", "text": "Consistent calculations and exports." },
-        { "type": "FeatureItem", "title": "PWA", "text": "Works offline with updates." }
+        {
+          "type": "FeatureItem",
+          "title": "Speed",
+          "text": "Streamlined permit workflows."
+        },
+        {
+          "type": "FeatureItem",
+          "title": "Accuracy",
+          "text": "Consistent calculations and exports."
+        },
+        {
+          "type": "FeatureItem",
+          "title": "PWA",
+          "text": "Works offline with updates."
+        }
       ]
     },
     {

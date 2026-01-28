@@ -1,4 +1,5 @@
 # RUNTIME ERROR FIX GUIDE
+
 ## Error: "TypeError: Right side of assignment cannot be destructured"
 
 ## 🔍 What's Happening
@@ -14,16 +15,20 @@ This error occurs when JavaScript tries to destructure `undefined` or `null` as 
 ### Fix 1: Clear Browser Storage (Most Likely Solution)
 
 **Option A: Via Browser DevTools**
+
 1. Open your browser
 2. Go to https://poleplanpro.com (or localhost:5173)
 3. Open DevTools (F12 or Cmd+Option+I on Mac)
 4. Go to **Console** tab
 5. Paste this command and press Enter:
    ```javascript
-   localStorage.clear(); sessionStorage.clear(); location.reload();
+   localStorage.clear();
+   sessionStorage.clear();
+   location.reload();
    ```
 
 **Option B: Via Browser Settings**
+
 1. Open browser settings
 2. Search for "Clear browsing data"
 3. Select **Cached images and files** and **Cookies and site data**
@@ -32,6 +37,7 @@ This error occurs when JavaScript tries to destructure `undefined` or `null` as 
 6. Reload the page
 
 **Option C: Use Incognito/Private Window**
+
 1. Open an Incognito/Private window
 2. Visit https://poleplanpro.com
 3. If it works, the issue is definitely browser cache/storage
@@ -39,10 +45,12 @@ This error occurs when JavaScript tries to destructure `undefined` or `null` as 
 ### Fix 2: Hard Refresh
 
 **Mac:**
+
 - Chrome/Edge: `Cmd + Shift + R`
 - Safari: `Cmd + Option + R`
 
 **Windows/Linux:**
+
 - Chrome/Edge/Firefox: `Ctrl + Shift + R`
 - `Ctrl + F5`
 
@@ -79,13 +87,13 @@ If this throws an error, the store is corrupt.
 ```javascript
 // In DevTools Console:
 try {
-  const raw = localStorage.getItem('pole-height-store');
+  const raw = localStorage.getItem("pole-height-store");
   const parsed = JSON.parse(raw);
-  console.log('Store is valid:', parsed);
+  console.log("Store is valid:", parsed);
 } catch (error) {
-  console.error('Store is corrupt:', error);
-  localStorage.removeItem('pole-height-store');
-  console.log('✅ Corrupt store removed. Reload the page.');
+  console.error("Store is corrupt:", error);
+  localStorage.removeItem("pole-height-store");
+  console.log("✅ Corrupt store removed. Reload the page.");
   location.reload();
 }
 ```
@@ -107,34 +115,43 @@ npm run dev
 ## 🐛 Common Destructuring Error Sources
 
 ### 1. Store Hook Usage
+
 **Bad:**
+
 ```javascript
 const { someValue } = useAppStore(); // ❌ Returns undefined if store not ready
 ```
 
 **Good:**
+
 ```javascript
-const someValue = useAppStore(state => state.someValue) || defaultValue; // ✅ Safe with fallback
+const someValue = useAppStore((state) => state.someValue) || defaultValue; // ✅ Safe with fallback
 ```
 
 ### 2. Props Destructuring
+
 **Bad:**
+
 ```javascript
 const { data } = props; // ❌ If props is undefined
 ```
 
 **Good:**
+
 ```javascript
 const { data } = props || {}; // ✅ Safe with fallback
 ```
 
 ### 3. API Response Destructuring
+
 **Bad:**
+
 ```javascript
 const { results } = await fetchData(); // ❌ If fetchData returns undefined
 ```
 
 **Good:**
+
 ```javascript
 const response = await fetchData();
 const { results = [] } = response || {}; // ✅ Safe with defaults
@@ -171,6 +188,7 @@ If none of the above fixes work, the issue might be in a specific component. Che
    - Full error text
 
 Example error format to look for:
+
 ```
 TypeError: Right side of assignment cannot be destructured
     at ProposedLineCalculator.jsx:276
@@ -183,6 +201,7 @@ TypeError: Right side of assignment cannot be destructured
 To avoid this error in the future:
 
 1. **Always use fallbacks for destructuring:**
+
    ```javascript
    const { value } = object || {};
    const { data = [] } = response || {};
@@ -212,7 +231,8 @@ If you're still experiencing issues:
 ---
 
 **Last Updated:** October 5, 2025  
-**Related Docs:** 
+**Related Docs:**
+
 - CLEAR-CACHE-INSTRUCTIONS.md (Browser cache clearing)
 - PRODUCTION-ERROR-FIX-SUMMARY.md (React error resolution)
 - APP-ARCHITECTURE.md (Application structure)

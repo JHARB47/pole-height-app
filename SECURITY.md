@@ -6,8 +6,8 @@ We support the currently deployed production build and the active development br
 
 | Version / Branch | Supported |
 | ---------------- | --------- |
-| main (latest)    | ✅         |
-| Previous tags    | ❌         |
+| main (latest)    | ✅        |
+| Previous tags    | ❌        |
 
 ## Reporting a Vulnerability
 

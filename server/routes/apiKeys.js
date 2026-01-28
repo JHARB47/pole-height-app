@@ -3,11 +3,11 @@
  * API Key Management Routes
  * Handles creation, validation, and management of API keys for third-party integrations
  */
-import express from 'express';
-import crypto from 'crypto';
-import { db } from '../services/db.js';
-import { Logger } from '../services/logger.js';
-import { rbacMiddleware } from '../middleware/rbac.js';
+import express from "express";
+import crypto from "crypto";
+import { db } from "../services/db.js";
+import { Logger } from "../services/logger.js";
+import { rbacMiddleware } from "../middleware/rbac.js";
 
 const router = express.Router();
 const logger = new Logger();
@@ -15,11 +15,12 @@ const logger = new Logger();
 /**
  * Get all API keys for the authenticated user
  */
-router.get('/', rbacMiddleware(['apikeys:read']), async (req, res) => {
+router.get("/", rbacMiddleware(["apikeys:read"]), async (req, res) => {
   try {
     const userId = req.user.id;
-    
-    const result = await db.query(`
+
+    const result = await db.query(
+      `
       SELECT 
         id,
         name,
@@ -32,17 +33,19 @@ router.get('/', rbacMiddleware(['apikeys:read']), async (req, res) => {
       FROM api_keys
       WHERE user_id = $1 AND deleted_at IS NULL
       ORDER BY created_at DESC
-    `, [userId]);
+    `,
+      [userId],
+    );
 
     res.json({
       success: true,
-      api_keys: result.rows
+      api_keys: result.rows,
     });
   } catch (error) {
-    logger.error('Failed to fetch API keys:', error);
+    logger.error("Failed to fetch API keys:", error);
     res.status(500).json({
-      error: 'Failed to fetch API keys',
-      code: 'FETCH_FAILED'
+      error: "Failed to fetch API keys",
+      code: "FETCH_FAILED",
     });
   }
 });
@@ -50,7 +53,7 @@ router.get('/', rbacMiddleware(['apikeys:read']), async (req, res) => {
 /**
  * Create a new API key
  */
-router.post('/', rbacMiddleware(['apikeys:write']), async (req, res) => {
+router.post("/", rbacMiddleware(["apikeys:write"]), async (req, res) => {
   try {
     const userId = req.user.id;
     const { name, permissions = [], expires_in_days } = req.body;
@@ -58,34 +61,34 @@ router.post('/', rbacMiddleware(['apikeys:write']), async (req, res) => {
     // Validation
     if (!name || name.trim().length === 0) {
       return res.status(400).json({
-        error: 'API key name is required',
-        code: 'NAME_REQUIRED'
+        error: "API key name is required",
+        code: "NAME_REQUIRED",
       });
     }
 
     if (name.length > 100) {
       return res.status(400).json({
-        error: 'API key name must be 100 characters or less',
-        code: 'NAME_TOO_LONG'
+        error: "API key name must be 100 characters or less",
+        code: "NAME_TOO_LONG",
       });
     }
 
     // Check if user already has a key with this name
     const existingKey = await db.query(
-      'SELECT id FROM api_keys WHERE user_id = $1 AND name = $2 AND deleted_at IS NULL',
-      [userId, name]
+      "SELECT id FROM api_keys WHERE user_id = $1 AND name = $2 AND deleted_at IS NULL",
+      [userId, name],
     );
 
     if (existingKey.rows.length > 0) {
       return res.status(409).json({
-        error: 'API key with this name already exists',
-        code: 'NAME_EXISTS'
+        error: "API key with this name already exists",
+        code: "NAME_EXISTS",
       });
     }
 
     // Generate API key
     const apiKey = generateApiKey();
-    const keyHash = crypto.createHash('sha256').update(apiKey).digest('hex');
+    const keyHash = crypto.createHash("sha256").update(apiKey).digest("hex");
 
     // Calculate expiration date
     let expiresAt = null;
@@ -103,7 +106,7 @@ router.post('/', rbacMiddleware(['apikeys:write']), async (req, res) => {
       name: name.trim(),
       key_hash: keyHash,
       permissions: validPermissions,
-      expires_at: expiresAt
+      expires_at: expiresAt,
     };
 
     const createdKey = await db.createApiKey(keyData);
@@ -111,22 +114,22 @@ router.post('/', rbacMiddleware(['apikeys:write']), async (req, res) => {
     // Log API key creation
     await db.logAuditEvent({
       user_id: userId,
-      action: 'api_key_created',
-      resource_type: 'api_key',
+      action: "api_key_created",
+      resource_type: "api_key",
       resource_id: createdKey.id,
-      details: { 
+      details: {
         name: name,
         permissions: validPermissions,
-        expires_at: expiresAt
+        expires_at: expiresAt,
       },
       ip_address: req.ip,
-      user_agent: req.get('User-Agent')
+      user_agent: req.get("User-Agent"),
     });
 
     logger.info(`API key created for user ${userId}`, {
       keyId: createdKey.id,
       keyName: name,
-      permissions: validPermissions
+      permissions: validPermissions,
     });
 
     res.status(201).json({
@@ -137,15 +140,15 @@ router.post('/', rbacMiddleware(['apikeys:write']), async (req, res) => {
         key: apiKey, // Only returned once!
         permissions: createdKey.permissions,
         expires_at: expiresAt,
-        created_at: createdKey.created_at
+        created_at: createdKey.created_at,
       },
-      warning: 'Store this API key securely. It will not be shown again.'
+      warning: "Store this API key securely. It will not be shown again.",
     });
   } catch (error) {
-    logger.error('Failed to create API key:', error);
+    logger.error("Failed to create API key:", error);
     res.status(500).json({
-      error: 'Failed to create API key',
-      code: 'CREATION_FAILED'
+      error: "Failed to create API key",
+      code: "CREATION_FAILED",
     });
   }
 });
@@ -153,7 +156,7 @@ router.post('/', rbacMiddleware(['apikeys:write']), async (req, res) => {
 /**
  * Update an API key (name, permissions, active status)
  */
-router.put('/:keyId', rbacMiddleware(['apikeys:write']), async (req, res) => {
+router.put("/:keyId", rbacMiddleware(["apikeys:write"]), async (req, res) => {
   try {
     const userId = req.user.id;
     const keyId = req.params.keyId;
@@ -161,14 +164,14 @@ router.put('/:keyId', rbacMiddleware(['apikeys:write']), async (req, res) => {
 
     // Verify key ownership
     const existingKey = await db.query(
-      'SELECT * FROM api_keys WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL',
-      [keyId, userId]
+      "SELECT * FROM api_keys WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL",
+      [keyId, userId],
     );
 
     if (existingKey.rows.length === 0) {
       return res.status(404).json({
-        error: 'API key not found',
-        code: 'KEY_NOT_FOUND'
+        error: "API key not found",
+        code: "KEY_NOT_FOUND",
       });
     }
 
@@ -182,11 +185,11 @@ router.put('/:keyId', rbacMiddleware(['apikeys:write']), async (req, res) => {
     if (name !== undefined) {
       if (!name || name.trim().length === 0) {
         return res.status(400).json({
-          error: 'API key name cannot be empty',
-          code: 'NAME_REQUIRED'
+          error: "API key name cannot be empty",
+          code: "NAME_REQUIRED",
         });
       }
-      
+
       updates.name = name.trim();
       updateFields.push(`name = $${paramIndex++}`);
       updateValues.push(name.trim());
@@ -209,8 +212,8 @@ router.put('/:keyId', rbacMiddleware(['apikeys:write']), async (req, res) => {
 
     if (updateFields.length === 0) {
       return res.status(400).json({
-        error: 'No valid fields to update',
-        code: 'NO_UPDATES'
+        error: "No valid fields to update",
+        code: "NO_UPDATES",
       });
     }
 
@@ -220,7 +223,7 @@ router.put('/:keyId', rbacMiddleware(['apikeys:write']), async (req, res) => {
 
     const query = `
       UPDATE api_keys 
-      SET ${updateFields.join(', ')}
+      SET ${updateFields.join(", ")}
       WHERE id = $${paramIndex++} AND user_id = $${paramIndex++} AND deleted_at IS NULL
       RETURNING id, name, permissions, is_active, last_used_at, expires_at, created_at, updated_at
     `;
@@ -229,36 +232,36 @@ router.put('/:keyId', rbacMiddleware(['apikeys:write']), async (req, res) => {
 
     if (result.rows.length === 0) {
       return res.status(404).json({
-        error: 'API key not found or update failed',
-        code: 'UPDATE_FAILED'
+        error: "API key not found or update failed",
+        code: "UPDATE_FAILED",
       });
     }
 
     // Log the update
     await db.logAuditEvent({
       user_id: userId,
-      action: 'api_key_updated',
-      resource_type: 'api_key',
+      action: "api_key_updated",
+      resource_type: "api_key",
       resource_id: keyId,
       details: updates,
       ip_address: req.ip,
-      user_agent: req.get('User-Agent')
+      user_agent: req.get("User-Agent"),
     });
 
     logger.info(`API key updated for user ${userId}`, {
       keyId: keyId,
-      updates: updates
+      updates: updates,
     });
 
     res.json({
       success: true,
-      api_key: result.rows[0]
+      api_key: result.rows[0],
     });
   } catch (error) {
-    logger.error('Failed to update API key:', error);
+    logger.error("Failed to update API key:", error);
     res.status(500).json({
-      error: 'Failed to update API key',
-      code: 'UPDATE_FAILED'
+      error: "Failed to update API key",
+      code: "UPDATE_FAILED",
     });
   }
 });
@@ -266,80 +269,91 @@ router.put('/:keyId', rbacMiddleware(['apikeys:write']), async (req, res) => {
 /**
  * Delete an API key
  */
-router.delete('/:keyId', rbacMiddleware(['apikeys:delete']), async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const keyId = req.params.keyId;
+router.delete(
+  "/:keyId",
+  rbacMiddleware(["apikeys:delete"]),
+  async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const keyId = req.params.keyId;
 
-    // Verify key ownership and soft delete
-    const result = await db.query(`
+      // Verify key ownership and soft delete
+      const result = await db.query(
+        `
       UPDATE api_keys 
       SET deleted_at = CURRENT_TIMESTAMP, is_active = false
       WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL
       RETURNING id, name
-    `, [keyId, userId]);
+    `,
+        [keyId, userId],
+      );
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        error: 'API key not found',
-        code: 'KEY_NOT_FOUND'
+      if (result.rows.length === 0) {
+        return res.status(404).json({
+          error: "API key not found",
+          code: "KEY_NOT_FOUND",
+        });
+      }
+
+      const deletedKey = result.rows[0];
+
+      // Log the deletion
+      await db.logAuditEvent({
+        user_id: userId,
+        action: "api_key_deleted",
+        resource_type: "api_key",
+        resource_id: keyId,
+        details: { name: deletedKey.name },
+        ip_address: req.ip,
+        user_agent: req.get("User-Agent"),
+      });
+
+      logger.info(`API key deleted for user ${userId}`, {
+        keyId: keyId,
+        keyName: deletedKey.name,
+      });
+
+      res.json({
+        success: true,
+        message: "API key deleted successfully",
+      });
+    } catch (error) {
+      logger.error("Failed to delete API key:", error);
+      res.status(500).json({
+        error: "Failed to delete API key",
+        code: "DELETION_FAILED",
       });
     }
-
-    const deletedKey = result.rows[0];
-
-    // Log the deletion
-    await db.logAuditEvent({
-      user_id: userId,
-      action: 'api_key_deleted',
-      resource_type: 'api_key',
-      resource_id: keyId,
-      details: { name: deletedKey.name },
-      ip_address: req.ip,
-      user_agent: req.get('User-Agent')
-    });
-
-    logger.info(`API key deleted for user ${userId}`, {
-      keyId: keyId,
-      keyName: deletedKey.name
-    });
-
-    res.json({
-      success: true,
-      message: 'API key deleted successfully'
-    });
-  } catch (error) {
-    logger.error('Failed to delete API key:', error);
-    res.status(500).json({
-      error: 'Failed to delete API key',
-      code: 'DELETION_FAILED'
-    });
-  }
-});
+  },
+);
 
 /**
  * Get API key usage statistics
  */
-router.get('/:keyId/usage', rbacMiddleware(['apikeys:read']), async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const keyId = req.params.keyId;
+router.get(
+  "/:keyId/usage",
+  rbacMiddleware(["apikeys:read"]),
+  async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const keyId = req.params.keyId;
 
-    // Verify key ownership
-    const keyCheck = await db.query(
-      'SELECT id, name FROM api_keys WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL',
-      [keyId, userId]
-    );
+      // Verify key ownership
+      const keyCheck = await db.query(
+        "SELECT id, name FROM api_keys WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL",
+        [keyId, userId],
+      );
 
-    if (keyCheck.rows.length === 0) {
-      return res.status(404).json({
-        error: 'API key not found',
-        code: 'KEY_NOT_FOUND'
-      });
-    }
+      if (keyCheck.rows.length === 0) {
+        return res.status(404).json({
+          error: "API key not found",
+          code: "KEY_NOT_FOUND",
+        });
+      }
 
-    // Get usage statistics from audit logs
-    const usageStats = await db.query(`
+      // Get usage statistics from audit logs
+      const usageStats = await db.query(
+        `
       SELECT 
         DATE(created_at) as date,
         COUNT(*) as requests,
@@ -349,10 +363,13 @@ router.get('/:keyId/usage', rbacMiddleware(['apikeys:read']), async (req, res) =
         AND created_at >= CURRENT_DATE - INTERVAL '30 days'
       GROUP BY DATE(created_at)
       ORDER BY date DESC
-    `, [keyId]);
+    `,
+        [keyId],
+      );
 
-    // Get recent activity
-    const recentActivity = await db.query(`
+      // Get recent activity
+      const recentActivity = await db.query(
+        `
       SELECT 
         action,
         resource_type,
@@ -362,33 +379,37 @@ router.get('/:keyId/usage', rbacMiddleware(['apikeys:read']), async (req, res) =
       WHERE details->>'api_key_id' = $1
       ORDER BY created_at DESC
       LIMIT 50
-    `, [keyId]);
+    `,
+        [keyId],
+      );
 
-    res.json({
-      success: true,
-      usage_stats: usageStats.rows,
-      recent_activity: recentActivity.rows
-    });
-  } catch (error) {
-    logger.error('Failed to fetch API key usage:', error);
-    res.status(500).json({
-      error: 'Failed to fetch usage statistics',
-      code: 'USAGE_FETCH_FAILED'
-    });
-  }
-});
+      res.json({
+        success: true,
+        usage_stats: usageStats.rows,
+        recent_activity: recentActivity.rows,
+      });
+    } catch (error) {
+      logger.error("Failed to fetch API key usage:", error);
+      res.status(500).json({
+        error: "Failed to fetch usage statistics",
+        code: "USAGE_FETCH_FAILED",
+      });
+    }
+  },
+);
 
 /**
  * Generate a secure API key
  */
 function generateApiKey() {
-  const prefix = 'ppk_'; // PolePlan Key
+  const prefix = "ppk_"; // PolePlan Key
   const randomBytes = crypto.randomBytes(32);
-  const key = randomBytes.toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=/g, '');
-  
+  const key = randomBytes
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+
   return prefix + key;
 }
 
@@ -398,46 +419,46 @@ function generateApiKey() {
 function validatePermissions(permissions, userRole) {
   const allowedPermissions = {
     user: [
-      'projects:read',
-      'projects:write',
-      'calculations:use',
-      'exports:basic'
+      "projects:read",
+      "projects:write",
+      "calculations:use",
+      "exports:basic",
     ],
     engineer: [
-      'projects:read',
-      'projects:write',
-      'projects:share',
-      'calculations:use',
-      'calculations:advanced',
-      'exports:basic',
-      'exports:all'
+      "projects:read",
+      "projects:write",
+      "projects:share",
+      "calculations:use",
+      "calculations:advanced",
+      "exports:basic",
+      "exports:all",
     ],
     admin: [
-      'projects:read',
-      'projects:write',
-      'projects:delete',
-      'projects:share',
-      'calculations:use',
-      'calculations:advanced',
-      'exports:basic',
-      'exports:all',
-      'exports:bulk',
-      'users:read',
-      'audit:read'
+      "projects:read",
+      "projects:write",
+      "projects:delete",
+      "projects:share",
+      "calculations:use",
+      "calculations:advanced",
+      "exports:basic",
+      "exports:all",
+      "exports:bulk",
+      "users:read",
+      "audit:read",
     ],
-    super_admin: ['*'] // All permissions
+    super_admin: ["*"], // All permissions
   };
 
   const userAllowedPermissions = allowedPermissions[userRole] || [];
-  
+
   // If user is super_admin, allow all requested permissions
-  if (userAllowedPermissions.includes('*')) {
+  if (userAllowedPermissions.includes("*")) {
     return Array.isArray(permissions) ? permissions : [];
   }
 
   // Filter permissions to only include those allowed for the user's role
-  const validPermissions = Array.isArray(permissions) 
-    ? permissions.filter(perm => userAllowedPermissions.includes(perm))
+  const validPermissions = Array.isArray(permissions)
+    ? permissions.filter((perm) => userAllowedPermissions.includes(perm))
     : [];
 
   return validPermissions;

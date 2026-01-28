@@ -1,16 +1,16 @@
-import { query, transaction } from '../db/client.js';
-import { ValidationError, NotFoundError } from '../utils/errors.js';
+import { query, transaction } from "../db/client.js";
+import { ValidationError, NotFoundError } from "../utils/errors.js";
 
 export async function listProjects({ _organizationId, departmentId }) {
   const params = [_organizationId];
-  let clause = 'organization_id = $1';
+  let clause = "organization_id = $1";
   if (departmentId) {
     params.push(departmentId);
-    clause += ' AND (department_id IS NULL OR department_id = $2)';
+    clause += " AND (department_id IS NULL OR department_id = $2)";
   }
   const { rows } = await query(
     `SELECT * FROM projects WHERE ${clause} ORDER BY created_at DESC`,
-    params
+    params,
   );
   return rows;
 }
@@ -18,19 +18,32 @@ export async function listProjects({ _organizationId, departmentId }) {
 export async function getProjectById(projectId, _organizationId) {
   const { rows } = await query(
     `SELECT * FROM projects WHERE id = $1 AND organization_id = $2`,
-    [projectId, _organizationId]
+    [projectId, _organizationId],
   );
   return rows[0] || null;
 }
 
-export async function createProject({ _organizationId, departmentId, name, status = 'draft', metadata = {}, creatorId }) {
-  if (!name) throw new ValidationError('Project name is required');
+export async function createProject({
+  _organizationId,
+  departmentId,
+  name,
+  status = "draft",
+  metadata = {},
+  creatorId,
+}) {
+  if (!name) throw new ValidationError("Project name is required");
   return transaction(async (client) => {
     const { rows } = await client.query(
       `INSERT INTO projects (organization_id, department_id, name, status, metadata)
        VALUES ($1, $2, $3, $4, $5::jsonb)
        RETURNING *`,
-      [_organizationId, departmentId || null, name, status, JSON.stringify(metadata)]
+      [
+        _organizationId,
+        departmentId || null,
+        name,
+        status,
+        JSON.stringify(metadata),
+      ],
     );
     const project = rows[0];
     if (creatorId) {
@@ -39,14 +52,20 @@ export async function createProject({ _organizationId, departmentId, name, statu
          VALUES ($1, $2, $3)
          ON CONFLICT (project_id, user_id)
          DO UPDATE SET role = EXCLUDED.role`,
-        [project.id, creatorId, 'manager']
+        [project.id, creatorId, "manager"],
       );
     }
     return project;
   });
 }
 
-export async function updateProject({ projectId, _organizationId, name, status, metadata }) {
+export async function updateProject({
+  projectId,
+  _organizationId,
+  name,
+  status,
+  metadata,
+}) {
   const updates = [];
   const params = [];
   let idx = 1;
@@ -63,37 +82,44 @@ export async function updateProject({ projectId, _organizationId, name, status, 
     params.push(JSON.stringify(metadata));
   }
   if (updates.length === 0) {
-    throw new ValidationError('No updates supplied');
+    throw new ValidationError("No updates supplied");
   }
   params.push(projectId);
   params.push(_organizationId);
   const { rows } = await query(
     `UPDATE projects
-        SET ${updates.join(', ')}, updated_at = now()
+        SET ${updates.join(", ")}, updated_at = now()
       WHERE id = $${idx++} AND organization_id = $${idx}
       RETURNING *`,
-    params
+    params,
   );
-  if (!rows[0]) throw new NotFoundError('Project not found');
+  if (!rows[0]) throw new NotFoundError("Project not found");
   return rows[0];
 }
 
-export async function recordPoleSet({ projectId, _organizationId, version, data, checksum, createdBy }) {
-  if (typeof version !== 'number') {
-    throw new ValidationError('Pole set version must be numeric');
+export async function recordPoleSet({
+  projectId,
+  _organizationId,
+  version,
+  data,
+  checksum,
+  createdBy,
+}) {
+  if (typeof version !== "number") {
+    throw new ValidationError("Pole set version must be numeric");
   }
-  if (!data || typeof data !== 'object') {
-    throw new ValidationError('Pole set data must be provided');
+  if (!data || typeof data !== "object") {
+    throw new ValidationError("Pole set data must be provided");
   }
   const payload = JSON.stringify(data);
   const { rows } = await query(
     `INSERT INTO pole_sets (project_id, version, data, checksum, created_by)
      VALUES ($1, $2, $3::jsonb, $4, $5)
      RETURNING *`,
-    [projectId, version, payload, checksum || null, createdBy || null]
+    [projectId, version, payload, checksum || null, createdBy || null],
   );
   const created = rows[0];
-  if (!created) throw new NotFoundError('Unable to record pole set');
+  if (!created) throw new NotFoundError("Unable to record pole set");
   return created;
 }
 
@@ -103,16 +129,30 @@ export async function listPoleSets({ projectId }) {
        FROM pole_sets
       WHERE project_id = $1
       ORDER BY version DESC`,
-    [projectId]
+    [projectId],
   );
   return rows;
 }
 
-export async function recordAuditEvent({ _organizationId, actorId, action, targetType, targetId, context = {} }) {
+export async function recordAuditEvent({
+  _organizationId,
+  actorId,
+  action,
+  targetType,
+  targetId,
+  context = {},
+}) {
   await query(
     `INSERT INTO audit_events (organization_id, actor_id, action, target_type, target_id, context)
-     VALUES ($1, $2, $3, $4, $5, $6::jsonb)`
-    , [_organizationId, actorId || null, action, targetType, targetId || null, JSON.stringify(context)]
+     VALUES ($1, $2, $3, $4, $5, $6::jsonb)`,
+    [
+      _organizationId,
+      actorId || null,
+      action,
+      targetType,
+      targetId || null,
+      JSON.stringify(context),
+    ],
   );
 }
 
@@ -122,7 +162,7 @@ export async function listAuditEvents({ _organizationId, limit = 50 }) {
       WHERE organization_id = $1
       ORDER BY created_at DESC
       LIMIT $2`,
-    [_organizationId, limit]
+    [_organizationId, limit],
   );
   return rows;
 }

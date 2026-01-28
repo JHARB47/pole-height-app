@@ -141,7 +141,7 @@ describe("Critical Risk Mitigations", () => {
       const swPath = path.join(process.cwd(), "public", "sw.js");
       const sw = fs.readFileSync(swPath, "utf8");
 
-      expect(sw).toContain("reqUrl.pathname.startsWith('/assets/')");
+      expect(sw).toMatch(/reqUrl\.pathname\.startsWith\(["']\/assets\//);
       expect(sw).toMatch(/Never satisfy asset requests from cache/);
       expect(sw).toMatch(/fetch\(req\)\.catch/);
     });

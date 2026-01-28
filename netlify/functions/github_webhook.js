@@ -169,7 +169,8 @@ export async function handler(event) {
 
   const secret = process.env.GITHUB_APP_WEBHOOK_SECRET;
   const signature =
-    getHeader(event, "x-hub-signature-256") || getHeader(event, "x-hub-signature");
+    getHeader(event, "x-hub-signature-256") ||
+    getHeader(event, "x-hub-signature");
   const delivery = getHeader(event, "x-github-delivery");
   const eventName = getHeader(event, "x-github-event");
   const rawBuffer = getRawBody(event);
@@ -489,8 +490,7 @@ export async function handler(event) {
       const headSha = checkRun.head_sha;
       const headBranch =
         (checkRun.check_suite && checkRun.check_suite.head_branch) || null;
-      const privateKey =
-        normalizePrivateKey(rawKey);
+      const privateKey = normalizePrivateKey(rawKey);
 
       if (appId && privateKey && installationId && owner && name && headSha) {
         try {

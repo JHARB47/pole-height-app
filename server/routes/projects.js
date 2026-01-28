@@ -3,10 +3,10 @@
  * Implements user data isolation and optional client partitioning
  */
 
-import express from 'express';
-import { authMiddleware } from '../middleware/auth.js';
-import { db } from '../services/db.js';
-import { validatePoleCoordinates } from '../../src/utils/gisValidation.js';
+import express from "express";
+import { authMiddleware } from "../middleware/auth.js";
+import { db } from "../services/db.js";
+import { validatePoleCoordinates } from "../../src/utils/gisValidation.js";
 
 const router = express.Router();
 
@@ -25,7 +25,7 @@ const authenticate = authMiddleware;
  *   - sort: Sort field (name, created_at, updated_at)
  *   - order: Sort order (asc, desc)
  */
-router.get('/', authenticate, async (req, res) => {
+router.get("/", authenticate, async (req, res) => {
   try {
     const { user } = req;
     const {
@@ -34,8 +34,8 @@ router.get('/', authenticate, async (req, res) => {
       search,
       page = 1,
       limit = 50,
-      sort = 'updated_at',
-      order = 'desc',
+      sort = "updated_at",
+      order = "desc",
     } = req.query;
 
     // Validate and sanitize pagination params
@@ -44,12 +44,12 @@ router.get('/', authenticate, async (req, res) => {
     const offset = (pageNum - 1) * limitNum;
 
     // Validate sort params
-    const allowedSortFields = ['name', 'created_at', 'updated_at'];
-    const sortField = allowedSortFields.includes(sort) ? sort : 'updated_at';
-    const sortOrder = order.toLowerCase() === 'asc' ? 'ASC' : 'DESC';
+    const allowedSortFields = ["name", "created_at", "updated_at"];
+    const sortField = allowedSortFields.includes(sort) ? sort : "updated_at";
+    const sortOrder = order.toLowerCase() === "asc" ? "ASC" : "DESC";
 
     // Build WHERE clause
-    let whereConditions = ['user_id = $1'];
+    let whereConditions = ["user_id = $1"];
     const params = [user.id];
     let paramIndex = 2;
 
@@ -71,7 +71,7 @@ router.get('/', authenticate, async (req, res) => {
       paramIndex++;
     }
 
-    const whereClause = whereConditions.join(' AND ');
+    const whereClause = whereConditions.join(" AND ");
 
     // Get total count for pagination metadata
     const countQuery = `SELECT COUNT(*) FROM projects WHERE ${whereClause}`;
@@ -107,10 +107,10 @@ router.get('/', authenticate, async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error fetching projects:', error);
+    console.error("Error fetching projects:", error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch projects',
+      error: "Failed to fetch projects",
     });
   }
 });
@@ -120,32 +120,32 @@ router.get('/', authenticate, async (req, res) => {
  * Get a specific project by ID
  * Ensures user ownership before returning
  */
-router.get('/:id', authenticate, async (req, res) => {
+router.get("/:id", authenticate, async (req, res) => {
   try {
     const { user } = req;
     const { id } = req.params;
-    
+
     const result = await db.query(
-      'SELECT * FROM projects WHERE id = $1 AND user_id = $2',
-      [id, user.id]
+      "SELECT * FROM projects WHERE id = $1 AND user_id = $2",
+      [id, user.id],
     );
-    
+
     if (result.rows.length === 0) {
       return res.status(404).json({
         success: false,
-        error: 'Project not found or access denied'
+        error: "Project not found or access denied",
       });
     }
-    
+
     res.json({
       success: true,
-      project: result.rows[0]
+      project: result.rows[0],
     });
   } catch (error) {
-    console.error('Error fetching project:', error);
+    console.error("Error fetching project:", error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch project'
+      error: "Failed to fetch project",
     });
   }
 });
@@ -155,7 +155,7 @@ router.get('/:id', authenticate, async (req, res) => {
  * Create a new project for the authenticated user
  * Validates GIS coordinates if provided
  */
-router.post('/', authenticate, async (req, res) => {
+router.post("/", authenticate, async (req, res) => {
   try {
     const { user } = req;
     const {
@@ -164,47 +164,47 @@ router.post('/', authenticate, async (req, res) => {
       project_data,
       organization_id,
       client_id,
-      metadata
+      metadata,
     } = req.body;
-    
+
     // Validate required fields
     if (!name) {
       return res.status(400).json({
         success: false,
-        error: 'Project name is required'
+        error: "Project name is required",
       });
     }
-    
+
     // Validate GIS coordinates if present in project_data
     if (project_data?.poles && Array.isArray(project_data.poles)) {
       const validationErrors = [];
-      
+
       for (const pole of project_data.poles) {
         if (pole.latitude || pole.longitude) {
           const validation = validatePoleCoordinates({
-            id: pole.id || 'unknown',
+            id: pole.id || "unknown",
             latitude: pole.latitude,
-            longitude: pole.longitude
+            longitude: pole.longitude,
           });
-          
+
           if (!validation.valid) {
             validationErrors.push({
               poleId: pole.id,
-              errors: validation.errors
+              errors: validation.errors,
             });
           }
         }
       }
-      
+
       if (validationErrors.length > 0) {
         return res.status(400).json({
           success: false,
-          error: 'Invalid coordinates detected',
-          validationErrors
+          error: "Invalid coordinates detected",
+          validationErrors,
         });
       }
     }
-    
+
     // Create project
     const result = await db.query(
       `INSERT INTO projects (
@@ -226,20 +226,20 @@ router.post('/', authenticate, async (req, res) => {
         name,
         description || null,
         JSON.stringify(project_data || {}),
-        JSON.stringify(metadata || {})
-      ]
+        JSON.stringify(metadata || {}),
+      ],
     );
-    
+
     res.status(201).json({
       success: true,
       project: result.rows[0],
-      message: 'Project created successfully'
+      message: "Project created successfully",
     });
   } catch (error) {
-    console.error('Error creating project:', error);
+    console.error("Error creating project:", error);
     res.status(500).json({
       success: false,
-      error: 'Failed to create project'
+      error: "Failed to create project",
     });
   }
 });
@@ -249,66 +249,60 @@ router.post('/', authenticate, async (req, res) => {
  * Update an existing project
  * Ensures user ownership and validates GIS coordinates
  */
-router.put('/:id', authenticate, async (req, res) => {
+router.put("/:id", authenticate, async (req, res) => {
   try {
     const { user } = req;
     const { id } = req.params;
-    const {
-      name,
-      description,
-      project_data,
-      client_id,
-      metadata
-    } = req.body;
-    
+    const { name, description, project_data, client_id, metadata } = req.body;
+
     // Check ownership
     const existingResult = await db.query(
-      'SELECT * FROM projects WHERE id = $1 AND user_id = $2',
-      [id, user.id]
+      "SELECT * FROM projects WHERE id = $1 AND user_id = $2",
+      [id, user.id],
     );
-    
+
     if (existingResult.rows.length === 0) {
       return res.status(404).json({
         success: false,
-        error: 'Project not found or access denied'
+        error: "Project not found or access denied",
       });
     }
-    
+
     // Validate GIS coordinates if present
     if (project_data?.poles && Array.isArray(project_data.poles)) {
       const validationErrors = [];
-      
+
       for (const pole of project_data.poles) {
         if (pole.latitude || pole.longitude) {
           const validation = validatePoleCoordinates({
-            id: pole.id || 'unknown',
+            id: pole.id || "unknown",
             latitude: pole.latitude,
-            longitude: pole.longitude
+            longitude: pole.longitude,
           });
-          
+
           if (!validation.valid) {
             validationErrors.push({
               poleId: pole.id,
-              errors: validation.errors
+              errors: validation.errors,
             });
           }
         }
       }
-      
+
       if (validationErrors.length > 0) {
         return res.status(400).json({
           success: false,
-          error: 'Invalid coordinates detected',
-          validationErrors
+          error: "Invalid coordinates detected",
+          validationErrors,
         });
       }
     }
-    
+
     // Build update query dynamically
     const updates = [];
     const params = [id, user.id];
     let paramCount = 2;
-    
+
     if (name !== undefined) {
       updates.push(`name = $${++paramCount}`);
       params.push(name);
@@ -329,26 +323,26 @@ router.put('/:id', authenticate, async (req, res) => {
       updates.push(`metadata = $${++paramCount}`);
       params.push(JSON.stringify(metadata));
     }
-    
-    updates.push('updated_at = NOW()');
-    
+
+    updates.push("updated_at = NOW()");
+
     const result = await db.query(
-      `UPDATE projects SET ${updates.join(', ')}
+      `UPDATE projects SET ${updates.join(", ")}
        WHERE id = $1 AND user_id = $2
        RETURNING *`,
-      params
+      params,
     );
-    
+
     res.json({
       success: true,
       project: result.rows[0],
-      message: 'Project updated successfully'
+      message: "Project updated successfully",
     });
   } catch (error) {
-    console.error('Error updating project:', error);
+    console.error("Error updating project:", error);
     res.status(500).json({
       success: false,
-      error: 'Failed to update project'
+      error: "Failed to update project",
     });
   }
 });
@@ -358,32 +352,32 @@ router.put('/:id', authenticate, async (req, res) => {
  * Delete a project
  * Ensures user ownership before deletion
  */
-router.delete('/:id', authenticate, async (req, res) => {
+router.delete("/:id", authenticate, async (req, res) => {
   try {
     const { user } = req;
     const { id } = req.params;
-    
+
     const result = await db.query(
-      'DELETE FROM projects WHERE id = $1 AND user_id = $2 RETURNING id',
-      [id, user.id]
+      "DELETE FROM projects WHERE id = $1 AND user_id = $2 RETURNING id",
+      [id, user.id],
     );
-    
+
     if (result.rows.length === 0) {
       return res.status(404).json({
         success: false,
-        error: 'Project not found or access denied'
+        error: "Project not found or access denied",
       });
     }
-    
+
     res.json({
       success: true,
-      message: 'Project deleted successfully'
+      message: "Project deleted successfully",
     });
   } catch (error) {
-    console.error('Error deleting project:', error);
+    console.error("Error deleting project:", error);
     res.status(500).json({
       success: false,
-      error: 'Failed to delete project'
+      error: "Failed to delete project",
     });
   }
 });
@@ -393,27 +387,27 @@ router.delete('/:id', authenticate, async (req, res) => {
  * Validate all pole coordinates in a project
  * Returns validation report without saving
  */
-router.post('/:id/validate-coordinates', authenticate, async (req, res) => {
+router.post("/:id/validate-coordinates", authenticate, async (req, res) => {
   try {
     const { user } = req;
     const { id } = req.params;
-    
+
     // Get project
     const result = await db.query(
-      'SELECT * FROM projects WHERE id = $1 AND user_id = $2',
-      [id, user.id]
+      "SELECT * FROM projects WHERE id = $1 AND user_id = $2",
+      [id, user.id],
     );
-    
+
     if (result.rows.length === 0) {
       return res.status(404).json({
         success: false,
-        error: 'Project not found or access denied'
+        error: "Project not found or access denied",
       });
     }
-    
+
     const project = result.rows[0];
     const poles = project.project_data?.poles || [];
-    
+
     if (!Array.isArray(poles) || poles.length === 0) {
       return res.json({
         success: true,
@@ -422,57 +416,59 @@ router.post('/:id/validate-coordinates', authenticate, async (req, res) => {
           valid: 0,
           invalid: 0,
           warnings: 0,
-          poles: []
-        }
+          poles: [],
+        },
       });
     }
-    
+
     // Validate each pole
-    const validatedPoles = poles.map(pole => {
+    const validatedPoles = poles.map((pole) => {
       if (!pole.latitude && !pole.longitude) {
         return {
           id: pole.id,
-          status: 'skipped',
-          reason: 'No coordinates provided'
+          status: "skipped",
+          reason: "No coordinates provided",
         };
       }
-      
+
       const validation = validatePoleCoordinates({
-        id: pole.id || 'unknown',
+        id: pole.id || "unknown",
         latitude: pole.latitude,
-        longitude: pole.longitude
+        longitude: pole.longitude,
       });
-      
+
       return {
         id: pole.id,
         latitude: pole.latitude,
         longitude: pole.longitude,
-        status: validation.valid ? 'valid' : 'invalid',
+        status: validation.valid ? "valid" : "invalid",
         errors: validation.errors || [],
-        warnings: validation.warnings || []
+        warnings: validation.warnings || [],
       };
     });
-    
+
     const summary = {
       total: poles.length,
-      valid: validatedPoles.filter(p => p.status === 'valid').length,
-      invalid: validatedPoles.filter(p => p.status === 'invalid').length,
-      warnings: validatedPoles.filter(p => p.warnings && p.warnings.length > 0).length,
-      skipped: validatedPoles.filter(p => p.status === 'skipped').length
+      valid: validatedPoles.filter((p) => p.status === "valid").length,
+      invalid: validatedPoles.filter((p) => p.status === "invalid").length,
+      warnings: validatedPoles.filter(
+        (p) => p.warnings && p.warnings.length > 0,
+      ).length,
+      skipped: validatedPoles.filter((p) => p.status === "skipped").length,
     };
-    
+
     res.json({
       success: true,
       report: {
         ...summary,
-        poles: validatedPoles
-      }
+        poles: validatedPoles,
+      },
     });
   } catch (error) {
-    console.error('Error validating coordinates:', error);
+    console.error("Error validating coordinates:", error);
     res.status(500).json({
       success: false,
-      error: 'Failed to validate coordinates'
+      error: "Failed to validate coordinates",
     });
   }
 });

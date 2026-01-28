@@ -78,8 +78,8 @@ This command runs:
   "primaryColor": "#536b91ff",
   "secondaryColor": "#800a0aff",
   "navigation": [
-   { "label": "Home", "url": "/" },
-   { "label": "Calculator", "url": "/calculator" }
+    { "label": "Home", "url": "/" },
+    { "label": "Calculator", "url": "/calculator" }
   ]
 }
 ```
@@ -92,13 +92,13 @@ This command runs:
   "slug": "home",
   "seoDescription": "Professional pole attachment calculations with geospatial export",
   "sections": [
-   {
-    "type": "HeroSection",
-    "title": "Professional Pole Planning Made Simple",
-    "subtitle": "NESC-compliant calculations with geospatial export",
-    "ctaLabel": "Start Calculating",
-    "ctaUrl": "/calculator"
-   }
+    {
+      "type": "HeroSection",
+      "title": "Professional Pole Planning Made Simple",
+      "subtitle": "NESC-compliant calculations with geospatial export",
+      "ctaLabel": "Start Calculating",
+      "ctaUrl": "/calculator"
+    }
   ]
 }
 ```

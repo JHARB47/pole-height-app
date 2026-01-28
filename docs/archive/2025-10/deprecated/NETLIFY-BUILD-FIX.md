@@ -9,13 +9,16 @@
 ## 🐛 Problem Identified
 
 ### Build Error
+
 ```
 npm error code EOVERRIDE
 npm error Override for esbuild@^0.24.2 conflicts with direct dependency
 ```
 
 ### Root Cause
+
 The `package.json` had conflicting esbuild versions:
+
 - **devDependencies**: `"esbuild": "^0.24.2"` (line 125)
 - **overrides**: `"esbuild": "^0.25.10"` (line 168)
 
@@ -26,7 +29,9 @@ When npm tried to install dependencies on Netlify, the override attempted to for
 ## ✅ Solution Applied
 
 ### Changes Made
+
 Updated `package.json` devDependencies:
+
 ```json
 // BEFORE
 "esbuild": "^0.24.2"
@@ -36,6 +41,7 @@ Updated `package.json` devDependencies:
 ```
 
 ### Why This Works
+
 - Both the direct dependency and override now specify the same version range
 - npm can successfully resolve the dependency tree
 - The override still forces any transitive dependencies to use `^0.25.10`
@@ -46,6 +52,7 @@ Updated `package.json` devDependencies:
 ## 📋 Verification Steps
 
 ### Local Verification
+
 ```bash
 # Verify the fix
 grep '"esbuild"' package.json
@@ -58,6 +65,7 @@ git push origin main
 ```
 
 ### Deployment Monitoring
+
 1. **GitHub Actions**: https://github.com/JHARB47/pole-height-app/actions
    - Watch for CI/CD pipeline to complete
    - All stages should pass (security, lint, test, build)
@@ -78,18 +86,22 @@ git push origin main
 ## 🔧 Technical Details
 
 ### esbuild Version History
+
 - **Original**: 0.24.2 (in devDependencies)
 - **Override**: 0.25.10 (added for security/compatibility)
 - **Fixed**: 0.25.10 (both direct and override aligned)
 
 ### Impact Analysis
+
 - **Breaking Changes**: None (0.24 → 0.25 is minor version bump)
 - **Build Performance**: Potential improvements in esbuild 0.25
 - **Bundle Size**: No significant impact expected
 - **Security**: 0.25.10 includes latest security patches
 
 ### npm Override Behavior
+
 npm overrides are designed to force specific versions of transitive dependencies, but they create conflicts when:
+
 1. You override a package that's also a direct dependency
 2. The override version doesn't match the direct dependency version
 3. Both specifications are evaluated during install
@@ -101,6 +113,7 @@ npm overrides are designed to force specific versions of transitive dependencies
 ## 📊 Expected Results
 
 ### Build Success Indicators
+
 - ✅ npm install completes without errors
 - ✅ Dependencies resolved: ~1624 packages
 - ✅ No EOVERRIDE errors
@@ -108,6 +121,7 @@ npm overrides are designed to force specific versions of transitive dependencies
 - ✅ Site deploys to production CDN
 
 ### Post-Deployment Checks
+
 - [ ] GitHub Actions pipeline: All green
 - [ ] Netlify build: Successful
 - [ ] Site loads: https://poleplanpro.com
@@ -141,6 +155,7 @@ npm overrides are designed to force specific versions of transitive dependencies
 ## 📚 Lessons Learned
 
 ### Best Practices for npm Overrides
+
 1. **Align versions**: Keep direct dependencies and overrides in sync
 2. **Document why**: Comment why overrides are needed
 3. **Test locally**: Run `npm install` after adding overrides
@@ -148,6 +163,7 @@ npm overrides are designed to force specific versions of transitive dependencies
 5. **Review regularly**: Audit overrides during dependency updates
 
 ### Deployment Checklist Additions
+
 - [ ] Verify no conflicting package versions before deploy
 - [ ] Test `npm install` in clean environment
 - [ ] Check for EOVERRIDE warnings in local builds
@@ -171,6 +187,7 @@ npm overrides are designed to force specific versions of transitive dependencies
 **Next Action**: Monitor deployment at https://app.netlify.com/sites/poleplanpro/deploys
 
 **Commit Details**:
+
 - Commit: 50b565e
 - Branch: main
 - Pushed: October 2, 2025

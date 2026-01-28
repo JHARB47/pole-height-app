@@ -255,10 +255,10 @@ The existing `AuthCallback` component (if present) should handle GitHub OAuth to
 
 ```jsx
 // Should work for Google, GitHub, Azure AD, etc.
-const token = searchParams.get('token');
-const refreshToken = searchParams.get('refresh');
-localStorage.setItem('access_token', token);
-localStorage.setItem('refresh_token', refreshToken);
+const token = searchParams.get("token");
+const refreshToken = searchParams.get("refresh");
+localStorage.setItem("access_token", token);
+localStorage.setItem("refresh_token", refreshToken);
 ```
 
 ## Files Modified/Created
@@ -313,7 +313,7 @@ GET /auth/github/callback?code=<authorization_code>
 
 - `code` - Authorization code from GitHub (automatic)
 
-**Success Response:** 
+**Success Response:**
 
 ```
 HTTP 302 Redirect

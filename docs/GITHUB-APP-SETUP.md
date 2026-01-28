@@ -35,7 +35,7 @@ Or go directly to: <https://github.com/settings/apps/new>
 **Description:** (Optional)
 
 ```
-NESC-compliant pole attachment calculations with geospatial capabilities. 
+NESC-compliant pole attachment calculations with geospatial capabilities.
 Sign in with your GitHub account for seamless authentication.
 ```
 
@@ -117,7 +117,7 @@ Upload a logo/icon for your app (recommended for user trust):
 
 ### Update passport.js Strategy
 
-The good news: **No code changes needed!** 
+The good news: **No code changes needed!**
 
 The `passport-github2` strategy we installed works with both OAuth Apps AND GitHub Apps. The authentication flow is identical.
 
@@ -217,7 +217,7 @@ In your GitHub App settings, add permissions:
 
 ```javascript
 // server/services/github.js
-import { App } from '@octokit/app';
+import { App } from "@octokit/app";
 
 const app = new App({
   appId: process.env.GITHUB_APP_ID,
@@ -239,7 +239,7 @@ When users authenticate, store their `installation_id`:
 ```javascript
 // In passport strategy callback
 const installations = await github.apps.getUserInstallations({
-  headers: { authorization: `Bearer ${accessToken}` }
+  headers: { authorization: `Bearer ${accessToken}` },
 });
 ```
 
@@ -269,7 +269,7 @@ GITHUB_PRIVATE_KEY="$(cat path/to/your-app.pem)"
 
 ```javascript
 // For making API calls as the app
-import { App } from '@octokit/app';
+import { App } from "@octokit/app";
 
 const app = new App({
   appId: process.env.GITHUB_APP_ID,
@@ -285,14 +285,14 @@ Verify the user has installed your app:
 // server/middleware/github-app.js
 export async function requireGitHubApp(req, res, next) {
   const user = req.user;
-  
+
   if (!user.github_installation_id) {
     return res.status(403).json({
-      error: 'GitHub App not installed',
-      install_url: `https://github.com/apps/poleplan-pro/installations/new`
+      error: "GitHub App not installed",
+      install_url: `https://github.com/apps/poleplan-pro/installations/new`,
     });
   }
-  
+
   next();
 }
 ```
@@ -340,7 +340,7 @@ Users can revoke at any time:
 
 **Cause:** GitHub App names must be globally unique
 
-**Solution:** 
+**Solution:**
 
 - Try: "PolePlan Pro Auth", "PolePlan Pro by [YourOrg]", etc.
 - Or use your organization name: "Acme PolePlan Pro"
@@ -430,7 +430,7 @@ Keep your OAuth App and add the GitHub App:
 
 ```jsx
 const handleGitHubLogin = () => {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001";
   window.location.href = `${apiUrl}/auth/github`;
 };
 ```
@@ -461,11 +461,11 @@ In your application, monitor:
 Example query:
 
 ```sql
-SELECT 
+SELECT
   DATE(created_at) as date,
   COUNT(*) as github_logins
 FROM audit_log
-WHERE action = 'sso_login' 
+WHERE action = 'sso_login'
   AND details->>'provider' = 'github'
 GROUP BY DATE(created_at)
 ORDER BY date DESC;
@@ -485,7 +485,7 @@ ORDER BY date DESC;
 
 ---
 
-**Next Steps:** 
+**Next Steps:**
 
 1. Create your GitHub App following Step 1
 2. Copy credentials to `.env`

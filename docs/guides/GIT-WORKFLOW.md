@@ -100,12 +100,11 @@ npm test -- geodata           # Test geospatial features
 
 ### Branch Protection & Automation
 
-- **Required status**: GitHub branch protection for `main` must require the `Required Checks / Verify Core Gates` workflow to succeed before merge. Configure this under *Settings → Branches → Branch protection rules*.
+- **Required status**: GitHub branch protection for `main` must require the `Required Checks / Verify Core Gates` workflow to succeed before merge. Configure this under _Settings → Branches → Branch protection rules_.
 - **Reviews & pushes**: Enable “Require pull request reviews before merging” (minimum 1 approval) and “Restrict who can push to matching branches” to block direct pushes to `main`.
 - **Preview deploy hook**: Optionally provision a Netlify site and add its build-hook URL as `NETLIFY_BUILD_HOOK_URL` in repository secrets. Pull requests automatically trigger the preview deploy via `.github/workflows/ci.yml`.
 - **Secrets hygiene**: The preview job logs a skip when the secret is absent; production deploys rely on the hook managed by `ci-robust.yml`. Rotate hooks immediately if exposed.
 - **Reproducible builds**: Keep `.nvmrc` and `package-lock.json` in sync on `main`. Update both when bumping Node or dependencies to ensure GitHub Actions and Netlify use identical environments.
-
 
 ## Feature Area Guidelines
 
@@ -181,11 +180,13 @@ The build no longer externalizes `proj4` or `@mapbox/shp-write`; shapefile expor
 
 ```javascript
 try {
-  const { tokml } = await import('tokml');
+  const { tokml } = await import("tokml");
   return tokml(geojsonData);
 } catch (error) {
-  console.warn('KML export unavailable:', error.message);
-  throw new Error('KML export requires additional dependencies. Please install tokml.');
+  console.warn("KML export unavailable:", error.message);
+  throw new Error(
+    "KML export requires additional dependencies. Please install tokml.",
+  );
 }
 ```
 

@@ -21,7 +21,10 @@ function runGit(args) {
     if (error?.status === 1) {
       return [];
     }
-    console.error("[repo-hygiene] git command failed:", error?.message || error);
+    console.error(
+      "[repo-hygiene] git command failed:",
+      error?.message || error,
+    );
     process.exit(1);
   }
 }
@@ -91,7 +94,8 @@ const forbiddenDescriptors = [
     label: "committed .env files",
     test: (path) => {
       // Allow safe examples and test-only knobs.
-      if (path === ".env.example" || path.endsWith("/.env.example")) return false;
+      if (path === ".env.example" || path.endsWith("/.env.example"))
+        return false;
       if (path === ".env.test") return false;
 
       // Block .env and .env.* anywhere.
@@ -106,7 +110,8 @@ const forbiddenDescriptors = [
   },
   {
     label: "nested project copies (pole-height-app/)",
-    test: (path) => path === "pole-height-app" || path.startsWith("pole-height-app/"),
+    test: (path) =>
+      path === "pole-height-app" || path.startsWith("pole-height-app/"),
     hint: "The repository should not contain nested checkouts; delete the extra folder before committing.",
   },
 ];
@@ -132,7 +137,12 @@ const contentSecretDescriptors = [
 function findSecretHitsInFile(relativePath, regex) {
   // Exclude known example docs that intentionally contain commented sample output.
   if (relativePath === "jwt-secret-generation.md") return [];
-  if (relativePath.endsWith(".svg") || relativePath.endsWith(".png") || relativePath.endsWith(".jpg")) return [];
+  if (
+    relativePath.endsWith(".svg") ||
+    relativePath.endsWith(".png") ||
+    relativePath.endsWith(".jpg")
+  )
+    return [];
 
   const fullPath = join(repoRoot, relativePath);
   let contents;
@@ -187,7 +197,9 @@ for (const secretDescriptor of contentSecretDescriptors) {
   for (const filePath of trackedFiles) {
     const hitLines = findSecretHitsInFile(filePath, secretDescriptor.regex);
     if (hitLines.length > 0) {
-      filesWithHits.push(`${filePath} (lines: ${hitLines.slice(0, 10).join(",")}${hitLines.length > 10 ? ",…" : ""})`);
+      filesWithHits.push(
+        `${filePath} (lines: ${hitLines.slice(0, 10).join(",")}${hitLines.length > 10 ? ",…" : ""})`,
+      );
     }
   }
 
@@ -235,9 +247,11 @@ if (hygieneViolations.length > 0) {
     console.error("");
   }
   console.error(
-    "This branch contains files that reduce performance or break repo structure. Clean them up before continuing."
+    "This branch contains files that reduce performance or break repo structure. Clean them up before continuing.",
   );
   process.exit(1);
 }
 
-console.log("✅ Repository hygiene check passed: no tracked build artifacts and required docs are present.");
+console.log(
+  "✅ Repository hygiene check passed: no tracked build artifacts and required docs are present.",
+);

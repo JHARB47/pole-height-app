@@ -8,16 +8,16 @@ Quick comparison to help you choose between GitHub App and OAuth App for PolePla
 
 ## Side-by-Side Comparison
 
-| Feature | GitHub App 🆕 | OAuth App (Legacy) |
-|---------|--------------|-------------------|
-| **Setup Complexity** | Easy | Easy |
-| **Code Changes** | ✅ None needed | ✅ Already implemented |
-| **Security** | ⭐⭐⭐⭐⭐ Best | ⭐⭐⭐ Good |
-| **Permissions** | Fine-grained | Broad scopes |
-| **Rate Limits** | 5,000/hour per install | 5,000/hour total |
-| **GitHub Recommendation** | ✅ Recommended | ⚠️ Legacy |
-| **User Experience** | Identical | Identical |
-| **Future-Proof** | ✅ Yes | ⚠️ May deprecate |
+| Feature                   | GitHub App 🆕          | OAuth App (Legacy)     |
+| ------------------------- | ---------------------- | ---------------------- |
+| **Setup Complexity**      | Easy                   | Easy                   |
+| **Code Changes**          | ✅ None needed         | ✅ Already implemented |
+| **Security**              | ⭐⭐⭐⭐⭐ Best        | ⭐⭐⭐ Good            |
+| **Permissions**           | Fine-grained           | Broad scopes           |
+| **Rate Limits**           | 5,000/hour per install | 5,000/hour total       |
+| **GitHub Recommendation** | ✅ Recommended         | ⚠️ Legacy              |
+| **User Experience**       | Identical              | Identical              |
+| **Future-Proof**          | ✅ Yes                 | ⚠️ May deprecate       |
 
 ## Detailed Comparison
 
@@ -103,12 +103,17 @@ Users won't notice the difference.
 
 ```javascript
 // Works for BOTH GitHub App and OAuth App
-passport.use(new GitHubStrategy({
-  clientID: process.env.GITHUB_CLIENT_ID,
-  clientSecret: process.env.GITHUB_CLIENT_SECRET,
-  callbackURL: '/auth/github/callback',
-  scope: ['user:email']
-}, callback));
+passport.use(
+  new GitHubStrategy(
+    {
+      clientID: process.env.GITHUB_CLIENT_ID,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
+      callbackURL: "/auth/github/callback",
+      scope: ["user:email"],
+    },
+    callback,
+  ),
+);
 ```
 
 The only difference is where you create the app on GitHub.
@@ -183,6 +188,7 @@ But GitHub App is better for:
 ## My Recommendation for PolePlan Pro
 
 ### Immediate: OAuth App ✅
+
 **Why:**
 
 - ✅ Already implemented
@@ -198,6 +204,7 @@ But GitHub App is better for:
 4. Done!
 
 ### Long-term: GitHub App ✅
+
 **Why:**
 
 - ✅ Better architecture
@@ -216,7 +223,7 @@ But GitHub App is better for:
 ## Quick Decision Matrix
 
 ```
-Need it NOW? 
+Need it NOW?
 └─ Yes → OAuth App (already implemented)
    └─ Follow: GITHUB-OAUTH-SETUP.md
 
@@ -252,16 +259,21 @@ The code reads the same variables!
 
 ```javascript
 // server/config/passport.js
-import { Strategy as GitHubStrategy } from 'passport-github2';
+import { Strategy as GitHubStrategy } from "passport-github2";
 
-passport.use(new GitHubStrategy({
-  clientID: process.env.GITHUB_CLIENT_ID,      // ✅ Works for both
-  clientSecret: process.env.GITHUB_CLIENT_SECRET, // ✅ Works for both
-  callbackURL: '/auth/github/callback',
-  scope: ['user:email']
-}, async (accessToken, refreshToken, profile, done) => {
-  // ... authentication logic
-}));
+passport.use(
+  new GitHubStrategy(
+    {
+      clientID: process.env.GITHUB_CLIENT_ID, // ✅ Works for both
+      clientSecret: process.env.GITHUB_CLIENT_SECRET, // ✅ Works for both
+      callbackURL: "/auth/github/callback",
+      scope: ["user:email"],
+    },
+    async (accessToken, refreshToken, profile, done) => {
+      // ... authentication logic
+    },
+  ),
+);
 ```
 
 ## Testing Both

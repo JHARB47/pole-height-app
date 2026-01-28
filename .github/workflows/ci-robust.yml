@@ -1,11 +1,11 @@
 name: CI Robust
 on:
   pull_request:
-    branches: [ main ]
+    branches: [main]
   push:
-    branches: [ main ]
+    branches: [main]
   schedule:
-    - cron: "0 6 * * 1"  # Weekly hygiene (Mon 06:00 UTC)
+    - cron: "0 6 * * 1" # Weekly hygiene (Mon 06:00 UTC)
 
 concurrency:
   group: poleplanpro-${{ github.ref }}
@@ -40,7 +40,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: ".nvmrc"
           cache: npm
 
       # Enforce lock determinism
@@ -66,7 +66,7 @@ jobs:
 
       - name: Run comprehensive verification
         run: npm run verify
-          
+
       - name: Build production bundle
         run: npm run build
 
@@ -205,7 +205,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: ".nvmrc"
           cache: npm
       - name: Use deterministic install
         run: npm ci

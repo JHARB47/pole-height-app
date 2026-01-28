@@ -5,6 +5,7 @@ This directory contains archived documentation from the October 2025 cleanup eff
 ## Archive Structure
 
 ### Cleanup Reports (`cleanup-reports/`)
+
 Documentation of code quality improvements and cleanup operations:
 
 - `CLEANUP-SUCCESS-REPORT.md` - Comprehensive code quality cleanup (Oct 3, 2025)
@@ -13,6 +14,7 @@ Documentation of code quality improvements and cleanup operations:
 - `WHITE-PAGE-FIX.md` - Root route fix for production white page issue
 
 ### Status Reports (`status-reports/`)
+
 Point-in-time status reports and completion summaries:
 
 - Build and dependency status reports
@@ -22,6 +24,7 @@ Point-in-time status reports and completion summaries:
 - Sync status reports
 
 ### Deprecated (`deprecated/`)
+
 Obsolete documentation no longer relevant to the project:
 
 - `MIGRATE-FILE-NOTE.md` - Notes about removed migrate.mjs file
@@ -47,4 +50,4 @@ For up-to-date documentation, see:
 
 ---
 
-*Archived: October 3, 2025*
+_Archived: October 3, 2025_

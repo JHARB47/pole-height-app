@@ -20,6 +20,7 @@
 ## ✅ Completed Tasks
 
 ### Phase 1: Architecture & Specifications
+
 - [x] Repository audit (store, components, calculations)
 - [x] Created WORKFLOW-CONTRACT.md (12 sections, 83KB)
 - [x] Created PREFLIGHT-VALIDATION.md (11 sections)
@@ -29,6 +30,7 @@
 - [x] Documented error code registry (40+ codes)
 
 ### Phase 2: Core Implementation
+
 - [x] Implemented workflowEngine.js (647 lines)
   - [x] getWorkflowRequirements() function
   - [x] computeRequiredSteps() logic
@@ -67,6 +69,7 @@
 ### Phase 3: UI Integration (Estimated: 4-6 hours)
 
 #### High Priority
+
 - [ ] **Integrate DeliverablePicker into JobSetupPanel.jsx**
   - [ ] Add import statement
   - [ ] Place in Project Setup step
@@ -74,7 +77,7 @@
   - [ ] Test deliverable selection flow
   - [ ] Add help tooltip explaining deliverable impact
 
-- [ ] **Modify StepNavigation.jsx** 
+- [ ] **Modify StepNavigation.jsx**
   - [ ] Add required/optional badges to step buttons
   - [ ] Dynamically enable/disable steps based on requirements
   - [ ] Add progress bar showing completion percentage
@@ -82,6 +85,7 @@
   - [ ] Add step status indicators (complete/incomplete/not-required)
 
 #### Medium Priority
+
 - [ ] **Create PreflightCheckPanel.jsx**
   - [ ] Display validation results from workflowEngine
   - [ ] Show error/warning/info messages
@@ -95,7 +99,8 @@
   - [ ] Disable export buttons when validation fails
   - [ ] Add validation result tooltips
 
-#### Low Priority  
+#### Low Priority
+
 - [ ] **Harden calculations.js**
   - [ ] Change return type from throws → structured `{ success, data, warnings, errors }`
   - [ ] Add null safety to computeAnalysis()
@@ -140,6 +145,7 @@
 ### Phase 5: Testing & Evidence (Estimated: 2-3 hours)
 
 #### Integration Tests
+
 - [ ] **Create workflowIntegration.test.js**
   - [ ] Test deliverable selection → requirement update
   - [ ] Test state persistence across sessions
@@ -147,6 +153,7 @@
   - [ ] Test backward compatibility (no deliverables selected)
 
 #### E2E Tests
+
 - [ ] **Create deliverable-workflows.spec.js** (Playwright)
   - [ ] Test GIS export only workflow (2 steps)
   - [ ] Test permit report workflow (4 steps)
@@ -156,6 +163,7 @@
   - [ ] Test step navigation with required/optional badges
 
 #### Documentation & Evidence
+
 - [ ] **Update USER_GUIDE.md**
   - [ ] Add deliverable selection tutorial
   - [ ] Document workflow skip feature
@@ -183,40 +191,44 @@
 ## 📈 Metrics Dashboard
 
 ### Code Statistics
-| Metric | Value |
-|--------|-------|
-| **Total Lines Added** | 1,580 lines |
-| **New Files Created** | 5 files |
-| **Files Modified** | 1 file |
-| **Test Coverage** | 100% (workflowEngine.js) |
-| **Bundle Size Increase** | +5.2KB (gzipped) |
-| **Functions Implemented** | 18 functions |
-| **Test Cases** | 18 tests |
-| **Deliverable Types** | 6 types |
+
+| Metric                    | Value                    |
+| ------------------------- | ------------------------ |
+| **Total Lines Added**     | 1,580 lines              |
+| **New Files Created**     | 5 files                  |
+| **Files Modified**        | 1 file                   |
+| **Test Coverage**         | 100% (workflowEngine.js) |
+| **Bundle Size Increase**  | +5.2KB (gzipped)         |
+| **Functions Implemented** | 18 functions             |
+| **Test Cases**            | 18 tests                 |
+| **Deliverable Types**     | 6 types                  |
 
 ### Performance
-| Operation | Duration |
-|-----------|----------|
-| **Workflow requirement calc** | <1ms |
-| **Full validation suite** | <10ms |
-| **Test suite execution** | 287ms |
-| **Average test duration** | 16ms |
+
+| Operation                     | Duration |
+| ----------------------------- | -------- |
+| **Workflow requirement calc** | <1ms     |
+| **Full validation suite**     | <10ms    |
+| **Test suite execution**      | 287ms    |
+| **Average test duration**     | 16ms     |
 
 ### Quality
-| Indicator | Status |
-|-----------|--------|
-| **All tests passing** | ✅ Yes |
-| **No flaky tests** | ✅ Yes |
-| **Backward compatible** | ✅ Yes |
-| **No breaking changes** | ✅ Yes |
-| **TypeScript hints** | ✅ Yes (JSDoc) |
-| **Documentation** | ✅ Complete |
+
+| Indicator               | Status         |
+| ----------------------- | -------------- |
+| **All tests passing**   | ✅ Yes         |
+| **No flaky tests**      | ✅ Yes         |
+| **Backward compatible** | ✅ Yes         |
+| **No breaking changes** | ✅ Yes         |
+| **TypeScript hints**    | ✅ Yes (JSDoc) |
+| **Documentation**       | ✅ Complete    |
 
 ---
 
 ## 🎯 Success Criteria
 
 ### Must Have (Release Blockers)
+
 - [x] Workflow engine calculates requirements correctly
 - [x] Store integration works
 - [x] Tests pass (100% for core logic)
@@ -227,6 +239,7 @@
 - [ ] No breaking changes for existing users
 
 ### Nice to Have (Future Enhancements)
+
 - [ ] Auto-deliverable detection
 - [ ] Deliverable templates (presets)
 - [ ] Real-time validation status panel
@@ -238,28 +251,30 @@
 ## 🐛 Known Issues & Risks
 
 ### Current Issues
+
 None! All tests passing ✅
 
 ### Risks & Mitigation
-| Risk | Mitigation |
-|------|------------|
+
+| Risk                                  | Mitigation                                  |
+| ------------------------------------- | ------------------------------------------- |
 | **Breaking changes for v0.2.0 users** | Default to all deliverables (full workflow) |
-| **Performance degradation** | Validated <1ms calculation time |
-| **Null reference errors** | Structured returns instead of throws |
-| **Store corruption** | Added validation schema to store |
-| **Test flakiness** | Pure functions, no side effects |
+| **Performance degradation**           | Validated <1ms calculation time             |
+| **Null reference errors**             | Structured returns instead of throws        |
+| **Store corruption**                  | Added validation schema to store            |
+| **Test flakiness**                    | Pure functions, no side effects             |
 
 ---
 
 ## 📅 Timeline
 
-| Phase | Start | End | Duration | Status |
-|-------|-------|-----|----------|--------|
-| **Phase 1: Specs** | Jan 27, 09:00 | Jan 27, 12:00 | 3h | ✅ COMPLETE |
-| **Phase 2: Core** | Jan 27, 12:00 | Jan 27, 16:30 | 4.5h | ✅ COMPLETE |
-| **Phase 3: UI** | Jan 27, 17:00 | Jan 28, 10:00 | 6h | ⏳ PENDING |
-| **Phase 4: Preflight** | Jan 28, 10:00 | Jan 28, 14:00 | 4h | ⏳ PENDING |
-| **Phase 5: Testing** | Jan 28, 14:00 | Jan 28, 17:00 | 3h | ⏳ PENDING |
+| Phase                  | Start         | End           | Duration | Status      |
+| ---------------------- | ------------- | ------------- | -------- | ----------- |
+| **Phase 1: Specs**     | Jan 27, 09:00 | Jan 27, 12:00 | 3h       | ✅ COMPLETE |
+| **Phase 2: Core**      | Jan 27, 12:00 | Jan 27, 16:30 | 4.5h     | ✅ COMPLETE |
+| **Phase 3: UI**        | Jan 27, 17:00 | Jan 28, 10:00 | 6h       | ⏳ PENDING  |
+| **Phase 4: Preflight** | Jan 28, 10:00 | Jan 28, 14:00 | 4h       | ⏳ PENDING  |
+| **Phase 5: Testing**   | Jan 28, 14:00 | Jan 28, 17:00 | 3h       | ⏳ PENDING  |
 
 **Estimated Completion:** January 28, 2026 @ 17:00  
 **Total Effort:** ~20 hours
@@ -271,6 +286,7 @@ None! All tests passing ✅
 **IMMEDIATE PRIORITY:** Integrate DeliverablePicker into JobSetupPanel.jsx
 
 **Command to run:**
+
 ```bash
 # Find JobSetupPanel
 find src/components -name "JobSetupPanel.jsx"
@@ -285,18 +301,21 @@ find src/components -name "JobSetupPanel.jsx"
 ## 📝 Notes
 
 ### Design Decisions
+
 - **Backward compatibility first** - No user should see breaking changes
 - **Structured returns** - Prefer `{ success, data, errors }` over throws
 - **Pure functions** - 90% of workflow engine has no side effects
 - **Test-driven** - Write tests before integration (prevents regressions)
 
 ### Developer Experience
+
 - **JSDoc everywhere** - IDE autocomplete works
 - **Clear naming** - Function names describe intent
 - **Minimal coupling** - Only depends on store
 - **Easy debugging** - Structured logs, clear error messages
 
 ### User Experience
+
 - **Progressive enhancement** - Start with simple (all deliverables), add complexity later
 - **Guided workflows** - Next step suggestions, completion percentage
 - **Actionable errors** - Tell user exactly what's missing + how to fix

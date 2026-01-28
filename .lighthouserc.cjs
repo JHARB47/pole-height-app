@@ -7,22 +7,22 @@
 module.exports = {
   ci: {
     collect: {
-      url: ['http://127.0.0.1:4173/'],
+      url: ["http://127.0.0.1:4173/"],
       numberOfRuns: 1,
-      startServerCommand: 'npx --yes http-server dist -p 4173 --silent',
-      startServerReadyPattern: 'Available on',
+      startServerCommand: "npx --yes http-server dist -p 4173 --silent",
+      startServerReadyPattern: "Available on",
       settings: {
-        onlyCategories: ['pwa'],
+        onlyCategories: ["pwa"],
       },
     },
     assert: {
       assertions: {
-        'categories:pwa': ['error', { minScore: 1 }],
+        "categories:pwa": ["error", { minScore: 1 }],
       },
     },
     upload: {
-      target: 'filesystem',
-      outputDir: '.lighthouseci',
+      target: "filesystem",
+      outputDir: ".lighthouseci",
     },
   },
 };

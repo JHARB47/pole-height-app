@@ -116,7 +116,8 @@ export async function handler(event) {
     if (!pem) return pem;
     // Support env-style single-line keys that contain literal "\n".
     const literalNewline = String.raw`\n`;
-    if (pem.includes(literalNewline)) return pem.replaceAll(literalNewline, "\n");
+    if (pem.includes(literalNewline))
+      return pem.replaceAll(literalNewline, "\n");
     return pem;
   }
 

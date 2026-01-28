@@ -70,11 +70,7 @@ export default function EnhancedFieldCollectionPanel() {
   }, [isOnline, fieldManager.pendingQueue.length, handleSync]);
 
   // Statistics
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const stats = useMemo(
-    () => fieldManager.getFieldStats(),
-    [collectedPoles, fieldManager],
-  );
+  const stats = useMemo(() => fieldManager.getFieldStats(), [fieldManager]);
 
   const handleCaptureGPS = async () => {
     setCapturingGPS(true);

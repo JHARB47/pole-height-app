@@ -1,15 +1,15 @@
 /// <reference lib="webworker" />
 // IMPORTANT: Bump this version whenever deploying new UI changes
-const PRECACHE = 'ph-precache-v4';
-const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/vite.svg'];
+const PRECACHE = "ph-precache-v4";
+const APP_SHELL = ["/", "/index.html", "/manifest.webmanifest", "/vite.svg"];
 const PRECACHE_URLS = [
-  'https://unpkg.com/@mapbox/shp-write@0.4.3/dist/shpwrite.js',
-  'https://cdn.jsdelivr.net/npm/@mapbox/shp-write@0.4.3/dist/shpwrite.js',
-  'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js'
+  "https://unpkg.com/@mapbox/shp-write@0.4.3/dist/shpwrite.js",
+  "https://cdn.jsdelivr.net/npm/@mapbox/shp-write@0.4.3/dist/shpwrite.js",
+  "https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js",
 ];
-self.addEventListener('install', (event) => {
+self.addEventListener("install", (event) => {
   // @ts-ignore
-  if (typeof self.skipWaiting === 'function') self.skipWaiting();
+  if (typeof self.skipWaiting === "function") self.skipWaiting();
   // @ts-ignore
   event.waitUntil(
     (async () => {
@@ -22,74 +22,92 @@ self.addEventListener('install', (event) => {
       }
       // Precache CDN resources with graceful failures
       await Promise.all(
-        PRECACHE_URLS.map(u => fetch(u, { mode: 'no-cors' })
-          .then(r => cache.put(u, r.clone()))
-          .catch(() => null))
+        PRECACHE_URLS.map((u) =>
+          fetch(u, { mode: "no-cors" })
+            .then((r) => cache.put(u, r.clone()))
+            .catch(() => null),
+        ),
       );
-    })()
+    })(),
   );
 });
 
-self.addEventListener('activate', (event) => {
+self.addEventListener("activate", (event) => {
   // @ts-ignore
-  if (self.clients && typeof self.clients.claim === 'function') self.clients.claim();
+  if (self.clients && typeof self.clients.claim === "function")
+    self.clients.claim();
   // @ts-ignore
   event.waitUntil(
-    caches.keys().then(keys => Promise.all(keys
-      .filter(k => k.startsWith('ph-precache-') && k !== PRECACHE)
-      .map(k => caches.delete(k))
-    ))
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(
+          keys
+            .filter((k) => k.startsWith("ph-precache-") && k !== PRECACHE)
+            .map((k) => caches.delete(k)),
+        ),
+      ),
   );
 });
 
 // Allow clients to request immediate activation
-self.addEventListener('message', (event) => {
+self.addEventListener("message", (event) => {
   // @ts-ignore
-  if (event && event.data === 'SKIP_WAITING' && typeof self.skipWaiting === 'function') {
+  if (
+    event &&
+    event.data === "SKIP_WAITING" &&
+    typeof self.skipWaiting === "function"
+  ) {
     // @ts-ignore
     self.skipWaiting();
   }
 });
 
-self.addEventListener('fetch', (event) => {
+self.addEventListener("fetch", (event) => {
   /** @type {FetchEvent} */
   // @ts-ignore - JSDoc cast for proper type in JS file
   const e = event;
   const req = e.request;
   const url = req.url;
   // Only handle GET requests; let the browser handle others
-  if (req.method && req.method !== 'GET') return;
+  if (req.method && req.method !== "GET") return;
 
   // Avoid a known SW edge case where Chrome issues a request with
   // cache='only-if-cached' and mode!='same-origin', which can throw.
-  if (req.cache === 'only-if-cached' && req.mode !== 'same-origin') return;
-  if (PRECACHE_URLS.some(u => url.startsWith(u))) {
+  if (req.cache === "only-if-cached" && req.mode !== "same-origin") return;
+  if (PRECACHE_URLS.some((u) => url.startsWith(u))) {
     // @ts-ignore
     e.respondWith(
-      caches.open(PRECACHE).then(async cache => {
+      caches.open(PRECACHE).then(async (cache) => {
         const cached = await cache.match(url);
-        const fetchPromise = fetch(req).then(res => {
-          if (res && res.status === 200) cache.put(url, res.clone());
-          return res;
-        }).catch(() => cached || new Response('', { status: 504 }));
+        const fetchPromise = fetch(req)
+          .then((res) => {
+            if (res && res.status === 200) cache.put(url, res.clone());
+            return res;
+          })
+          .catch(() => cached || new Response("", { status: 504 }));
         return cached || fetchPromise;
-      })
+      }),
     );
     return;
   }
   // Navigation requests: try network, fall back to cached index.html when offline
-  if (req.mode === 'navigate') {
+  if (req.mode === "navigate") {
     // @ts-ignore
-    e.respondWith((async () => {
-      try {
-        const res = await fetch(req);
-        // If online and ok, return network response
-        if (res && res.ok) return res;
-        // else fall through to cache
-      } catch { /* offline or failed */ }
-      const cache = await caches.open(PRECACHE);
-      return (await cache.match('/index.html')) || Response.error();
-    })());
+    e.respondWith(
+      (async () => {
+        try {
+          const res = await fetch(req);
+          // If online and ok, return network response
+          if (res && res.ok) return res;
+          // else fall through to cache
+        } catch {
+          /* offline or failed */
+        }
+        const cache = await caches.open(PRECACHE);
+        return (await cache.match("/index.html")) || Response.error();
+      })(),
+    );
     return;
   }
 
@@ -99,7 +117,7 @@ self.addEventListener('fetch', (event) => {
     const selfOrigin = self.location.origin;
     if (reqUrl.origin === selfOrigin) {
       const isAssetPath =
-        reqUrl.pathname.startsWith('/assets/') ||
+        reqUrl.pathname.startsWith("/assets/") ||
         /\.(?:js|css|map|png|jpe?g|gif|svg|webp|ico|woff2?|ttf|eot)$/.test(
           reqUrl.pathname,
         );
@@ -109,15 +127,15 @@ self.addEventListener('fetch', (event) => {
       if (isAssetPath) {
         // @ts-ignore
         e.respondWith(
-          fetch(req).catch(async () =>
-            (await caches.match(req)) || Response.error(),
+          fetch(req).catch(
+            async () => (await caches.match(req)) || Response.error(),
           ),
         );
         return;
       }
 
       // @ts-ignore
-      e.respondWith(caches.match(req).then(r => r || fetch(req)));
+      e.respondWith(caches.match(req).then((r) => r || fetch(req)));
       return;
     }
     // else: allow cross-origin requests to proceed normally

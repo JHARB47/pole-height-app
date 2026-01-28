@@ -1,6 +1,7 @@
 # API Documentation - Projects Endpoint
 
 ## Overview
+
 The `/api/projects` endpoint provides full CRUD operations for project management with user data isolation, pagination, and search capabilities.
 
 **Base URL**: `/api/projects`  
@@ -18,7 +19,9 @@ Authorization: Bearer <your-jwt-token>
 ```
 
 ### User Context
+
 All operations are automatically scoped to the authenticated user. Projects are filtered by:
+
 - `user_id` (automatic, from JWT token)
 - `organization_id` (optional filter)
 - `client_id` (optional filter)
@@ -35,15 +38,15 @@ Get a paginated list of projects for the authenticated user.
 
 #### Query Parameters
 
-| Parameter | Type | Required | Default | Max | Description |
-|-----------|------|----------|---------|-----|-------------|
-| `page` | integer | No | 1 | - | Page number (1-indexed) |
-| `limit` | integer | No | 50 | 100 | Items per page |
-| `search` | string | No | - | - | Search in project names (case-insensitive) |
-| `sort` | string | No | `updated_at` | - | Sort field: `name`, `created_at`, `updated_at` |
-| `order` | string | No | `desc` | - | Sort order: `asc`, `desc` |
-| `organization_id` | string | No | - | - | Filter by organization |
-| `client_id` | string | No | - | - | Filter by client |
+| Parameter         | Type    | Required | Default      | Max | Description                                    |
+| ----------------- | ------- | -------- | ------------ | --- | ---------------------------------------------- |
+| `page`            | integer | No       | 1            | -   | Page number (1-indexed)                        |
+| `limit`           | integer | No       | 50           | 100 | Items per page                                 |
+| `search`          | string  | No       | -            | -   | Search in project names (case-insensitive)     |
+| `sort`            | string  | No       | `updated_at` | -   | Sort field: `name`, `created_at`, `updated_at` |
+| `order`           | string  | No       | `desc`       | -   | Sort order: `asc`, `desc`                      |
+| `organization_id` | string  | No       | -            | -   | Filter by organization                         |
+| `client_id`       | string  | No       | -            | -   | Filter by client                               |
 
 #### Request Example
 
@@ -106,6 +109,7 @@ curl -X GET "http://localhost:3000/api/projects?search=2024&client_id=client123&
 #### Response Fields
 
 **projects** (array): Array of project objects
+
 - `id` (integer): Project ID
 - `name` (string): Project name
 - `user_id` (string): Owner user ID
@@ -116,6 +120,7 @@ curl -X GET "http://localhost:3000/api/projects?search=2024&client_id=client123&
 - `updated_at` (string): ISO 8601 timestamp
 
 **pagination** (object): Pagination metadata
+
 - `page` (integer): Current page number
 - `limit` (integer): Items per page
 - `total` (integer): Total number of projects
@@ -126,6 +131,7 @@ curl -X GET "http://localhost:3000/api/projects?search=2024&client_id=client123&
 #### Error Responses
 
 **401 Unauthorized**
+
 ```json
 {
   "success": false,
@@ -134,6 +140,7 @@ curl -X GET "http://localhost:3000/api/projects?search=2024&client_id=client123&
 ```
 
 **500 Internal Server Error**
+
 ```json
 {
   "success": false,
@@ -151,9 +158,9 @@ Retrieve a specific project by ID. Only returns projects owned by the authentica
 
 #### Path Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `id` | integer | Yes | Project ID |
+| Parameter | Type    | Required | Description |
+| --------- | ------- | -------- | ----------- |
+| `id`      | integer | Yes      | Project ID  |
 
 #### Request Example
 
@@ -192,6 +199,7 @@ curl -X GET "http://localhost:3000/api/projects/123" \
 #### Error Responses
 
 **404 Not Found**
+
 ```json
 {
   "success": false,
@@ -279,6 +287,7 @@ curl -X POST "http://localhost:3000/api/projects" \
 #### Error Responses
 
 **400 Bad Request - Validation Error**
+
 ```json
 {
   "success": false,
@@ -294,6 +303,7 @@ curl -X POST "http://localhost:3000/api/projects" \
 ```
 
 **400 Bad Request - Missing Name**
+
 ```json
 {
   "success": false,
@@ -311,9 +321,9 @@ Update an existing project. Includes ownership check and GIS validation.
 
 #### Path Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `id` | integer | Yes | Project ID |
+| Parameter | Type    | Required | Description |
+| --------- | ------- | -------- | ----------- |
+| `id`      | integer | Yes      | Project ID  |
 
 #### Request Body
 
@@ -372,6 +382,7 @@ curl -X PUT "http://localhost:3000/api/projects/123" \
 #### Error Responses
 
 **403 Forbidden**
+
 ```json
 {
   "success": false,
@@ -380,6 +391,7 @@ curl -X PUT "http://localhost:3000/api/projects/123" \
 ```
 
 **404 Not Found**
+
 ```json
 {
   "success": false,
@@ -397,9 +409,9 @@ Delete a project. Ownership check required.
 
 #### Path Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `id` | integer | Yes | Project ID |
+| Parameter | Type    | Required | Description |
+| --------- | ------- | -------- | ----------- |
+| `id`      | integer | Yes      | Project ID  |
 
 #### Request Example
 
@@ -420,6 +432,7 @@ curl -X DELETE "http://localhost:3000/api/projects/123" \
 #### Error Responses
 
 **403 Forbidden**
+
 ```json
 {
   "success": false,
@@ -428,6 +441,7 @@ curl -X DELETE "http://localhost:3000/api/projects/123" \
 ```
 
 **404 Not Found**
+
 ```json
 {
   "success": false,
@@ -445,9 +459,9 @@ Batch validate all pole coordinates in a project.
 
 #### Path Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `id` | integer | Yes | Project ID |
+| Parameter | Type    | Required | Description |
+| --------- | ------- | -------- | ----------- |
+| `id`      | integer | Yes      | Project ID  |
 
 #### Request Example
 
@@ -549,21 +563,25 @@ Exceeded rate limits return:
 ## Best Practices
 
 ### Pagination
+
 1. **Start with reasonable limits**: Use `limit=50` for initial loads
 2. **Use cursor-based for large datasets**: Request next page using `page` parameter
 3. **Cache pagination metadata**: Store `totalPages` to show progress
 
 ### Search
+
 1. **Debounce search input**: Wait 300ms after user stops typing
 2. **Use partial matching**: Search works with partial project names
 3. **Combine with filters**: Search + organization_id for scoped results
 
 ### Performance
+
 1. **Request only needed fields**: Consider adding field selection in future
 2. **Use appropriate page sizes**: Smaller pages (10-25) for mobile, larger (50-100) for desktop
 3. **Sort strategically**: Default `updated_at desc` shows recent projects first
 
 ### Error Handling
+
 1. **Always check `success` field**: Don't assume success from HTTP status alone
 2. **Handle validation errors gracefully**: Show specific validation messages to users
 3. **Implement retry logic**: For 500 errors, retry with exponential backoff
@@ -575,14 +593,16 @@ Exceeded rate limits return:
 ### From Old API (No Pagination)
 
 **Before:**
+
 ```javascript
-const response = await fetch('/api/projects');
+const response = await fetch("/api/projects");
 const { projects } = await response.json();
 ```
 
 **After:**
+
 ```javascript
-const response = await fetch('/api/projects?page=1&limit=50');
+const response = await fetch("/api/projects?page=1&limit=50");
 const { projects, pagination } = await response.json();
 
 // Handle pagination
@@ -598,25 +618,25 @@ if (pagination.hasNextPage) {
 ### Example Test Suite
 
 ```javascript
-describe('Projects API', () => {
-  it('should paginate results', async () => {
-    const response = await fetch('/api/projects?page=1&limit=10');
+describe("Projects API", () => {
+  it("should paginate results", async () => {
+    const response = await fetch("/api/projects?page=1&limit=10");
     const data = await response.json();
-    
+
     expect(data.success).toBe(true);
     expect(data.projects.length).toBeLessThanOrEqual(10);
     expect(data.pagination.page).toBe(1);
     expect(data.pagination.limit).toBe(10);
   });
-  
-  it('should search projects', async () => {
-    const response = await fetch('/api/projects?search=main');
+
+  it("should search projects", async () => {
+    const response = await fetch("/api/projects?search=main");
     const data = await response.json();
-    
+
     expect(data.success).toBe(true);
-    expect(data.projects.every(p => 
-      p.name.toLowerCase().includes('main')
-    )).toBe(true);
+    expect(
+      data.projects.every((p) => p.name.toLowerCase().includes("main")),
+    ).toBe(true);
   });
 });
 ```
@@ -626,6 +646,7 @@ describe('Projects API', () => {
 ## Changelog
 
 ### Version 2.0 (October 2024)
+
 - ✅ Added pagination support (page, limit)
 - ✅ Added full-text search (search parameter)
 - ✅ Added sorting (sort, order parameters)
@@ -634,6 +655,7 @@ describe('Projects API', () => {
 - ✅ Improved performance for large datasets
 
 ### Version 1.0 (Previous)
+
 - Basic CRUD operations
 - User data isolation
 - GIS coordinate validation
@@ -644,10 +666,11 @@ describe('Projects API', () => {
 ## Support
 
 For issues or questions:
+
 - **Documentation**: See PHASE-2-ENHANCEMENTS.md
 - **Testing**: Run `node scripts/test/manual-testing-guide.mjs`
 - **Examples**: Check `docs/API-EXAMPLES.md`
 
 ---
 
-*Last Updated: October 2024*
+_Last Updated: October 2024_

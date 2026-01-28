@@ -1,9 +1,7 @@
 {
   "$schema": "node_modules/knip/schema.json",
   "paths": {
-    "@/*": [
-      "src/*"
-    ]
+    "@/*": ["src/*"]
   },
   "entry": [
     "src/main.jsx",
@@ -24,9 +22,7 @@
     "rimraf",
     "rollup-plugin-visualizer"
   ],
-  "ignoreDependencies": [
-    "pino-pretty"
-  ],
+  "ignoreDependencies": ["pino-pretty"],
   "ignoreFiles": [
     "dist/**",
     "coverage/**",

@@ -6,17 +6,20 @@
 ## Files to Remove
 
 ### 1. Orphaned Temp Files
+
 - `package.json.tmp` - Empty temp file from previous operations
 
 ### 2. Redundant Documentation (Consolidate)
 
 #### Database Setup Docs (Choose one, archive others)
+
 - `DATABASE-CONNECTION-SUCCESS.md` - Connection verification
 - `DATABASE-MIGRATION-COMPLETE.md` - Migration status
 - `DATABASE-SETUP-COMPLETE.md` - Overall setup
 - **→ Recommendation**: Keep latest, move others to `docs/archive/`
 
 #### Deployment Docs (Consolidate)
+
 - `DEPLOYMENT-STATUS.md` - Status report
 - `DEPLOYMENT-COMPLETE-GUIDE.md` - Complete guide
 - `DEPLOYMENT.md` - General deployment
@@ -25,6 +28,7 @@
 - **→ Recommendation**: Consolidate into one `docs/DEPLOYMENT-GUIDE.md`
 
 #### Cleanup Reports (Archive completed reports)
+
 - `CLEANUP-SUCCESS-REPORT.md` - Oct 3 cleanup
 - `CODE-QUALITY-CLEANUP-REPORT.md` - Code quality fixes
 - `MIGRATION-VERIFICATION-REPORT.md` - Migration verification
@@ -32,6 +36,7 @@
 - **→ Recommendation**: Move to `docs/reports/2025-10/`
 
 #### Status Reports (Archive old status)
+
 - `BUILD-STATUS.md` - Build status
 - `DEPENDENCY-STATUS.md` - Dependency status
 - `SYNC-STATUS-REPORT.md` - Sync status
@@ -39,6 +44,7 @@
 - **→ Recommendation**: Keep only `STATUS.md`, archive others
 
 #### Outdated Guides (Review and update or remove)
+
 - `MIGRATE-FILE-NOTE.md` - Obsolete (migrate.mjs removed)
 - `DEPRECATION-WARNING-NOTE.md` - Check if still relevant
 - `COMPLETE-SETUP-SUMMARY.md` - Outdated?

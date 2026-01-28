@@ -61,12 +61,12 @@ CREATE TABLE users (
     password_hash VARCHAR(255), -- NULL for SSO-only users
     organization_id UUID REFERENCES organizations(id),
     role VARCHAR(50) DEFAULT 'user',
-    
+
     -- SSO fields
     azure_id VARCHAR(255),
     google_id VARCHAR(255),
     saml_id VARCHAR(255),
-    
+
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -88,33 +88,33 @@ Location: `src/services/auth.js`
 ```javascript
 class AuthService {
   async login(email, password) {
-    const response = await fetch('/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
+    const response = await fetch("/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
     });
-    
+
     const data = await response.json();
     this.handleAuthSuccess(data);
     return data;
   }
-  
+
   handleAuthSuccess(data) {
     // Store tokens
-    localStorage.setItem('poleplan_token', data.tokens.access_token);
-    localStorage.setItem('poleplan_refresh', data.tokens.refresh_token);
-    localStorage.setItem('poleplan_user', JSON.stringify(data.user));
-    
+    localStorage.setItem("poleplan_token", data.tokens.access_token);
+    localStorage.setItem("poleplan_refresh", data.tokens.refresh_token);
+    localStorage.setItem("poleplan_user", JSON.stringify(data.user));
+
     // Update store
     useAppStore.getState().setCurrentUser(data.user);
     useAppStore.getState().setIsAuthenticated(true);
   }
-  
+
   getAuthHeaders() {
-    const token = localStorage.getItem('poleplan_token');
+    const token = localStorage.getItem("poleplan_token");
     return {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     };
   }
 }
@@ -126,14 +126,14 @@ Location: `server/middleware/auth.js`
 
 ```javascript
 export const authMiddleware = (req, res, next) => {
-  passport.authenticate('jwt', { session: false }, (err, user) => {
+  passport.authenticate("jwt", { session: false }, (err, user) => {
     if (err || !user) {
       return res.status(401).json({
-        error: 'Authentication required',
-        code: 'AUTH_REQUIRED'
+        error: "Authentication required",
+        code: "AUTH_REQUIRED",
       });
     }
-    
+
     req.user = user; // Attach user to request
     next();
   })(req, res, next);
@@ -169,17 +169,17 @@ CREATE INDEX idx_projects_org ON projects(organization_id);
 
 ```javascript
 // POST /api/projects
-router.post('/projects', authMiddleware, async (req, res) => {
+router.post("/projects", authMiddleware, async (req, res) => {
   const { name, description, project_data } = req.body;
   const user_id = req.user.id; // From auth middleware
-  
+
   const result = await db.query(
     `INSERT INTO projects (name, description, user_id, organization_id, project_data)
      VALUES ($1, $2, $3, $4, $5)
      RETURNING *`,
-    [name, description, user_id, req.user.organization_id, project_data]
+    [name, description, user_id, req.user.organization_id, project_data],
   );
-  
+
   res.json(result.rows[0]);
 });
 ```
@@ -188,16 +188,16 @@ router.post('/projects', authMiddleware, async (req, res) => {
 
 ```javascript
 // GET /api/projects
-router.get('/projects', authMiddleware, async (req, res) => {
+router.get("/projects", authMiddleware, async (req, res) => {
   const user_id = req.user.id;
-  
+
   const result = await db.query(
     `SELECT * FROM projects 
      WHERE user_id = $1 AND deleted_at IS NULL
      ORDER BY updated_at DESC`,
-    [user_id]
+    [user_id],
   );
-  
+
   res.json(result.rows);
 });
 ```
@@ -206,21 +206,21 @@ router.get('/projects', authMiddleware, async (req, res) => {
 
 ```javascript
 // In React components
-import useAppStore from '../utils/store';
+import useAppStore from "../utils/store";
 
 function MyProjects() {
-  const currentUser = useAppStore(state => state.currentUser);
+  const currentUser = useAppStore((state) => state.currentUser);
   const [projects, setProjects] = useState([]);
-  
+
   useEffect(() => {
     if (currentUser) {
       fetchUserProjects();
     }
   }, [currentUser]);
-  
+
   async function fetchUserProjects() {
-    const response = await fetch('/api/projects', {
-      headers: authService.getAuthHeaders()
+    const response = await fetch("/api/projects", {
+      headers: authService.getAuthHeaders(),
     });
     const data = await response.json();
     setProjects(data);
@@ -246,35 +246,37 @@ CREATE INDEX idx_projects_client ON projects(client_id);
 
 ```javascript
 // In store.js
-const useAppStore = create(persist((set) => ({
-  currentClient: null,
-  setCurrentClient: (client) => set({ currentClient: client }),
-  
-  // Filter projects by client
-  getFilteredProjects: (projects) => {
-    const client = useAppStore.getState().currentClient;
-    if (!client) return projects;
-    return projects.filter(p => p.client_id === client.id);
-  }
-})));
+const useAppStore = create(
+  persist((set) => ({
+    currentClient: null,
+    setCurrentClient: (client) => set({ currentClient: client }),
+
+    // Filter projects by client
+    getFilteredProjects: (projects) => {
+      const client = useAppStore.getState().currentClient;
+      if (!client) return projects;
+      return projects.filter((p) => p.client_id === client.id);
+    },
+  })),
+);
 ```
 
 ### API Implementation
 
 ```javascript
 // GET /api/projects with optional client filter
-router.get('/projects', authMiddleware, async (req, res) => {
+router.get("/projects", authMiddleware, async (req, res) => {
   const { client_id } = req.query;
   const user_id = req.user.id;
-  
+
   let query = `SELECT * FROM projects WHERE user_id = $1 AND deleted_at IS NULL`;
   let params = [user_id];
-  
+
   if (client_id) {
     query += ` AND client_id = $2`;
     params.push(client_id);
   }
-  
+
   const result = await db.query(query, params);
   res.json(result.rows);
 });
@@ -293,20 +295,20 @@ Location: `src/utils/gisValidation.js`
 ```javascript
 export function validateCoordinates(lat, lon) {
   const errors = [];
-  
+
   const latResult = validateLatitude(lat);
   if (!latResult.valid) errors.push(latResult.error);
-  
+
   const lonResult = validateLongitude(lon);
   if (!lonResult.valid) errors.push(lonResult.error);
-  
+
   if (errors.length > 0) {
     return { valid: false, errors };
   }
-  
+
   return {
     valid: true,
-    coordinates: [lonResult.value, latResult.value] // GeoJSON format
+    coordinates: [lonResult.value, latResult.value], // GeoJSON format
   };
 }
 ```
@@ -314,28 +316,28 @@ export function validateCoordinates(lat, lon) {
 #### Frontend Integration
 
 ```javascript
-import { validatePoleCoordinates } from '../utils/gisValidation';
+import { validatePoleCoordinates } from "../utils/gisValidation";
 
 function PoleForm({ pole, onChange }) {
   const [validation, setValidation] = useState({ valid: true });
-  
+
   function handleCoordinateChange(field, value) {
     const updated = { ...pole, [field]: value };
     onChange(updated);
-    
+
     // Validate on change
     const result = validatePoleCoordinates(updated);
     setValidation(result);
   }
-  
+
   return (
     <div>
       <input
         value={pole.latitude}
-        onChange={(e) => handleCoordinateChange('latitude', e.target.value)}
-        className={validation.valid ? '' : 'border-red-500'}
+        onChange={(e) => handleCoordinateChange("latitude", e.target.value)}
+        className={validation.valid ? "" : "border-red-500"}
       />
-      
+
       {validation.errors && (
         <div className="text-red-600 text-sm">
           {validation.errors.map((err, i) => (
@@ -343,7 +345,7 @@ function PoleForm({ pole, onChange }) {
           ))}
         </div>
       )}
-      
+
       {validation.warnings && (
         <div className="text-yellow-600 text-sm">
           {validation.warnings.map((warn, i) => (
@@ -360,21 +362,21 @@ function PoleForm({ pole, onChange }) {
 
 ```javascript
 // In project creation/update routes
-import { validatePoleBatch } from '../utils/gisValidation.js';
+import { validatePoleBatch } from "../utils/gisValidation.js";
 
-router.post('/projects', authMiddleware, async (req, res) => {
+router.post("/projects", authMiddleware, async (req, res) => {
   const { poles } = req.body.project_data;
-  
+
   // Validate all poles
   const validation = validatePoleBatch(poles);
-  
+
   if (!validation.valid) {
     return res.status(400).json({
-      error: 'Invalid pole coordinates',
-      details: validation.results.filter(r => !r.valid)
+      error: "Invalid pole coordinates",
+      details: validation.results.filter((r) => !r.valid),
     });
   }
-  
+
   // Proceed with project creation
   // ...
 });
@@ -401,27 +403,27 @@ src/utils/csvCustomization.js
 
 ```javascript
 // Extend existing CSV export
-import Papa from 'papaparse';
-import { formatDataForExport } from '../utils/csvCustomization';
+import Papa from "papaparse";
+import { formatDataForExport } from "../utils/csvCustomization";
 
 export function exportCustomCSV(poles, config) {
   const { framework, columns, useTickMarkFormat } = config;
-  
+
   // Format data according to selection
   const formattedData = formatDataForExport(poles, columns, {
     framework,
-    useTickMarkFormat
+    useTickMarkFormat,
   });
-  
+
   // Generate CSV
   const csv = Papa.unparse(formattedData);
-  
+
   // Download
-  const blob = new Blob([csv], { type: 'text/csv' });
+  const blob = new Blob([csv], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  const a = document.createElement("a");
   a.href = url;
-  a.download = `poles_export_${new Date().toISOString().split('T')[0]}.csv`;
+  a.download = `poles_export_${new Date().toISOString().split("T")[0]}.csv`;
   a.click();
 }
 ```
@@ -431,18 +433,16 @@ export function exportCustomCSV(poles, config) {
 ```javascript
 function ExportButton({ poles }) {
   const [showDialog, setShowDialog] = useState(false);
-  
+
   function handleExport(config) {
     exportCustomCSV(poles, config);
     setShowDialog(false);
   }
-  
+
   return (
     <>
-      <button onClick={() => setShowDialog(true)}>
-        Export CSV
-      </button>
-      
+      <button onClick={() => setShowDialog(true)}>Export CSV</button>
+
       {showDialog && (
         <CSVExportDialog
           poles={poles}
@@ -465,20 +465,20 @@ function ExportButton({ poles }) {
 
 ```javascript
 // src/utils/__tests__/gisValidation.test.js
-import { validateCoordinates } from '../gisValidation';
+import { validateCoordinates } from "../gisValidation";
 
-describe('validateCoordinates', () => {
-  it('accepts valid coordinates', () => {
+describe("validateCoordinates", () => {
+  it("accepts valid coordinates", () => {
     const result = validateCoordinates(45.5, -122.6);
     expect(result.valid).toBe(true);
     expect(result.coordinates).toEqual([-122.6, 45.5]);
   });
-  
-  it('rejects invalid latitude', () => {
+
+  it("rejects invalid latitude", () => {
     const result = validateCoordinates(91, -122.6);
     expect(result.valid).toBe(false);
     expect(result.errors).toContain(
-      'Latitude must be between -90 and 90 degrees'
+      "Latitude must be between -90 and 90 degrees",
     );
   });
 });
@@ -488,20 +488,20 @@ describe('validateCoordinates', () => {
 
 ```javascript
 // src/utils/__tests__/csvCustomization.test.js
-import { validateColumnSelection } from '../csvCustomization';
+import { validateColumnSelection } from "../csvCustomization";
 
-describe('validateColumnSelection', () => {
-  it('validates NESC framework requirements', () => {
-    const columns = ['poleId', 'poleHeight', 'voltage'];
-    const result = validateColumnSelection(columns, 'NESC');
+describe("validateColumnSelection", () => {
+  it("validates NESC framework requirements", () => {
+    const columns = ["poleId", "poleHeight", "voltage"];
+    const result = validateColumnSelection(columns, "NESC");
     expect(result.valid).toBe(true);
   });
-  
-  it('rejects missing required fields', () => {
-    const columns = ['poleId']; // Missing required fields
-    const result = validateColumnSelection(columns, 'NESC');
+
+  it("rejects missing required fields", () => {
+    const columns = ["poleId"]; // Missing required fields
+    const result = validateColumnSelection(columns, "NESC");
     expect(result.valid).toBe(false);
-    expect(result.missingRequired).toContain('voltage');
+    expect(result.missingRequired).toContain("voltage");
   });
 });
 ```
@@ -510,32 +510,32 @@ describe('validateColumnSelection', () => {
 
 ```javascript
 // server/tests/auth.integration.test.js
-describe('User Authentication', () => {
-  it('creates user-specific projects', async () => {
+describe("User Authentication", () => {
+  it("creates user-specific projects", async () => {
     // Login as user1
     const auth1 = await request(app)
-      .post('/auth/login')
-      .send({ email: 'user1@example.com', password: 'password' });
-    
+      .post("/auth/login")
+      .send({ email: "user1@example.com", password: "password" });
+
     // Create project as user1
     const project = await request(app)
-      .post('/api/projects')
-      .set('Authorization', `Bearer ${auth1.body.tokens.access_token}`)
-      .send({ name: 'User 1 Project' });
-    
+      .post("/api/projects")
+      .set("Authorization", `Bearer ${auth1.body.tokens.access_token}`)
+      .send({ name: "User 1 Project" });
+
     // Login as user2
     const auth2 = await request(app)
-      .post('/auth/login')
-      .send({ email: 'user2@example.com', password: 'password' });
-    
+      .post("/auth/login")
+      .send({ email: "user2@example.com", password: "password" });
+
     // Fetch projects as user2
     const projects = await request(app)
-      .get('/api/projects')
-      .set('Authorization', `Bearer ${auth2.body.tokens.access_token}`);
-    
+      .get("/api/projects")
+      .set("Authorization", `Bearer ${auth2.body.tokens.access_token}`);
+
     // User 2 should NOT see user 1's project
     expect(projects.body).not.toContainEqual(
-      expect.objectContaining({ id: project.body.id })
+      expect.objectContaining({ id: project.body.id }),
     );
   });
 });
@@ -545,35 +545,37 @@ describe('User Authentication', () => {
 
 ```javascript
 // tests/e2e/csv-export.test.js
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test('CSV export with custom columns', async ({ page }) => {
-  await page.goto('/');
-  await page.fill('[name="email"]', 'test@example.com');
-  await page.fill('[name="password"]', 'password');
+test("CSV export with custom columns", async ({ page }) => {
+  await page.goto("/");
+  await page.fill('[name="email"]', "test@example.com");
+  await page.fill('[name="password"]', "password");
   await page.click('button[type="submit"]');
-  
+
   // Open project
-  await page.click('text=My Project');
-  
+  await page.click("text=My Project");
+
   // Open export dialog
-  await page.click('text=Export');
-  await page.click('text=CSV');
-  
+  await page.click("text=Export");
+  await page.click("text=CSV");
+
   // Select framework
-  await page.selectOption('select[name="framework"]', 'NESC');
-  
+  await page.selectOption('select[name="framework"]', "NESC");
+
   // Select columns
   await page.check('input[value="poleId"]');
   await page.check('input[value="poleHeight"]');
-  
+
   // Export
   const [download] = await Promise.all([
-    page.waitForEvent('download'),
-    page.click('button:has-text("Export CSV")')
+    page.waitForEvent("download"),
+    page.click('button:has-text("Export CSV")'),
   ]);
-  
-  expect(download.suggestedFilename()).toMatch(/poles_export_\d{4}-\d{2}-\d{2}\.csv/);
+
+  expect(download.suggestedFilename()).toMatch(
+    /poles_export_\d{4}-\d{2}-\d{2}\.csv/,
+  );
 });
 ```
 
@@ -583,33 +585,33 @@ test('CSV export with custom columns', async ({ page }) => {
 
 ### Authentication
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/auth/login` | No | Email/password login |
-| POST | `/auth/register` | No | User registration |
-| POST | `/auth/refresh` | No | Refresh access token |
-| POST | `/auth/logout` | Yes | Logout and invalidate token |
-| GET | `/auth/me` | Yes | Get current user info |
+| Method | Endpoint         | Auth | Description                 |
+| ------ | ---------------- | ---- | --------------------------- |
+| POST   | `/auth/login`    | No   | Email/password login        |
+| POST   | `/auth/register` | No   | User registration           |
+| POST   | `/auth/refresh`  | No   | Refresh access token        |
+| POST   | `/auth/logout`   | Yes  | Logout and invalidate token |
+| GET    | `/auth/me`       | Yes  | Get current user info       |
 
 ### Projects
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/projects` | Yes | List user's projects |
-| POST | `/api/projects` | Yes | Create new project |
-| GET | `/api/projects/:id` | Yes | Get project details |
-| PUT | `/api/projects/:id` | Yes | Update project |
-| DELETE | `/api/projects/:id` | Yes | Delete project |
-| POST | `/api/projects/:id/share` | Yes | Share project with users |
+| Method | Endpoint                  | Auth | Description              |
+| ------ | ------------------------- | ---- | ------------------------ |
+| GET    | `/api/projects`           | Yes  | List user's projects     |
+| POST   | `/api/projects`           | Yes  | Create new project       |
+| GET    | `/api/projects/:id`       | Yes  | Get project details      |
+| PUT    | `/api/projects/:id`       | Yes  | Update project           |
+| DELETE | `/api/projects/:id`       | Yes  | Delete project           |
+| POST   | `/api/projects/:id/share` | Yes  | Share project with users |
 
 ### Export
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/export/csv` | Yes | Export CSV with custom columns |
-| POST | `/api/export/geojson` | Yes | Export GeoJSON |
-| POST | `/api/export/kml` | Yes | Export KML |
-| POST | `/api/export/shapefile` | Yes | Export Shapefile |
+| Method | Endpoint                | Auth | Description                    |
+| ------ | ----------------------- | ---- | ------------------------------ |
+| POST   | `/api/export/csv`       | Yes  | Export CSV with custom columns |
+| POST   | `/api/export/geojson`   | Yes  | Export GeoJSON                 |
+| POST   | `/api/export/kml`       | Yes  | Export KML                     |
+| POST   | `/api/export/shapefile` | Yes  | Export Shapefile               |
 
 ---
 
@@ -663,21 +665,21 @@ CREATE INDEX idx_audit_logs_created ON audit_logs(created_at);
 const useProjects = () => {
   const [projects, setProjects] = useState([]);
   const [lastFetch, setLastFetch] = useState(null);
-  
+
   useEffect(() => {
     // Only fetch if cache is stale (> 5 minutes)
     const now = Date.now();
-    if (!lastFetch || (now - lastFetch) > 300000) {
+    if (!lastFetch || now - lastFetch > 300000) {
       fetchProjects();
     }
   }, []);
-  
+
   async function fetchProjects() {
     const data = await api.getProjects();
     setProjects(data);
     setLastFetch(Date.now());
   }
-  
+
   return { projects, refetch: fetchProjects };
 };
 ```

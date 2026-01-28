@@ -7,11 +7,13 @@ This guide helps you quickly test all Phase 2 enhancements.
 ## Prerequisites
 
 1. **Start the development server:**
+
    ```bash
    npm run dev:netlify
    ```
 
 2. **Open the app:**
+
    ```
    http://localhost:3000
    ```
@@ -26,23 +28,27 @@ This guide helps you quickly test all Phase 2 enhancements.
 ## Test 1: Debounced Validation (2 minutes)
 
 ### Steps:
+
 1. Navigate to **Job Setup** section
 2. Find the **GPS Coordinates** inputs
 3. Type rapidly in the latitude field: `37.7749`
 4. Watch the validation feedback
 
 ### ✅ Expected Results:
+
 - While typing: No validation messages (or "🔄 Validating...")
 - 300ms after you stop: Validation completes
 - Shows: "✅ Valid Coordinates" with green background
 - Smooth, no lag during typing
 
 ### ❌ Test Invalid Coordinates:
+
 - Type `91` in latitude
 - Should show: "❌ Invalid Coordinates" with error message
 - Error: "Latitude must be between -90 and 90 degrees"
 
 ### ⚠️ Test Suspicious Coordinates:
+
 - Type `0` in latitude, `0` in longitude
 - Should show: "⚠️ Warning"
 - Warning: "Coordinates appear to be [0, 0] (Null Island)"
@@ -52,6 +58,7 @@ This guide helps you quickly test all Phase 2 enhancements.
 ## Test 2: Validation Statistics Panel (3 minutes)
 
 ### Setup:
+
 1. Import multiple poles with these coordinates:
 
 ```csv
@@ -64,10 +71,12 @@ P5,0,0,40
 ```
 
 ### Steps:
+
 1. Look for the **Validation Summary** panel
 2. Check the statistics cards
 
 ### ✅ Expected Results:
+
 ```
 Validation Summary
 5 poles with coordinates
@@ -78,6 +87,7 @@ Validation Summary
 ```
 
 ### Interactive Testing:
+
 - Click **"View 2 Errors"** - Should expand to show P3 and P4 details
 - Click **"View 1 Warning"** - Should show P5 (Null Island)
 - Add valid pole - Statistics update automatically
@@ -94,6 +104,7 @@ Validation Summary
 3. Verify 8 templates appear:
 
 **Built-in (5):**
+
 - ✅ Basic Export
 - ✅ NESC Complete
 - ✅ CSA Standard
@@ -101,6 +112,7 @@ Validation Summary
 - ✅ Field Collection
 
 **User Created (3 - from test script):**
+
 - ✅ Utility Standard
 - ✅ Field Survey Quick
 - ✅ Compliance Review
@@ -132,20 +144,24 @@ Validation Summary
 ### Part D: Template Management
 
 **Test in Browser Console:**
+
 ```javascript
-import { getAllTemplates, deleteTemplate } from './src/utils/exportTemplates.js';
+import {
+  getAllTemplates,
+  deleteTemplate,
+} from "./src/utils/exportTemplates.js";
 
 // List all templates
 const templates = getAllTemplates();
-console.log('Total templates:', templates.length);
+console.log("Total templates:", templates.length);
 
 // Find user template
-const userTemplate = templates.find(t => t.name === 'My Custom Template');
-console.log('User template ID:', userTemplate.id);
+const userTemplate = templates.find((t) => t.name === "My Custom Template");
+console.log("User template ID:", userTemplate.id);
 
 // Delete it
 const result = deleteTemplate(userTemplate.id);
-console.log('Deleted:', result.success);
+console.log("Deleted:", result.success);
 ```
 
 ---
@@ -155,6 +171,7 @@ console.log('Deleted:', result.success);
 ### Setup: Load Sample Data
 
 **Option A: Using curl**
+
 ```bash
 # First, get your auth token
 TOKEN="your-jwt-token-here"
@@ -164,6 +181,7 @@ TOKEN="your-jwt-token-here"
 ```
 
 **Option B: Using Postman/Thunder Client**
+
 1. Import the collection from `docs/API-EXAMPLES.http`
 2. Set your Bearer token
 3. Run the test requests
@@ -171,12 +189,14 @@ TOKEN="your-jwt-token-here"
 ### Test Cases:
 
 #### 1. Basic Pagination
+
 ```bash
 curl -H "Authorization: Bearer $TOKEN" \
   "http://localhost:3000/api/projects?page=1&limit=10"
 ```
 
 **Expected Response:**
+
 ```json
 {
   "success": true,
@@ -193,16 +213,19 @@ curl -H "Authorization: Bearer $TOKEN" \
 ```
 
 #### 2. Search
+
 ```bash
 curl -H "Authorization: Bearer $TOKEN" \
   "http://localhost:3000/api/projects?search=main"
 ```
 
 **Expected:**
+
 - Only projects with "main" in name
 - Case-insensitive matching
 
 #### 3. Sorting
+
 ```bash
 # Oldest first
 curl -H "Authorization: Bearer $TOKEN" \
@@ -214,6 +237,7 @@ curl -H "Authorization: Bearer $TOKEN" \
 ```
 
 #### 4. Combined Filters
+
 ```bash
 curl -H "Authorization: Bearer $TOKEN" \
   "http://localhost:3000/api/projects?search=street&client_id=client_5&page=1&limit=5"
@@ -222,12 +246,14 @@ curl -H "Authorization: Bearer $TOKEN" \
 ### Performance Testing:
 
 **Measure Response Times:**
+
 ```bash
 time curl -H "Authorization: Bearer $TOKEN" \
   "http://localhost:3000/api/projects?page=1&limit=50" > /dev/null
 ```
 
 **Expected:**
+
 - ✅ < 100ms for paginated queries
 - ✅ < 200ms for complex searches
 - ✅ Consistent response times across pages
@@ -236,19 +262,23 @@ time curl -H "Authorization: Bearer $TOKEN" \
 
 ```javascript
 // In browser console or Node
-fetch('/api/projects?page=1&limit=25', {
-  headers: { 'Authorization': 'Bearer YOUR_TOKEN' }
+fetch("/api/projects?page=1&limit=25", {
+  headers: { Authorization: "Bearer YOUR_TOKEN" },
 })
-.then(r => r.json())
-.then(data => {
-  const p = data.pagination;
-  console.log(`Total items: ${p.total}`);
-  console.log(`Items per page: ${p.limit}`);
-  console.log(`Total pages: ${p.totalPages}`);
-  console.log(`Math check: ${Math.ceil(p.total / p.limit)} === ${p.totalPages}`);
-  console.log(`Has next: ${p.hasNextPage} (should be ${p.page < p.totalPages})`);
-  console.log(`Has prev: ${p.hasPrevPage} (should be ${p.page > 1})`);
-});
+  .then((r) => r.json())
+  .then((data) => {
+    const p = data.pagination;
+    console.log(`Total items: ${p.total}`);
+    console.log(`Items per page: ${p.limit}`);
+    console.log(`Total pages: ${p.totalPages}`);
+    console.log(
+      `Math check: ${Math.ceil(p.total / p.limit)} === ${p.totalPages}`,
+    );
+    console.log(
+      `Has next: ${p.hasNextPage} (should be ${p.page < p.totalPages})`,
+    );
+    console.log(`Has prev: ${p.hasPrevPage} (should be ${p.page > 1})`);
+  });
 ```
 
 ---
@@ -260,6 +290,7 @@ Test the complete workflow:
 ### Workflow: Import → Validate → Template Export
 
 1. **Import poles** with mixed coordinates:
+
    ```csv
    id,latitude,longitude,height
    P1,37.7749,-122.4194,40
@@ -287,11 +318,13 @@ Test the complete workflow:
 ## Performance Benchmarks
 
 ### Before Phase 2 Enhancements:
+
 - Validation triggers: ~100 times while typing "37.7749" (9 characters)
 - API response (1000 projects): ~2-5 seconds
 - CSV export setup: 30-45 seconds (manual column selection)
 
 ### After Phase 2 Enhancements:
+
 - ✅ Validation triggers: 1 time (after 300ms pause) - **90% reduction**
 - ✅ API response (50 projects/page): <100ms - **95% faster**
 - ✅ CSV export setup: <1 second (template) - **97% faster**
@@ -301,22 +334,26 @@ Test the complete workflow:
 ## Troubleshooting
 
 ### Debounced Validation Not Working?
+
 - Check browser console for errors
 - Verify `useDebounce` hook is imported
 - Ensure coordinates are in store (`poleLatitude`, `poleLongitude`)
 
 ### Templates Not Appearing?
+
 - Check localStorage: `localStorage.getItem('poleplan_export_templates')`
 - Run test script: `node scripts/test/manual-testing-guide.mjs`
 - Check browser console for errors
 
 ### Pagination Not Working?
+
 - Verify API endpoint is running
 - Check authentication token is valid
 - Look for CORS errors in browser console
 - Verify database has projects
 
 ### Statistics Not Updating?
+
 - Check if poles array is being passed correctly
 - Verify `ValidationStatisticsPanel` component is rendered
 - Look for React rendering errors in console
@@ -326,18 +363,21 @@ Test the complete workflow:
 ## Success Criteria
 
 ### ✅ Debounced Validation:
+
 - [ ] No validation during rapid typing
 - [ ] Validation completes 300ms after pause
 - [ ] Shows loading indicator while debouncing
 - [ ] No lag or performance issues
 
 ### ✅ Validation Statistics:
+
 - [ ] Accurate counts (valid/warnings/errors)
 - [ ] Color-coded cards (green/yellow/red)
 - [ ] Expandable details work
 - [ ] Updates automatically when data changes
 
 ### ✅ Export Templates:
+
 - [ ] 5 built-in templates visible
 - [ ] Can save user templates
 - [ ] Templates load settings correctly
@@ -345,6 +385,7 @@ Test the complete workflow:
 - [ ] Can delete user templates
 
 ### ✅ API Pagination:
+
 - [ ] Returns correct page of results
 - [ ] Pagination metadata is accurate
 - [ ] Search filters correctly
@@ -364,4 +405,4 @@ Test the complete workflow:
 
 ---
 
-*Quick Start Guide - Last Updated: October 2024*
+_Quick Start Guide - Last Updated: October 2024_

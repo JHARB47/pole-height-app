@@ -139,9 +139,9 @@ describe("Performance Benchmarks", () => {
         globalThis.gc();
       }
 
-      const initialMemory =
-        // eslint-disable-next-line no-undef
-        typeof process !== "undefined" ? process.memoryUsage().heapUsed : 0;
+      const processRef =
+        typeof globalThis.process !== "undefined" ? globalThis.process : null;
+      const initialMemory = processRef ? processRef.memoryUsage().heapUsed : 0;
 
       // Import large dataset
       const poles = generateTestPoles(1000);
@@ -152,12 +152,9 @@ describe("Performance Benchmarks", () => {
         globalThis.gc();
       }
 
-      const finalMemory =
-        // eslint-disable-next-line no-undef
-        typeof process !== "undefined"
-          ? // eslint-disable-next-line no-undef
-            process.memoryUsage().heapUsed
-          : initialMemory;
+      const finalMemory = processRef
+        ? processRef.memoryUsage().heapUsed
+        : initialMemory;
       const memoryIncrease = (finalMemory - initialMemory) / 1024 / 1024;
 
       console.log(`  📊 Memory increase: ${memoryIncrease.toFixed(2)}MB`);

@@ -21,7 +21,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: ".nvmrc"
           cache: npm
 
       - name: Install dependencies
@@ -33,7 +33,7 @@ jobs:
       - name: Verify build
         run: npm run verify
         env:
-          SKIP_INSTALL: 'true'
+          SKIP_INSTALL: "true"
 
       - name: Build PWA bundle for Lighthouse
         if: success()
@@ -68,7 +68,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: ".nvmrc"
           cache: npm
 
       - name: Install dependencies

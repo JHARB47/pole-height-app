@@ -1,4 +1,5 @@
 <!-- markdownlint-disable MD026 MD032 MD031 MD029 -->
+
 # Database Connection Guide - Neon + Netlify
 
 ## 🎯 Quick Answer
@@ -10,12 +11,14 @@
 ## ✅ What's Already Done
 
 ### Netlify Side (Production)
+
 - ✅ Neon database provisioned
 - ✅ `NETLIFY_DATABASE_URL` configured (pooled connection)
 - ✅ `NETLIFY_DATABASE_URL_UNPOOLED` configured (direct connection)
 - ✅ Environment variables set for all contexts (Production, Deploy Previews, Branch deploys)
 
 ### Code Side
+
 - ✅ Database pool configuration in `server/db/pool.js`
 - ✅ Connection handling in `server/db/client.js`
 - ✅ Environment loader in `server/config/env.js`
@@ -37,6 +40,7 @@ DATABASE_URL=postgresql://username:password@ep-xxxxx.region.neon.tech/neondb?ssl
 ```
 
 **How to get your Neon URL:**
+
 1. Go to [Netlify Dashboard](https://app.netlify.com)
 2. Select your site (pole-height-app)
 3. Go to **Site settings** → **Environment variables**
@@ -61,18 +65,22 @@ This maps Neon's `NETLIFY_DATABASE_URL` → your app's `DATABASE_URL`.
 Neon provides **two connection strings**:
 
 #### Option A: Pooled Connection (Recommended for Serverless)
+
 ```
 NETLIFY_DATABASE_URL
 ```
+
 - ✅ Use this for Netlify Functions
 - ✅ Handles connection pooling automatically
 - ✅ Better for serverless environments
 - ✅ Lower latency
 
 #### Option B: Unpooled Connection
+
 ```
 NETLIFY_DATABASE_URL_UNPOOLED
 ```
+
 - Use for migrations
 - Use for long-running connections
 - Use for transaction-heavy operations
@@ -88,18 +96,21 @@ NETLIFY_DATABASE_URL_UNPOOLED
 1. **Update `.env` file** with your Neon URL (see step 1 above)
 
 2. **Test connection**:
+
 ```bash
 cd server
 node -e "import('./db/pool.js').then(m => m.getPool().query('SELECT NOW()')).then(r => console.log('✅ Connected:', r.rows[0]))"
 ```
 
 3. **Run migrations** (if database is empty):
+
 ```bash
 cd server
 npm run db:migrate
 ```
 
 4. **Start server**:
+
 ```bash
 npm start
 # or from root:
@@ -117,6 +128,7 @@ git push origin main
 ```
 
 Netlify will:
+
 1. Read `NETLIFY_DATABASE_URL` from environment
 2. Map it to `DATABASE_URL` via `netlify.toml`
 3. Your app reads `process.env.DATABASE_URL`
@@ -176,16 +188,19 @@ Netlify will:
 ### Code Walkthrough
 
 1. **Environment Loading** (`server/config/env.js`):
+
 ```javascript
 databaseUrl: process.env.DATABASE_URL || ...
 ```
 
 2. **Pool Creation** (`server/db/pool.js`):
+
 ```javascript
 pool = new Pool({ connectionString: ENV.databaseUrl });
 ```
 
 3. **Query Execution** (`server/db/client.js`):
+
 ```javascript
 const pool = getPool();
 return pool.query(text, params);
@@ -196,16 +211,19 @@ return pool.query(text, params);
 ## 🛠️ Configuration Files Updated
 
 ### ✅ `netlify.toml`
+
 - Fixed git merge conflicts
 - Added `DATABASE_URL = "${NETLIFY_DATABASE_URL}"` to all contexts
 - Production, Deploy Previews, Branch deploys all configured
 
 ### ✅ `server/.env` (Created)
+
 - Template for local development
 - You need to add your actual Neon URL
 - Includes JWT secrets, CORS, logging config
 
 ### ✅ Existing Files (No Changes Needed)
+
 - `server/db/pool.js` - Already reads `DATABASE_URL`
 - `server/config/env.js` - Already loads from environment
 - `server/db/client.js` - Already uses pool
@@ -215,6 +233,7 @@ return pool.query(text, params);
 ## 🔐 Security Best Practices
 
 ### ✅ Do's
+
 - ✅ Keep database URL in environment variables
 - ✅ Use connection pooling for serverless
 - ✅ Enable SSL/TLS (`?sslmode=require` in URL)
@@ -222,6 +241,7 @@ return pool.query(text, params);
 - ✅ Rotate credentials periodically
 
 ### ❌ Don'ts
+
 - ❌ Don't commit `.env` file to git (it's in `.gitignore`)
 - ❌ Don't hardcode database credentials
 - ❌ Don't share production URLs in documentation
@@ -233,20 +253,25 @@ return pool.query(text, params);
 ## 🧪 Testing Checklist
 
 - [ ] **Local Connection Test**
+
   ```bash
   cd server && node -e "import('./db/pool.js').then(m => m.getPool().query('SELECT NOW()')).then(r => console.log('✅', r.rows[0]))"
   ```
 
 - [ ] **Netlify Function Test** (after deploy)
+
   ```bash
   curl https://your-site.netlify.app/.netlify/functions/health
   ```
+
   Should return database connection status.
 
 - [ ] **API Test** (after deploy)
+
   ```bash
   curl https://your-site.netlify.app/api/projects
   ```
+
   Should return projects (or 401 if auth required).
 
 - [ ] **Migration Test** (if needed)
@@ -260,28 +285,37 @@ return pool.query(text, params);
 ## 🐛 Troubleshooting
 
 ### Problem: "DATABASE_URL is required"
+
 **Solution**: Update `server/.env` with your Neon URL from Netlify dashboard.
 
 ### Problem: Connection timeout
-**Solution**: 
+
+**Solution**:
+
 1. Check SSL mode: Add `?sslmode=require` to URL
 2. Check firewall/network
 3. Verify Neon database is running
 
 ### Problem: "relation does not exist"
+
 **Solution**: Run migrations:
+
 ```bash
 cd server && npm run db:migrate
 ```
 
 ### Problem: Too many connections
-**Solution**: 
+
+**Solution**:
+
 1. Use pooled connection (`NETLIFY_DATABASE_URL`)
 2. Check pool configuration in `pool.js`
 3. Reduce max connections if needed
 
 ### Problem: Unauthorized
-**Solution**: 
+
+**Solution**:
+
 1. Check username/password in connection string
 2. Verify database exists
 3. Check Neon dashboard for access issues
@@ -307,6 +341,6 @@ cd server && npm run db:migrate
 
 ---
 
-*Last Updated: October 1, 2025*
-*Database: Neon Postgres (Serverless)*
-*Deployment: Netlify*
+_Last Updated: October 1, 2025_
+_Database: Neon Postgres (Serverless)_
+_Deployment: Netlify_

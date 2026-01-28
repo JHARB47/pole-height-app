@@ -28,10 +28,10 @@ CI will run `npm run -s test -- --run --coverage` and publish the lcov HTML as a
 
 ## 🔧 Version Compatibility Matrix
 
-| Vite Version | Status | Build Time | Bundle Size | Notes |
-|--------------|--------|------------|-------------|-------|
-| 5.4.19 | ✅ Stable | ~2.3s | ~1.2MB | **Recommended production version** |
-| 7.1.2 | ❌ Incompatible | Build fails | N/A | External module resolution conflicts |
+| Vite Version | Status          | Build Time  | Bundle Size | Notes                                |
+| ------------ | --------------- | ----------- | ----------- | ------------------------------------ |
+| 5.4.19       | ✅ Stable       | ~2.3s       | ~1.2MB      | **Recommended production version**   |
+| 7.1.2        | ❌ Incompatible | Build fails | N/A         | External module resolution conflicts |
 
 ## 📊 Build Verification Results
 
@@ -39,7 +39,7 @@ CI will run `npm run -s test -- --run --coverage` and publish the lcov HTML as a
 
 ```text
 ✓ 57 tests passing consistently
-✓ 15 test files executed  
+✓ 15 test files executed
 ✓ Coverage: calculations, exports, imports, permits, geodata
 ✓ Optional dependency graceful degradation tested
 ✓ Execution time: ~800ms average
@@ -59,21 +59,21 @@ precache entries                  22
 ### Optional Dependencies Status
 
 - **tokml**: ✅ Dynamic import, graceful fallback
-- **shpjs**: ✅ Dynamic import, graceful fallback  
+- **shpjs**: ✅ Dynamic import, graceful fallback
 - **@mapbox/shp-write**: ✅ Dynamic import, graceful fallback
 
 ## ⚙️ Current Configuration
 
 ### Vite Configuration (vite.config.js)
 
-```javascript
+````javascript
 // External dependencies for optional GIS libraries
 const optionalDeps = ['tokml', '@mapbox/shp-write', 'shpjs'];
 
 export default defineConfig({
   // External function for proper dependency handling
   external: (id) => optionalDeps.includes(id),
-  
+
   // Function-based manual chunks for Vite compatibility
   manualChunks: (id) => {
     if (id.includes('node_modules')) return 'vendor';
@@ -98,7 +98,7 @@ export default defineConfig({
 ```text
 Error: Rollup failed to resolve import "tokml" from geodata.js
 Error: "shpjs" cannot be included in manualChunks because it is resolved as external
-```
+````
 
 **Root Cause**: Vite 7.x has stricter external module detection that conflicts with current configuration
 
@@ -112,11 +112,11 @@ Error: "shpjs" cannot be included in manualChunks because it is resolved as exte
 
 ```javascript
 try {
-  const { tokml } = await import('tokml');
+  const { tokml } = await import("tokml");
   return tokml(geojsonData);
 } catch (error) {
-  console.warn('KML export unavailable:', error.message);
-  throw new Error('KML export requires additional dependencies');
+  console.warn("KML export unavailable:", error.message);
+  throw new Error("KML export requires additional dependencies");
 }
 ```
 
@@ -141,7 +141,7 @@ try {
 ### Build Performance
 
 - **Clean Build**: ~2.3 seconds
-- **Incremental Build**: ~1.5 seconds  
+- **Incremental Build**: ~1.5 seconds
 - **Test Execution**: ~800ms
 - **Total CI Pipeline**: ~3-4 minutes
 
@@ -172,12 +172,12 @@ try {
 ### Local Development Commands
 
 ```bash
-# Full verification pipeline  
+# Full verification pipeline
 npm ci && npm run lint && npm run lint:css && npm test && npm run build
 
 # Individual checks
 npm test          # Run test suite (76 tests)
-npm run lint      # ESLint checks  
+npm run lint      # ESLint checks
 npm run lint:css  # Stylelint checks
 npm run build     # Production build
 npm run dev       # Development server
@@ -204,14 +204,14 @@ npm run dev       # Development server
 - Evaluate tree-shaking opportunities
 - Consider lazy loading for large utilities
 - Monitor bundle size growth over time
-Introduced `pdfAsync.js` dynamic loader boundary for pdf-lib (defer large PDF code until first use)
-Hover prefetch added on Permit Pack button to warm `pdf-lib` chunk.
-Numeric coercion added to CSV/GeoJSON parsing to handle thousands separators, locale decimal commas, units, degrees, and feet–inches.
+  Introduced `pdfAsync.js` dynamic loader boundary for pdf-lib (defer large PDF code until first use)
+  Hover prefetch added on Permit Pack button to warm `pdf-lib` chunk.
+  Numeric coercion added to CSV/GeoJSON parsing to handle thousands separators, locale decimal commas, units, degrees, and feet–inches.
 
 ### PWA Enhancements
 
 - Implement background sync for offline data
-- Add push notifications for permit updates  
+- Add push notifications for permit updates
 - Optimize caching strategies for better performance
 
 ## 🛠️ Troubleshooting Guide
@@ -249,7 +249,7 @@ Numeric coercion added to CSV/GeoJSON parsing to handle thousands separators, lo
 ### Monitoring Points
 
 - Bundle size growth over time
-- Test execution time trends  
+- Test execution time trends
 - Build failure patterns
 - Dependency security vulnerabilities
 

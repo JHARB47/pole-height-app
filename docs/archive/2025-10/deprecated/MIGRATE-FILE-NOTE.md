@@ -7,6 +7,7 @@ The file `scripts/db/migrate.mjs` had severe corruption issues (duplicate header
 ## Working Alternative
 
 ✅ **Use `scripts/db/run-migrations.mjs` instead** - This file works perfectly and handles:
+
 - Migration table creation
 - Applying pending migrations
 - Transaction support with rollback
@@ -24,6 +25,7 @@ node scripts/db/run-migrations.mjs
 ## Why migrate.mjs exists
 
 The original `migrate.mjs` was meant to use `node-pg-migrate` library for up/down/status commands, but:
+
 1. The current project only needs "up" migrations
 2. `run-migrations.mjs` handles this perfectly
 3. `node-pg-migrate` is installed but not actively used

@@ -11,15 +11,15 @@ Both connection types are now configured in your application!
 
 ## 📊 Connection Comparison
 
-| Feature | Pooled (Default) | Unpooled (Direct) |
-| ------- | ---------------- | ----------------- |
-| **Variable** | `DATABASE_URL` | `DATABASE_URL_UNPOOLED` |
-| **Endpoint** | `ep-noisy-sea-aervqc49-pooler` | `ep-noisy-sea-aervqc49` |
-| **Connection Pooling** | ✅ Yes (managed by Neon) | ❌ No (direct connection) |
-| **Best For** | API requests, Serverless | Migrations, Long transactions |
-| **Latency** | Lower (pooled) | Slightly higher |
-| **Connection Limit** | Higher (pooling) | Lower (direct) |
-| **Use Case** | Production API | Database operations |
+| Feature                | Pooled (Default)               | Unpooled (Direct)             |
+| ---------------------- | ------------------------------ | ----------------------------- |
+| **Variable**           | `DATABASE_URL`                 | `DATABASE_URL_UNPOOLED`       |
+| **Endpoint**           | `ep-noisy-sea-aervqc49-pooler` | `ep-noisy-sea-aervqc49`       |
+| **Connection Pooling** | ✅ Yes (managed by Neon)       | ❌ No (direct connection)     |
+| **Best For**           | API requests, Serverless       | Migrations, Long transactions |
+| **Latency**            | Lower (pooled)                 | Slightly higher               |
+| **Connection Limit**   | Higher (pooling)               | Lower (direct)                |
+| **Use Case**           | Production API                 | Database operations           |
 
 ---
 
@@ -43,10 +43,10 @@ DATABASE_URL=postgresql://<user>:<password>@<pooler-host>/<database>?sslmode=req
 
 ```javascript
 // server/db/pool.js automatically uses DATABASE_URL
-import { getPool } from './db/pool.js';
+import { getPool } from "./db/pool.js";
 
 const pool = getPool();
-const result = await pool.query('SELECT * FROM projects');
+const result = await pool.query("SELECT * FROM projects");
 ```
 
 ---
@@ -71,14 +71,14 @@ DATABASE_URL_UNPOOLED=postgresql://<user>:<password>@<direct-host>/<database>?ss
 
 ```javascript
 // For migrations
-import { Pool } from 'pg';
+import { Pool } from "pg";
 
-const pool = new Pool({ 
-  connectionString: process.env.DATABASE_URL_UNPOOLED 
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL_UNPOOLED,
 });
 
 // Run migration
-await pool.query('ALTER TABLE projects ADD COLUMN ...');
+await pool.query("ALTER TABLE projects ADD COLUMN ...");
 ```
 
 ---
@@ -178,7 +178,7 @@ npm run db:schema
 
    ```javascript
    // In API routes
-   import { getPool } from './db/pool.js';
+   import { getPool } from "./db/pool.js";
    const pool = getPool(); // Uses DATABASE_URL (pooled)
    ```
 
@@ -186,8 +186,8 @@ npm run db:schema
 
    ```javascript
    // In migration scripts
-   const pool = new Pool({ 
-     connectionString: process.env.DATABASE_URL_UNPOOLED 
+   const pool = new Pool({
+     connectionString: process.env.DATABASE_URL_UNPOOLED,
    });
    ```
 
@@ -202,9 +202,9 @@ npm run db:schema
 
    ```javascript
    try {
-     await pool.query('...');
+     await pool.query("...");
    } catch (error) {
-     console.error('Query failed:', error);
+     console.error("Query failed:", error);
    }
    ```
 
@@ -326,8 +326,8 @@ DATABASE_URL_UNPOOLED = "${NETLIFY_DATABASE_URL_UNPOOLED}"
 ### Your App Reads
 
 ```javascript
-process.env.DATABASE_URL          // Pooled (API)
-process.env.DATABASE_URL_UNPOOLED // Unpooled (migrations)
+process.env.DATABASE_URL; // Pooled (API)
+process.env.DATABASE_URL_UNPOOLED; // Unpooled (migrations)
 ```
 
 **Result**: ✅ Both connections available automatically!
@@ -412,6 +412,6 @@ You now have **two connection types** configured:
 
 ---
 
-*Last Updated: October 2, 2025*  
-*Connections Verified: Pooled ✅ | Unpooled ✅*  
-*Ready for: Development ✅ | Migrations ✅ | Production ✅*
+_Last Updated: October 2, 2025_  
+_Connections Verified: Pooled ✅ | Unpooled ✅_  
+_Ready for: Development ✅ | Migrations ✅ | Production ✅_

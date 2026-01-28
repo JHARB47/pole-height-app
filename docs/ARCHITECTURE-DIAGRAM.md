@@ -276,7 +276,7 @@ WorkflowApp
   currentUser: { id, email, role },
   currentOrganization: { id, name },
   isAuthenticated: boolean,
-  
+
   // Feature Flags
   featureFlags: {
     templateSharing: boolean,
@@ -284,7 +284,7 @@ WorkflowApp
     batchOperations: boolean, // ⭐ Enable batch ops
     ...
   },
-  
+
   // Jobs
   jobs: [
     {
@@ -298,7 +298,7 @@ WorkflowApp
     }
   ],
   currentJobId: string,
-  
+
   // Poles - Multiple Sources ⭐ NEW ARCHITECTURE
   collectedPoles: [  // Field collection data
     {
@@ -315,7 +315,7 @@ WorkflowApp
       ...
     }
   ],
-  
+
   importedPoles: [  // CSV/GIS imported data
     {
       id: string,
@@ -328,7 +328,7 @@ WorkflowApp
       ...
     }
   ],
-  
+
   // Spans
   importedSpans: [
     {
@@ -341,7 +341,7 @@ WorkflowApp
       ...
     }
   ],
-  
+
   // Enhanced Actions ⭐ NEW
   batchAddPoles: (poles, source, options) => result,
   batchUpdatePoles: (updates, options) => result,
@@ -350,7 +350,7 @@ WorkflowApp
   getAllPoles: () => poles[],
   filterPoles: (criteria) => poles[],
   getDataStats: () => stats,
-  
+
   // Existing Actions (still work)
   addCollectedPole: (pole) => void,
   updateCollectedPole: (index, patch) => void,
@@ -470,30 +470,35 @@ Current State                 Transition                  Target State
 ## Key Design Decisions
 
 ### 1. **Separation of Concerns**
+
 - **Data Operations**: Pure functions, no side effects
 - **Field Workflow**: Orchestration with side effects (GPS, localStorage)
 - **Store Actions**: State mutations only
 - **UI Components**: Presentation and user interaction
 
 ### 2. **Offline-First Architecture**
+
 - All field operations work offline
 - Automatic queueing when disconnected
 - Auto-sync when connection restored
 - Persistent queue in localStorage
 
 ### 3. **Data Provenance**
+
 - Every record tracks its source
 - Timestamps for created/updated/synced
 - Conflict resolution based on source priority
 - Audit trail for data changes
 
 ### 4. **Performance Optimization**
+
 - Batch operations reduce re-renders from O(n) to O(1)
 - Validation happens once, results reused
 - Smart merging avoids duplicate processing
 - Performance monitoring built-in
 
 ### 5. **Backward Compatibility**
+
 - All existing code continues to work
 - Opt-in to new features
 - Easy rollback if needed

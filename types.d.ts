@@ -1,18 +1,18 @@
 // Type declarations for external modules
 
-declare module 'jszip' {
+declare module "jszip" {
   export default class JSZip {
     folder(name: string): JSZip | null;
     file(name: string, data: any, options?: any): void;
-    generateAsync(options: { type: 'blob' }): Promise<Blob>;
-    generateAsync(options: { type: 'uint8array' }): Promise<Uint8Array>;
+    generateAsync(options: { type: "blob" }): Promise<Blob>;
+    generateAsync(options: { type: "uint8array" }): Promise<Uint8Array>;
     generateAsync(options: { type: string }): Promise<any>;
     loadAsync(data: any): Promise<JSZip>;
     forEach(callback: (path: string, file: any) => void): void;
   }
 }
 
-declare module 'exifr' {
+declare module "exifr" {
   interface ExifData {
     DateTimeOriginal?: string;
     CreateDate?: string;
@@ -22,11 +22,14 @@ declare module 'exifr' {
     };
   }
 
-  export function parse(file: File | Blob, options?: { gps?: boolean }): Promise<ExifData>;
+  export function parse(
+    file: File | Blob,
+    options?: { gps?: boolean },
+  ): Promise<ExifData>;
   export default parse;
 }
 
-declare module 'zustand/react/shallow' {
+declare module "zustand/react/shallow" {
   export function useShallow<T, U>(selector: (state: T) => U): (state: T) => U;
 }
 

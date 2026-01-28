@@ -10,12 +10,14 @@
 ## 🚨 Incident Summary
 
 ### What Happened
+
 JWT secrets were accidentally committed to the repository in plain text documentation files:
 
 - `NETLIFY-ADD-THESE.txt` - Contained `JWT_SECRET` value
 - `GITHUB-ADD-THESE.txt` - Contained `REFRESH_TOKEN_SECRET` value
 
 ### How It Was Detected
+
 Netlify's automated secrets scanning blocked the deployment with error:
 
 ```
@@ -27,6 +29,7 @@ Secret env var "JWT_SECRET"'s value detected:
 ```
 
 ### Actual Root Cause
+
 The secrets weren't in `netlify.toml` (which correctly used `${JWT_SECRET}` references), but in the committed reference text files that contained the actual 64-character hex values.
 
 ---
@@ -219,6 +222,7 @@ After updating secrets in Netlify:
 ## 🛡️ Preventive Measures Implemented
 
 ### 1. .gitignore Updated
+
 Added patterns to prevent future secret file commits:
 
 ```gitignore
@@ -230,6 +234,7 @@ GITHUB-ADD-THESE.txt
 ```
 
 ### 2. Secure Template Created
+
 `SECRETS-SETUP-TEMPLATE.md`:
 
 - Shows setup process without exposing secrets
@@ -320,6 +325,6 @@ GITHUB-ADD-THESE.txt
 
 **Incident Status**: ✅ Repository secured, awaiting secret rotation  
 **Next Action**: Follow "Action Required" section above  
-**Priority**: HIGH - Complete within next 2 hours  
+**Priority**: HIGH - Complete within next 2 hours
 
 **Last Updated**: October 2, 2025

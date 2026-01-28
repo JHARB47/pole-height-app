@@ -7,6 +7,7 @@ Five tests experienced timeout failures (timing out at exactly 20 seconds). Thes
 ## Affected Tests
 
 ### 1. App.test.jsx - App Component Test
+
 **Test:** `renders app chrome and loads the calculator lazily`  
 **Duration:** 20,043ms (timeout)  
 **Status:** Skipped
@@ -28,6 +29,7 @@ Five tests experienced timeout failures (timing out at exactly 20 seconds). Thes
 - Lazy component loading not working in jsdom
 
 ### 2-4. useDebounce.test.js - Hook Tests (3 tests)
+
 **Tests:**
 
 - `should debounce value updates`
@@ -48,6 +50,7 @@ Five tests experienced timeout failures (timing out at exactly 20 seconds). Thes
 - `renderHook` + fake timers combination is problematic
 
 ### 5. shapefileFallback.test.js - CDN Fallback Test
+
 **Test:** `returns a Blob when CDN load fails`  
 **Duration:** 20,008ms (timeout)  
 **Status:** Skipped
@@ -73,5 +76,5 @@ Duration: ~1.5-2 seconds
 
 ---
 
-*Created: October 5, 2025*  
-*For detailed analysis see original investigation notes*
+_Created: October 5, 2025_  
+_For detailed analysis see original investigation notes_

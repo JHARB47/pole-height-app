@@ -40,4 +40,4 @@ npm audit
 
 ---
 
-*For full analysis see original report from October 5, 2025*
+_For full analysis see original report from October 5, 2025_

@@ -16,6 +16,7 @@ Preview gating: In Netlify previews/branch deploys, both server and client gate 
 - Client: VITE_DISABLE_PREVIEW_AUTH=true
 
 ## OAuth provider callback URLs
+
 These are the endpoints our server exposes (see `server/config/passport.js` and `server/routes/auth.js`). Use HTTPS in production.
 
 - Google OAuth 2.0
@@ -39,10 +40,11 @@ Notes:
 - Our start endpoints support an optional returnUrl param encoded via OAuth state. Allowed return origins are controlled by env: APP_PRIMARY_DOMAIN, NETLIFY_SITE_BASE, and OAUTH_ALLOWED_ORIGINS.
 
 ## Required environment variables
+
 Server (Netlify)
 
 - JWT_SECRET, REFRESH_TOKEN_SECRET
-- DATABASE_URL or NETLIFY_DATABASE_URL(+_UNPOOLED)
+- DATABASE_URL or NETLIFY_DATABASE_URL(+\_UNPOOLED)
 - APP_PRIMARY_DOMAIN=poleplanpro.com
 - NETLIFY_SITE_BASE=poleplanpro.netlify.app
 - APP_PRIMARY_ORIGIN=https://poleplanpro.com (optional, overrides default)
@@ -58,6 +60,7 @@ Client (Vite build)
 - PREVIEW_DOMAIN_BASE: optional custom preview base (e.g., poleplanpro.com) to surface custom-domain preview links in Check Runs
 
 ## GitHub App setup
+
 Use this to enrich PR previews or enforce repository rules.
 
 1. Create a GitHub App

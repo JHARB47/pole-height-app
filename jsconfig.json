@@ -23,13 +23,6 @@
       "~/*": ["./src/*"]
     }
   },
-  "include": [
-    "src/**/*",
-    "types/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "coverage"
-  ]
+  "include": ["src/**/*", "types/**/*"],
+  "exclude": ["node_modules", "dist", "coverage"]
 }

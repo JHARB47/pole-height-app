@@ -3,7 +3,7 @@
  * Handles administrative operations (RBAC-protected)
  */
 
-import express from 'express';
+import express from "express";
 
 const router = express.Router();
 
@@ -12,19 +12,19 @@ const router = express.Router();
  * @desc    Get all users (admin only)
  * @access  Private (admin, super_admin)
  */
-router.get('/users', async (req, res) => {
+router.get("/users", async (req, res) => {
   try {
     // TODO: Implement user listing
     res.json({
       success: true,
       users: [],
-      message: 'User management endpoint - implementation pending'
+      message: "User management endpoint - implementation pending",
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch users',
-      error: error.message
+      message: "Failed to fetch users",
+      error: error.message,
     });
   }
 });
@@ -34,7 +34,7 @@ router.get('/users', async (req, res) => {
  * @desc    Get application statistics
  * @access  Private (admin, super_admin)
  */
-router.get('/stats', async (req, res) => {
+router.get("/stats", async (req, res) => {
   try {
     // TODO: Implement statistics
     res.json({
@@ -42,15 +42,15 @@ router.get('/stats', async (req, res) => {
       stats: {
         totalUsers: 0,
         totalProjects: 0,
-        activeUsers: 0
+        activeUsers: 0,
       },
-      message: 'Statistics endpoint - implementation pending'
+      message: "Statistics endpoint - implementation pending",
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch statistics',
-      error: error.message
+      message: "Failed to fetch statistics",
+      error: error.message,
     });
   }
 });

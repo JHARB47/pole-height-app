@@ -32,7 +32,7 @@ Check all areas that this PR impacts:
 - [ ] Web view/UI components
 - [ ] Calculations engine
 - [ ] Data handling/storage
-- [ ] Import/export functionality  
+- [ ] Import/export functionality
 - [ ] PDF generation
 - [ ] Geospatial features (KML, Shapefile, GeoJSON)
 - [ ] Permit workflows

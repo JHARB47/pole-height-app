@@ -17,17 +17,17 @@ This guide walks you through setting up GitHub OAuth authentication for PolePlan
 3. Fill in the application details:
 
    **Application name:** `PolePlan Pro` (or your preferred name)
-   
+
    **Homepage URL:**
    - Production: `https://poleplanpro.com`
    - Development: `http://localhost:3000`
-   
+
    **Application description:** `NESC-compliant pole attachment calculations with geospatial capabilities`
-   
+
    **Authorization callback URL:**
    - Production: `https://api.poleplanpro.com/auth/github/callback`
    - Development: `http://localhost:3001/auth/github/callback`
-   
+
    > **Note:** If your API is on a different domain/port, adjust accordingly
 
 4. Click **"Register application"**
@@ -132,7 +132,7 @@ const handleGitHubLogin = () => {
 return (
   <div>
     {/* Existing email/password form */}
-    
+
     <div className="oauth-buttons">
       <button onClick={handleGitHubLogin}>
         <svg><!-- GitHub icon --></svg>
@@ -149,27 +149,27 @@ Create a callback route to handle the redirect from the backend:
 
 ```jsx
 // src/routes/AuthCallback.jsx
-import { useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 export default function AuthCallback() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = searchParams.get('token');
-    const refreshToken = searchParams.get('refresh');
-    
+    const token = searchParams.get("token");
+    const refreshToken = searchParams.get("refresh");
+
     if (token && refreshToken) {
       // Store tokens
-      localStorage.setItem('access_token', token);
-      localStorage.setItem('refresh_token', refreshToken);
-      
+      localStorage.setItem("access_token", token);
+      localStorage.setItem("refresh_token", refreshToken);
+
       // Redirect to dashboard
-      navigate('/dashboard');
+      navigate("/dashboard");
     } else {
       // Handle error
-      navigate('/login?error=oauth_failed');
+      navigate("/login?error=oauth_failed");
     }
   }, [searchParams, navigate]);
 
