@@ -272,6 +272,7 @@ export function StepNavigation({
   const getBadgeTestId = (badge) => {
     const label = badge?.label?.toLowerCase?.();
     if (label === "required") return "step-badge-required";
+    if (label === "recommended") return "step-badge-recommended";
     if (label === "optional") return "step-badge-optional";
     if (label === "complete") return "step-badge-complete";
     return undefined;

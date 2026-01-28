@@ -7,7 +7,10 @@
 
 import React, { useState } from "react";
 import useAppStore from "../utils/store.js";
-import { DELIVERABLE_METADATA } from "../utils/workflowEngine.js";
+import {
+  DELIVERABLE_METADATA,
+  DELIVERABLE_TYPES,
+} from "../utils/workflowEngine.js";
 
 const CATEGORY_LABELS = {
   exports: "Exports & Reports",
@@ -18,6 +21,7 @@ const CATEGORY_LABELS = {
 export default function DeliverablePicker({ compact = false }) {
   const selectedDeliverables = useAppStore((s) => s.selectedDeliverables || []);
   const toggleDeliverable = useAppStore((s) => s.toggleDeliverable);
+  const setWorkflowMode = useAppStore((s) => s.setWorkflowMode);
   const [isExpanded, setIsExpanded] = useState(!compact);
 
   // Group deliverables by category
@@ -52,6 +56,15 @@ export default function DeliverablePicker({ compact = false }) {
     // AI: rationale — switch from implicit "all" mode to explicit selection so users can uncheck items.
     const allIds = Object.values(DELIVERABLE_METADATA).map((d) => d.id);
     useAppStore.getState().setSelectedDeliverables(allIds);
+  };
+
+  const handleQuickWorkflow = () => {
+    const quickDeliverables = [
+      DELIVERABLE_TYPES.GIS_EXPORT,
+      DELIVERABLE_TYPES.CLEARANCE_ANALYSIS,
+    ];
+    useAppStore.getState().setSelectedDeliverables(quickDeliverables);
+    setWorkflowMode("flex");
   };
 
   if (compact && !isExpanded) {
@@ -162,6 +175,20 @@ export default function DeliverablePicker({ compact = false }) {
               Customize Selection
             </button>
           )}
+        </div>
+
+        <div className="mb-4">
+          <button
+            onClick={handleQuickWorkflow}
+            className="btn btn-sm btn-primary"
+            data-testid="deliverable-quick-workflow"
+          >
+            Quick Import → Calc → Export
+          </button>
+          <p className="text-muted mt-2">
+            Recommended for fast GIS + clearance outputs without full workflow
+            gating.
+          </p>
         </div>
 
         {isAllMode && (

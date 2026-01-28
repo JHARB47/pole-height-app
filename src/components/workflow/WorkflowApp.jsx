@@ -88,6 +88,7 @@ function WorkflowAppContent() {
     importedSpans,
     existingLines,
     workflowRequirements,
+    workflowMode,
     selectedDeliverables,
     updateWorkflowRequirements,
     projectName,
@@ -110,6 +111,7 @@ function WorkflowAppContent() {
       importedSpans: s.importedSpans || [],
       existingLines: s.existingLines || [],
       workflowRequirements: s.workflowRequirements,
+      workflowMode: s.workflowMode || "guided",
       selectedDeliverables: s.selectedDeliverables || [],
       updateWorkflowRequirements: s.updateWorkflowRequirements,
       projectName: s.projectName,
@@ -163,12 +165,16 @@ function WorkflowAppContent() {
       const required = workflowRequirements?.requiredSteps?.[stepKey];
       const status = workflowRequirements?.stepCompletionStatus?.[stepKey];
 
+      if (status === "complete") {
+        return { type: "success", label: "Complete" };
+      }
+
       if (required === false) {
         return { type: "default", label: "Optional" };
       }
 
-      if (status === "complete") {
-        return { type: "success", label: "Complete" };
+      if (required === true && workflowMode === "flex") {
+        return { type: "info", label: "Recommended" };
       }
 
       if (required === true) {
@@ -177,7 +183,7 @@ function WorkflowAppContent() {
 
       return undefined;
     },
-    [stepKeyMap, workflowRequirements],
+    [stepKeyMap, workflowRequirements, workflowMode],
   );
 
   const getStepStatus = React.useCallback(
@@ -435,7 +441,9 @@ function WorkflowAppContent() {
           label:
             currentStep?.label && currentStepRequired === false
               ? `${currentStep.label} (Optional)`
-              : currentStep?.label || "",
+              : workflowMode === "flex" && currentStep?.label
+                ? `${currentStep.label} (Recommended)`
+                : currentStep?.label || "",
         }}
         primaryAction={
           <Button variant="primary" size="md" onClick={handleSave}>

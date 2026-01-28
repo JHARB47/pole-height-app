@@ -137,6 +137,18 @@ The application has passed all critical production readiness gates with comprehe
 
 ---
 
+## REACT #185 LOOP FIX (2026-01-27)
+
+### Root Cause
+- `updateWorkflowRequirements()` was invoked from a workflow effect and always wrote a fresh `workflowRequirements` object to the store, even when no inputs changed.
+- This created a repeated render → store write → render cycle on the affected step, manifesting as React error #185 (maximum update depth exceeded).
+
+### Fix
+- Added a deep equality guard so `workflowRequirements` is only written when it actually changes.
+- This removes the render loop while preserving accurate requirement calculation and preflight behavior.
+
+---
+
 ## QUARANTINED TESTS - DOCUMENTATION
 
 **File:** [TEST-QUARANTINE.md](TEST-QUARANTINE.md)

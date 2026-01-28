@@ -19,6 +19,25 @@ import {
   logWorkflowRequirementsUpdated,
 } from "./telemetry.js";
 
+const areArraysEqual = (a = [], b = []) => {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i += 1) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+};
+
+const areWorkflowRequirementsEqual = (a, b) => {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  try {
+    return JSON.stringify(a) === JSON.stringify(b);
+  } catch {
+    return false;
+  }
+};
+
 // Preflight: if persisted state is corrupt JSON or missing required fields, clear it to avoid runtime crash
 function validateStoreState() {
   try {
@@ -607,30 +626,52 @@ const useAppStore = create(
       // ============================================================
       // Workflow Engine State (Deliverable-Based)
       // ============================================================
+      workflowMode: "guided", // "guided" | "flex"
+      setWorkflowMode: (mode) =>
+        set({ workflowMode: mode === "flex" ? "flex" : "guided" }),
       selectedDeliverables: [], // Array of DELIVERABLE_TYPES values
       setSelectedDeliverables: (deliverables) =>
         set((state) => {
           const newDeliverables = Array.isArray(deliverables)
             ? deliverables
             : [];
+          const deliverablesChanged = !areArraysEqual(
+            newDeliverables,
+            state.selectedDeliverables || [],
+          );
           // Recompute workflow requirements when deliverables change
           const workflowRequirements = getWorkflowRequirements({
             selectedDeliverables: newDeliverables,
             jobState: state,
           });
-          // AI: rationale — log deliverable changes for diagnostics.
-          logDeliverablesChanged({ selectedCount: newDeliverables.length });
-          logWorkflowRequirementsUpdated({
-            requiredCount: Object.values(
-              workflowRequirements?.requiredSteps || {},
-            ).filter(Boolean).length,
-            optionalCount: Object.values(
-              workflowRequirements?.requiredSteps || {},
-            ).filter((value) => value === false).length,
-          });
-          return {
-            selectedDeliverables: newDeliverables,
+          const requirementsChanged = !areWorkflowRequirementsEqual(
             workflowRequirements,
+            state.workflowRequirements,
+          );
+          if (!deliverablesChanged && !requirementsChanged) {
+            return {};
+          }
+          if (deliverablesChanged) {
+            // AI: rationale — log deliverable changes for diagnostics.
+            logDeliverablesChanged({ selectedCount: newDeliverables.length });
+          }
+          if (requirementsChanged) {
+            logWorkflowRequirementsUpdated({
+              requiredCount: Object.values(
+                workflowRequirements?.requiredSteps || {},
+              ).filter(Boolean).length,
+              optionalCount: Object.values(
+                workflowRequirements?.requiredSteps || {},
+              ).filter((value) => value === false).length,
+            });
+          }
+          return {
+            selectedDeliverables: deliverablesChanged
+              ? newDeliverables
+              : state.selectedDeliverables,
+            workflowRequirements: requirementsChanged
+              ? workflowRequirements
+              : state.workflowRequirements,
           };
         }),
 
@@ -644,6 +685,14 @@ const useAppStore = create(
             selectedDeliverables: state.selectedDeliverables,
             jobState: state,
           });
+          if (
+            areWorkflowRequirementsEqual(
+              workflowRequirements,
+              state.workflowRequirements,
+            )
+          ) {
+            return {};
+          }
           logWorkflowRequirementsUpdated({
             requiredCount: Object.values(
               workflowRequirements?.requiredSteps || {},
@@ -676,19 +725,27 @@ const useAppStore = create(
             selectedDeliverables: newDeliverables,
             jobState: state,
           });
+          const requirementsChanged = !areWorkflowRequirementsEqual(
+            workflowRequirements,
+            state.workflowRequirements,
+          );
           logDeliverablesChanged({ selectedCount: newDeliverables.length });
-          logWorkflowRequirementsUpdated({
-            requiredCount: Object.values(
-              workflowRequirements?.requiredSteps || {},
-            ).filter(Boolean).length,
-            optionalCount: Object.values(
-              workflowRequirements?.requiredSteps || {},
-            ).filter((value) => value === false).length,
-          });
+          if (requirementsChanged) {
+            logWorkflowRequirementsUpdated({
+              requiredCount: Object.values(
+                workflowRequirements?.requiredSteps || {},
+              ).filter(Boolean).length,
+              optionalCount: Object.values(
+                workflowRequirements?.requiredSteps || {},
+              ).filter((value) => value === false).length,
+            });
+          }
 
           return {
             selectedDeliverables: newDeliverables,
-            workflowRequirements,
+            workflowRequirements: requirementsChanged
+              ? workflowRequirements
+              : state.workflowRequirements,
           };
         }),
 
@@ -875,6 +932,7 @@ const useAppStore = create(
             makeReadyHeight: "makeReadyHeight",
           },
           pdfLayouts: {},
+          workflowMode: "guided",
           selectedDeliverables: [],
           workflowRequirements: null,
         }),

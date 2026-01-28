@@ -51,6 +51,22 @@ describe("Workflow integration", () => {
     expect(optionalBadges.length).toBeGreaterThan(0);
   });
 
+  it("shows recommended badges in flex mode", () => {
+    const {
+      setWorkflowMode,
+      setSelectedDeliverables,
+      updateWorkflowRequirements,
+    } = useAppStore.getState();
+    setWorkflowMode("flex");
+    setSelectedDeliverables([DELIVERABLE_TYPES.GIS_EXPORT]);
+    updateWorkflowRequirements();
+
+    render(<WorkflowApp />);
+
+    const recommendedBadges = screen.getAllByText("Recommended");
+    expect(recommendedBadges.length).toBeGreaterThan(0);
+  });
+
   it("blocks exports when preflight fails and shows diagnostics", () => {
     const { setCollectedPoles } = useAppStore.getState();
     useAppStore
