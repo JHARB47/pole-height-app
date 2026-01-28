@@ -29,4 +29,14 @@ describe("store helpers", () => {
     const second = useAppStore.getState().workflowRequirements;
     expect(second).toBe(first);
   });
+
+  it("does not rewrite workflowRequirements on identical deliverables", () => {
+    useAppStore.getState().reset();
+    const { setSelectedDeliverables } = useAppStore.getState();
+    setSelectedDeliverables([DELIVERABLE_TYPES.GIS_EXPORT]);
+    const first = useAppStore.getState().workflowRequirements;
+    setSelectedDeliverables([DELIVERABLE_TYPES.GIS_EXPORT]);
+    const second = useAppStore.getState().workflowRequirements;
+    expect(second).toBe(first);
+  });
 });

@@ -38,6 +38,14 @@ const areWorkflowRequirementsEqual = (a, b) => {
   }
 };
 
+const isDev =
+  typeof import.meta !== "undefined" &&
+  import.meta.env &&
+  Boolean(import.meta.env.DEV);
+const workflowUpdateLoopTracker = {
+  timestamps: [],
+};
+
 // Preflight: if persisted state is corrupt JSON or missing required fields, clear it to avoid runtime crash
 function validateStoreState() {
   try {
@@ -681,6 +689,31 @@ const useAppStore = create(
       // Call this after state changes that affect data availability
       updateWorkflowRequirements: () =>
         set((state) => {
+          if (isDev) {
+            const now = Date.now();
+            const windowMs = 2000;
+            const maxUpdates = 20;
+            const recent = workflowUpdateLoopTracker.timestamps.filter(
+              (ts) => now - ts <= windowMs,
+            );
+            recent.push(now);
+            workflowUpdateLoopTracker.timestamps = recent;
+            if (recent.length > maxUpdates) {
+              const locationInfo =
+                typeof window !== "undefined" && window.location
+                  ? `${window.location.pathname}${window.location.search}${window.location.hash}`
+                  : "unknown";
+              const stepHint =
+                state.workflowRequirements?.nextSuggestedStep || "unknown";
+              console.warn("workflowRequirements update loop suspected", {
+                route: locationInfo,
+                step: stepHint,
+                selectedDeliverables: state.selectedDeliverables || [],
+                workflowMode: state.workflowMode || "guided",
+                stack: new Error().stack,
+              });
+            }
+          }
           const workflowRequirements = getWorkflowRequirements({
             selectedDeliverables: state.selectedDeliverables,
             jobState: state,
